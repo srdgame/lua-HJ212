@@ -1,54 +1,95 @@
-local simple = require 'hj212.params.simple'
-local tag_info = require 'hj212.tags.info'
+local class = require 'middleclass'
+local datetime = require 'hj212.params.value.datetime'
+local simple = require 'hj212.params.value.simple'
+local tag = require 'hj212.params.value.tag'
 
-local tv = simple:subclass('hj212.params.tag_value')
+local params = class('hj212.params.tag')
 
-local tv.static.DEFAULT_FMT = 'N32'
+local fmts = {}
+local function ES(fmt)
+	local pn = 'hj212.params.tag.ES_'..fmt
 
-local TAGS = tag_info
-local TAGS_FMT = {}
+	if not fmts[fmt] then
+		fmts[fmt] = simple.EASY(pn, fmt)
+	end
 
-local function get_tag_format(name)
-	local p = TAGS_FMT[name]
+	return fmts[fmt]
+end
+
+local TAG_PARAMS = {
+	SampleTime = datetime,
+	Rtd = tag,
+	Min = tag,
+	Avg = tag,
+	Max = tag,
+	ZsRtd = tag,
+	ZsMin = tag,
+	ZsAvg = tag,
+	Flag = ES('C1'),
+	EFlag = ES('C4'),
+	Cou	= tag, -- TODO:
+	Data = ES('N3.1'),
+	DayDate = ES('N3.1'),
+	NightData = ES('N3.1'),
+	Info = info,
+	SN = ES('C24')
+}
+
+function params:initialize(tag_name, obj)
+	self._name = tag_name
+	self._items = {}
+	for k, v in pairs(obj or {}) do
+		self:set(k, v)
+	end
+end
+
+function params:get(name)
+	local p = self._items[name]
 	if p then
-		return p
+		return p:value()
 	end
-
-	local tag = nil
-	for k, v in pairs(TAGS) do
-		if k == name then
-			tag = v
-			break
-		end
-		if string.len(k) == string.len(name) then
-			local km = nil
-			if string.sub(k, -2) == 'xx' then
-				km = string.sub(k, 1, -3)..'(%d%d)'
-			else
-				if string.sub(k, -1) == 'x' then
-					km = string.sub(k, 1, -2)..'(%d)'
-				end
-			end
-			if km then
-				if string.match(name, km) then
-					tag = v
-					break
-				end
-			end
-		end
-	end
-
-	local fmt = (tag and tag.format) and tag.format or tv.DEFAULT_FMT
-	p = simple.EASY('hj212.params.tags.'..name, fmt)
-
-	TAGS_FMT[name] = p
-
-	return p
+	return nil, "Not exists!"
 end
 
-function tv:initialize(name, value)
-	local fmt = get_tag_format(name)
-	base.initialize(name, value, fmt)
+function params:set(name, value)
+	local p = self._items[name]
+	if p then
+		return p:set_value(value)
+	end
+
+	if PARAMS[name] then
+		p = PARAMS[name]:new(name, value)
+	else
+		p = simple:new(name, value, 'N32')
+	end
+	self._items[name] = p
 end
 
-return tv
+function params:encode()
+	local raw = {}
+	local sort = {}
+	for k, v in pairs(self._items) do
+		sort[#sort + 1] = k
+	end
+	table.sort(sort)
+	for _, v in ipairs(sort) do
+		local val = self._items[v]
+		raw[#raw + 1] = string.format('%s-%s=%s', self._name, v, val:encode())
+	end
+	return table.concat(raw, ',')
+end
+
+function params:decode(raw, index)
+	self._items = {}
+
+	for param in string.gmatch(raw, '([^;,]+),?') do
+		local name, key, val = string.match(param, '^([^%-]+)%-([^=]+)=(%w+)')
+		if name == self._name then
+			self:set(key, val)
+		else
+			print('Error tag attr', name, key, val)
+		end
+	end
+end
+
+return params

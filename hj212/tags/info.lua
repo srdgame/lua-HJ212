@@ -1,4 +1,4 @@
-return ={
+return = {
 	{
 		calc_unit = "立方米";
 		desc = "污水";

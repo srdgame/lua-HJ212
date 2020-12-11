@@ -15,6 +15,10 @@ function base:value()
 	return self._value
 end
 
+function base:set_value(value)
+	self._value = value
+end
+
 function base:encode()
 	assert(nil, "Not implemented")
 end

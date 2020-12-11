@@ -64,6 +64,10 @@ function simple:initialize(name, value, fmt)
 	self._format = fmt
 end
 
+function simple:format()
+	return self._format
+end
+
 function simple:encode()
 	local fmt = string.sub(self._format, 1, 1)
 	local parser = assert(parsers[fmt])
@@ -81,8 +85,8 @@ end
 
 simple.static.EASY = function(pn, fmt)
 	local sub = simple:subclass(pn)
-	function sub:initialize(value)
-		simple.initialize(self, fmt)
+	function sub:initialize(name, value)
+		simple.initialize(self, name, value, fmt)
 	end
 	return sub
 end

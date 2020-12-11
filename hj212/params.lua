@@ -73,36 +73,38 @@ function params:set(name, value)
 	self._params[name] = p
 end
 
-function params:add_device(dev)
-	local data_time = datetime:new(dev:timestamp())
+function params:add_device(data_time, dev)
 	local t = self._devs[data_time] or {}
 	table.insert(t, dev)
 	self._devs[data_time] = t
+	self._params['DataTime'] = nil
 end
 
-function params:add_tag(tag)
-	local data_time = datetime:new(dev:timestamp())
+function params:add_tag(data_time, tag)
 	local t = self._tags[data_time] or {}
 	table.insert(t, tag)
 	self._tags[data_time] = t
+	self._params['DataTime'] = nil
 end
 
 function params:encode_devices(base)
 	local data = {}
 	for data_time, devs in pairs(self._devs) do
-		local count = 0
+		local dt_val = datetime:new(data_time)
 
 		local data_sub = copy.deep(base)
-		table.insert(data_sub, string.format('DataTime=%s', data_time))
+		table.insert(data_sub, string.format('DataTime=%s', dt_val))
 
+		local count = 0
 		for i, dev in ipairs(devs) do
 			if count < params.static.DEV_MAX_COUNT then
 				table.insert(data_sub, dev:encode())
+				count = count + 1
 			else
 				if i ~= #devs then
 					table.insert(data, data_sub)
 					data_sub = copy.deep(base)
-					table.insert(data_sub, string.format('DataTime=%s', data_time))
+					table.insert(data_sub, string.format('DataTime=%s', dt_val))
 				end
 			end
 		end

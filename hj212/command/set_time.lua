@@ -1,14 +1,14 @@
 local base = require 'hj212.command.base'
 local types = require 'hj212.types'
 
-local cmd = base:subclass('hj212.command.set_timeout_retry')
+local cmd = base:subclass('hj212.command.set_time')
 
-function cmd:initialize(over_time, re_count)
-	local over_time = over_time or 5
-	local re_count = re_count or 3
-	base.initialize(types.COMMAND.SET_TIMEOUT_RETRY, {
-		Overtime = over_time,
-		ReCount = re_count
+function cmd:initialize(pol_id, system_time)
+	local pol_id = pol_id or 'xxxxx'
+	local system_time = system_time  -- optional
+	base.initialize(types.COMMAND.SET_TIME, {
+		PolId = pol_id,
+		SystemTime = system_time
 	})
 end
 

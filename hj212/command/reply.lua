@@ -3,9 +3,9 @@ local types = require 'hj212.types'
 
 local reply = base:subclass('hj212.command.reply')
 
-function reply:initialize(cmd, result)
+function reply:initialize(result)
 	local result = result or types.REPLY.RUN
-	base.initialize(cmd, {
+	base.initialize(types.COMMAND.REPLY, {
 		QnRtn = result
 	})
 end

@@ -19,10 +19,12 @@ end
 -- TODO: Packet spilit
 function data:encode()
 	local d = date(self.session)
-	local pn = d:fmt(date_fmt) + string.format('%04d', d:getticks()//1000)
 	local flag = (1 << 2 ) + (self._need_ack and 1 or 0)
 
 	local function encode(data, count, cur)
+		-- Hack the session with plus ticks
+		local pn = d:fmt(date_fmt) + string.format('%03d', (d:getticks()//1000 + cur))
+
 		local raw = {}
 		raw[#raw + 1] = string.format('QN=%s', pn)
 		raw[#raw + 1] = string.format('ST=%s', self._sys)

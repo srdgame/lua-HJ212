@@ -16,7 +16,7 @@ local function ES(fmt)
 	return fmts[fmt]
 end
 
-local TAG_PARAMS = {
+local PARAMS = {
 	SampleTime = datetime,
 	Rtd = tag,
 	Min = tag,
@@ -31,8 +31,8 @@ local TAG_PARAMS = {
 	Data = ES('N3.1'),
 	DayDate = ES('N3.1'),
 	NightData = ES('N3.1'),
-	Info = info,
-	SN = ES('C24')
+	SN = ES('C24'),
+	Info = tag,
 }
 
 function params:initialize(tag_name, obj)
@@ -51,7 +51,7 @@ function params:get(name)
 	return nil, "Not exists!"
 end
 
-function params:set(name, value)
+function params:set(name, value, fmt)
 	local p = self._items[name]
 	if p then
 		return p:set_value(value)
@@ -60,7 +60,7 @@ function params:set(name, value)
 	if PARAMS[name] then
 		p = PARAMS[name]:new(name, value)
 	else
-		p = simple:new(name, value, 'N32')
+		p = simple:new(name, value, fmt or 'N32')
 	end
 	self._items[name] = p
 end

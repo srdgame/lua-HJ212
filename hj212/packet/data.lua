@@ -111,5 +111,8 @@ function data:need_ack()
 	return self._need_ack
 end
 
+function data:params()
+	return self._params
+end
 
 return data

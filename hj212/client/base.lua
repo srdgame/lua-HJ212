@@ -4,8 +4,9 @@ local types = require 'hj212.types'
 
 local client = class('hj212.client.base')
 
-function client:initialize(system, passwd, timeout)
+function client:initialize(system, dev_id, passwd, timeout)
 	self._system = system
+	self._dev_id = dev_id
 	self._passwd = passwd
 	self._timeout = (timeout or 10) * 1000
 	self._requests = {}
@@ -13,6 +14,10 @@ end
 
 function client:system()
 	return self._system
+end
+
+function client:device_id()
+	return self._dev_id
 end
 
 function client:passwd()

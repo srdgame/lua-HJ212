@@ -25,7 +25,7 @@ _M.SYSTEM = {
 	REPLY				= 91,
 }
 
-_M.EXEC_RESULT = {
+_M.RESULT = {
 	SUCCESS			= 1,
 	ERR_UNKNOWN		= 2,
 	ERR_CONDITION	= 3,

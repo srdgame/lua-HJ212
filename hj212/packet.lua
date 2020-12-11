@@ -67,8 +67,7 @@ function pack:initialize(...)
 	base.initialize(self, ...)
 end
 
-function pack:encode()
-	local data = base.encode(self)
+function pack:encode_data(data)
 
 	local len = stream.len(data)
 
@@ -81,6 +80,20 @@ function pack:encode()
 	raw[#raw + 1] = pack.static.TAIL
 
 	return table.concat(raw)
+end
+
+function pack:encode()
+	local data = base.encode(self)
+
+	if type(data) == 'string' then
+		return self:encode_data(data)
+	else
+		local raw = {}
+		for i, v in ipairs(data) do
+			raw[#raw + 1] = self:encode_data(v)
+		end
+		return table.concat(raw)
+	end
 end
 
 return pack

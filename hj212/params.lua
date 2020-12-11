@@ -1,4 +1,5 @@
 local class = require 'middleclass'
+local copy = require 'hj212.utils.copy'
 local dtime  require 'hj212.params.value.time'
 local datetime = require 'hj212.params.value.datetime'
 local simple = require 'hj212.params.value.simple'
@@ -6,6 +7,9 @@ local dev_param = require 'hj212.params.device'
 local tag_param = require 'hj212.params.tag'
 
 local params = class('hj212.params')
+
+local params.static.DEV_MAX_COUNT = 128
+local params.static.TAG_MAX_COUNT = 128
 
 local fmts = {}
 local function ES(fmt)
@@ -69,26 +73,100 @@ function params:set(name, value)
 	self._params[name] = p
 end
 
-function params:devices()
-	return self._devs
+function params:add_device(dev)
+	local data_time = datetime:new(dev:timestamp())
+	local t = self._devs[data_time] or {}
+	table.insert(t, dev)
+	self._devs[data_time] = t
 end
 
-function params:tags()
-	return self._tags
+function params:add_tag(tag)
+	local data_time = datetime:new(dev:timestamp())
+	local t = self._tags[data_time] or {}
+	table.insert(t, tag)
+	self._tags[data_time] = t
+end
+
+function params:encode_devices(base)
+	local data = {}
+	for data_time, devs in pairs(self._devs) do
+		local count = 0
+
+		local data_sub = copy.deep(base)
+		table.insert(data_sub, string.format('DataTime=%s', data_time))
+
+		for i, dev in ipairs(devs) do
+			if count < params.static.DEV_MAX_COUNT then
+				table.insert(data_sub, dev:encode())
+			else
+				if i ~= #devs then
+					table.insert(data, data_sub)
+					data_sub = copy.deep(base)
+					table.insert(data_sub, string.format('DataTime=%s', data_time))
+				end
+			end
+		end
+		-- Insert data_sub to data
+		table.insert(data, data_sub)
+	end
+
+	return data
+end
+
+function params:encode_tags(base)
+	local data = {}
+	for data_time, tags in pairs(self._tags) do
+		local count = 0
+
+		local data_sub = copy.deep(base)
+		table.insert(data_sub, string.format('DataTime=%s', data_time))
+
+		for i, tag in ipairs(tags) do
+			if count < params.static.TAG_MAX_COUNT then
+				table.insert(data_sub, tag:encode())
+			else
+				if i ~= #tags then
+					table.insert(data, data_sub)
+					data_sub = copy.deep(base)
+					table.insert(data_sub, string.format('DataTime=%s', data_time))
+				end
+			end
+		end
+		-- Insert data_sub to data
+		table.insert(data, data_sub)
+	end
+
+	return data
 end
 
 function params:encode()
-	local raw = {}
+	--- Sort the base keys
 	local sort = {}
 	for k, v in pairs(self._params) do
 		sort[#sort + 1] = k
 	end
 	table.sort(sort)
+
+	local raw = {}
 	for _, v in ipairs(sort) do
 		local val = self._params[v]
 		raw[#raw + 1] = string.format('%s=%s', v, val:encode())
 	end
-	return table.concat(raw, ',')
+
+	local devs = self:encode_devices(raw)
+	local tags = self:encode_tags(raw)
+	if #devs == 0 and #tags == 0 then
+		return table.concat(raw, ';')
+	else
+		local data = {}
+		for _, v in ipairs(devs) do
+			table.insert(data, v)
+		end
+		for _, v in ipairs(tags) do
+			table.insert(data, v)
+		end
+		return data
+	end
 end
 
 function params:decode(raw, index)

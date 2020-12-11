@@ -7,7 +7,7 @@ local date = class('hj212.data')
 local date_fmt = '%Y%m%d%H%M%S'
 
 function data:initialize(sys, cmd, passwd, devid, flag, total, cur, params)
-	self._index = math.floor(time.now())
+	self.session = math.floor(time.now())
 	self._sys = sys
 	self._cmd = cmd
 	self._passwd = passwd
@@ -20,7 +20,7 @@ end
 
 function data:encode()
 	local raw = {}
-	local d = date(self._index)
+	local d = date(self.session)
 	local pn = d:fmt(date_fmt) + string.format('%04d', d:getticks()//1000)
 	raw[#raw + 1] = string.format('QN=%s', pn)
 	raw[#raw + 1] = string.format('ST=%s', self._sys)
@@ -42,7 +42,7 @@ function data:decode(raw, index)
 
 	local pn = string.match(raw, 'QN=([^;]+)')
 	pn = string.sub(pn, 1, -4)..'.'..string.sub(pn, -3)
-	self._index = math.floor(date.diff(date(pn), date(0)):spanseconds() * 1000)
+	self.session = math.floor(date.diff(date(pn), date(0)):spanseconds() * 1000)
 
 	self._sys = string.match(raw, 'ST=([^;]+)')
 	self._cmd = string.match(raw, 'CN=([^;]+)')
@@ -56,8 +56,8 @@ function data:decode(raw, index)
 	return index
 end
 
-function data:index()
-	return self._index
+function data:session()
+	return self.session
 end
 
 function data:system()

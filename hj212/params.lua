@@ -3,7 +3,7 @@ local copy = require 'hj212.utils.copy'
 local dtime  require 'hj212.params.value.time'
 local datetime = require 'hj212.params.value.datetime'
 local simple = require 'hj212.params.value.simple'
-local dev_param = require 'hj212.params.device'
+local dev_param = require 'hj212.params.treatment'
 local tag_param = require 'hj212.params.tag'
 
 local params = class('hj212.params')

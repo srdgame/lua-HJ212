@@ -1,7 +1,7 @@
 local class = require 'middleclass'
 local simple = require 'hj212.params.simple'
 
-local device = class('hj212.params.device')
+local device = class('hj212.params.treatment')
 
 local fmts = {}
 local function ES(fmt)

@@ -1,5 +1,5 @@
 local types = require 'hj212.types'
-local command = require 'hj212.command.status_start'
+local command = require 'hj212.command.treatment_start'
 local base = require 'hj212.request.base'
 
 local req = base:subclass('hj212.request.upload_status')

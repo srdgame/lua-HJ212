@@ -10,6 +10,9 @@ function client:initialize(system, dev_id, passwd, timeout)
 	self._passwd = passwd
 	self._timeout = (timeout or 10) * 1000
 	self._requests = {}
+
+	self._meters = {}
+	self._treatment = {}
 end
 
 function client:system()
@@ -34,6 +37,33 @@ end
 
 function client:set_timeout(timeout)
 	self._timeout = timeout
+end
+
+function client:add_meter(meter)
+	self._meters[meter:sn()] = meter
+end
+
+function client:get_meter(sn)
+	assert(sn ~= nil)
+	return self._meters[sn]
+end
+
+function client:find_meter_sn(tag_name)
+	for k, v in pairs(self._meters) do
+		if v:has_tag(tag_name) then
+			return k
+		end
+	end
+	return nil, "Not found"
+end
+
+function client:add_treatment(treatment)
+	self._treatments[treatment:id()] = treatment
+end
+
+function client:get_treatement(id)
+	assert(id ~= nil)
+	return self._treatments[id]
 end
 
 function client:connect(host, port)

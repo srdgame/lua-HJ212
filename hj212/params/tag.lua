@@ -35,6 +35,8 @@ local PARAMS = {
 	Info = tag,
 }
 
+params.static.PARAMS = PARAMS
+
 function params:initialize(tag_name, obj)
 	self._name = tag_name
 	self._items = {}

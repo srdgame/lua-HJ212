@@ -43,6 +43,8 @@ local PARAMS = {
 	InfoId = ES('C6'),
 }
 
+params.static.PARAMS = PARAMS
+
 function params:initialize(obj)
 	self._devs = {}
 	self._tags = {}

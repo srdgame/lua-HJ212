@@ -6,7 +6,7 @@ local cmd = base:subclass('hj212.command.limit_keep')
 function cmd:initialize(timestamp, vase_no)
 	local timestamp = timestamp or nil -- optional
 	local vese_no = vese_no or nil
-	base.initialize(types.COMMAND.LIMIT_KEEP, {
+	base.initialize(types.COMMAND.OVERPROOF, {
 		DataTime = timestamp,
 		VeseNo = vese_no
 	})

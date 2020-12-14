@@ -28,6 +28,8 @@ local PARAMS = {
 	RT = ES('N2.2'),
 }
 
+device.static.PARAMS = PARAMS
+
 function device:initialize(dev_name, obj)
 	self._name = dev_name
 	self._items = {}

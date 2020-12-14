@@ -1,8 +1,8 @@
 local types = require 'hj212.types'
-local command = require 'hj212.command.hour_data'
+local command = require 'hj212.command.get_meter_sn'
 local base = require 'hj212.request.base'
 
-local req = base:subclass('hj212.request.upload_hour_data')
+local req = base:subclass('hj212.request.upload_meter_sn')
 
 function req:initialize(need_ack, tags)
 	local cmd = command:new()

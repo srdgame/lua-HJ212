@@ -7,21 +7,26 @@ local req = class('hj212.request.base')
 
 local finder = pfinder(types.COMMAND, 'hj212.command')
 
-function req:initialize(client, command, need_ack)
-	self._client = client
-	self._command = command
+function req:initialize(need_ack, command)
 	self._need_ack = need_ack
+	self._command = command
 end
 
-function req:encode()
-	local sys = client:system()
-	local passwd = client:passwd()
-	local devid = client:device_id()
+function req:need_ack()
+	return self._need_ack
+end
+
+function req:command()
+	return self._command
+end
+
+function req:encode(client)
+	assert(client.sys and client.passwd and client.devid, 'Attribute missing')
 
 	local cmd = self._command:command()
 	local params = self._command:encode()
 
-	return packet:new(sys, cmd, passwd, devid, self._need_ack, params)
+	return packet:new(client.sys, cmd, client.passwd, client.devid, self._need_ack, params)
 end
 
 function req:decode(packet)
@@ -37,6 +42,12 @@ function req:decode(packet)
 	self._command = obj
 
 	self._need_ack = packet:need_ack()
+
+	return {
+		sys = packet:system(),
+		passwd = packet:passwd(),
+		devid = packet:device_id()
+	}
 end
 
 return req

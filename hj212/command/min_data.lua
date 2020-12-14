@@ -3,10 +3,10 @@ local types = require 'hj212.types'
 
 local cmd = base:subclass('hj212.command.min_data')
 
-function cmd:initialize(timestamp, begin_time, end_time)
-	local timestamp = timestamp or nil -- optional
+function cmd:initialize(data_time, begin_time, end_time)
+	local data_time = data_time or os.time()
 	base.initialize(types.COMMAND.MIN_DATA, {
-		DataTime = timestamp,
+		DataTime = data_time,
 		BeginTime = begin_time,
 		EndTime = end_time,
 	})

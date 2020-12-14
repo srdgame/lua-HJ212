@@ -3,10 +3,10 @@ local types = require 'hj212.types'
 
 local cmd = base:subclass('hj212.command.uptime')
 
-function cmd:initialize(timestamp, restart_time)
-	local timestamp = timestamp or nil -- optional
+function cmd:initialize(data_time, restart_time)
+	local data_time = data_time or os.time()
 	base.initialize(types.COMMAND.UPTIME, {
-		DataTime = timestamp,
+		DataTime = data_time,
 		RestartTime = restart_time,
 	})
 end

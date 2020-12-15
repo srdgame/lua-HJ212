@@ -7,6 +7,9 @@ local date = class('hj212.data')
 local date_fmt = '%Y%m%d%H%M%S'
 
 function data:initialize(sys, cmd, passwd, devid, need_ack, params)
+	assert(string.len(passwd) == 6)
+	assert(string.len(devid) == 24)
+	assert(sys >= 0 and sys <= 99)
 	self.session = math.floor(time.now())
 	self._sys = sys
 	self._cmd = cmd
@@ -27,8 +30,8 @@ function data:encode()
 
 		local raw = {}
 		raw[#raw + 1] = string.format('QN=%s', pn)
-		raw[#raw + 1] = string.format('ST=%s', self._sys)
-		raw[#raw + 1] = string.format('CN=%s', self._cmd)
+		raw[#raw + 1] = string.format('ST=%02d', self._sys)
+		raw[#raw + 1] = string.format('CN=%04d', self._cmd)
 		raw[#raw + 1] = string.format('PW=%s', self._passwd)
 		raw[#raw + 1] = string.format('MN=%s', self._devid)
 
@@ -68,8 +71,8 @@ function data:decode(raw, index)
 	pn = string.sub(pn, 1, -4)..'.'..string.sub(pn, -3)
 	self.session = math.floor(date.diff(date(pn), date(0)):spanseconds() * 1000)
 
-	self._sys = string.match(raw, 'ST=([^;]+)')
-	self._cmd = string.match(raw, 'CN=([^;]+)')
+	self._sys = tonumber(string.match(raw, 'ST=(%d+)'))
+	self._cmd = tonumber(string.match(raw, 'CN=(%d+)'))
 	self._passwd = string.match(raw, 'PW=([^;]+)')
 	self._devid = string.match(raw, 'MN=([^;]+)')
 	local flag = tonumber(string.match(raw, 'Flag=(%d+)'))

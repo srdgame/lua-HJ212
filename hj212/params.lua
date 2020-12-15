@@ -5,11 +5,11 @@ local datetime = require 'hj212.params.value.datetime'
 local simple = require 'hj212.params.value.simple'
 local dev_param = require 'hj212.params.treatment'
 local tag_param = require 'hj212.params.tag'
+local settings = require 'hj212.settings'
 
 local params = class('hj212.params')
 
-local params.static.DEV_MAX_COUNT = 128
-local params.static.TAG_MAX_COUNT = 128
+local max_packet_len = settings.MAX_PACKET_LEN or 1024
 
 local fmts = {}
 local function ES(fmt)
@@ -97,17 +97,20 @@ function params:encode_devices(base)
 		local data_sub = copy.deep(base)
 		table.insert(data_sub, string.format('DataTime=%s', dt_val))
 
-		local count = 0
+		local len = string.len(table.concat(data_sub, ';'))
 		for i, dev in ipairs(devs) do
-			if count < params.static.DEV_MAX_COUNT then
-				table.insert(data_sub, dev:encode())
-				count = count + 1
+			local dev_data = dev:encode()
+			len = len + string.len(dev_data) + 1
+
+			if len < max_packet_len then
+				table.insert(data_sub, dev_data)
 			else
-				if i ~= #devs then
-					table.insert(data, data_sub)
-					data_sub = copy.deep(base)
-					table.insert(data_sub, string.format('DataTime=%s', dt_val))
-				end
+				table.insert(data, data_sub)
+				data_sub = copy.deep(base)
+				table.insert(data_sub, string.format('DataTime=%s', dt_val))
+
+				len = string.len(table.concat(data_sub, ';')) + string.len(dev_data) + 1
+				table.insert(data_sub, dev_data)
 			end
 		end
 		-- Insert data_sub to data
@@ -120,20 +123,24 @@ end
 function params:encode_tags(base)
 	local data = {}
 	for data_time, tags in pairs(self._tags) do
-		local count = 0
 
 		local data_sub = copy.deep(base)
 		table.insert(data_sub, string.format('DataTime=%s', data_time))
 
+		local len = string.len(table.concat(data_sub, ';'))
 		for i, tag in ipairs(tags) do
-			if count < params.static.TAG_MAX_COUNT then
-				table.insert(data_sub, tag:encode())
+			local tag_data = tag:encode()
+			len = len + string.len(tag_data) + 1
+
+			if len > max_packet_len then
+				table.insert(data_sub, tag_data)
 			else
-				if i ~= #tags then
-					table.insert(data, data_sub)
-					data_sub = copy.deep(base)
-					table.insert(data_sub, string.format('DataTime=%s', data_time))
-				end
+				table.insert(data, data_sub)
+				data_sub = copy.deep(base)
+				table.insert(data_sub, string.format('DataTime=%s', data_time))
+
+				len = string.len(table.concat(data_sub, ';')) + string.len(tag_data) + 1
+				table.insert(data, tag_data)
 			end
 		end
 		-- Insert data_sub to data

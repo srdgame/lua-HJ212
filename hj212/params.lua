@@ -189,7 +189,7 @@ function params:decode(raw, index)
 
 	for param in string.gmatch(raw, '([^;]+);?') do
 		local key, val = string.match(param, '^([^=]+)=(%w+)')
-		print(key, val)
+		print("PARAMS", key, val)
 		if PARAMS[key] then
 			self:set(key, val)
 		else

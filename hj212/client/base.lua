@@ -52,12 +52,16 @@ function client:timeout()
 	return self._timeout
 end
 
+function client:set_timeout(timeout)
+	self._timeout = timeout
+end
+
 function client:retry()
 	return self._retry
 end
 
-function client:set_timeout(timeout)
-	self._timeout = timeout
+function client:set_retry(retry)
+	self._retry = retry
 end
 
 function client:add_meter(meter)
@@ -88,10 +92,9 @@ function client:get_treatement(id)
 end
 
 function client:request(request, response)
-	local session = request:session()
+	local response = response or function() end
 
-	local rdata = self:encode_packet(request)
-	local resp, err = self:send(session, rdata)
+	local resp, err = self:send_request(request)
 	if resp then
 		return response(resp)
 	else
@@ -106,7 +109,7 @@ function client:find_handler(cmd)
 
 	local handler, err = command_finder(cmd)
 	if not handler then
-		self.log('error', err)
+		self:log('error', err)
 		return nil, err
 	end
 	local h = handler:new(self)
@@ -126,9 +129,9 @@ function client:on_request(request)
 	end
 
 	if handler then
-		local r, err = handler(request)
+		local result, err = handler(request)
 		if request:need_ack() then
-			self:send_result(r and types.RESULT.SUCCESS or types.RESULT.UNKNOWN)
+			self:send_result(result and types.RESULT.SUCCESS or types.RESULT.ERR_UNKNOWN)
 		end
 	end
 end
@@ -140,7 +143,7 @@ function client:process(raw_data)
 		print('CRC Error Data Found')
 	end)
 
-	if string.len(buf) > 0 then
+	if buf and string.len(buf) > 0 then
 		self._process_buf = buf
 	else
 		self._process_buf = nil
@@ -163,33 +166,36 @@ function client:send(session, raw_data, timeout)
 	assert(nil, 'Not implemented')
 end
 
-function client:encode_packet(pack)
-	local r, data = pcall(pack.encode, pack, {
+function client:send_request(request)
+	local r, pack = pcall(request.encode, request, {
 		sys = self._system,
 		passwd = self._passwd,
 		devid = self._dev_id
 	})
+
 	if r then
-		if type(data) == 'string' then
-			return data
+		if pack:need_ack() then
+			return self:send(pack:session(), pack:encode())
+		else
+			return self:send_nowait(pack:encode())
 		end
-		return data:encode()
 	else
-		self:log('error', data or 'EEEEEEEEEEEEEE')
-		return '\r\n'
+		self:log('error', pack or 'EEEEEEEEEEEEEE')
 	end
 end
 
 function client:send_reply(reply_status)
 	local reply = require 'hj212.reply.reply'
 	local resp = reply:new(reply_status)
-	return self:send_nowait(self:encode_packet(resp))
+	self:log('debug', "Sending reply", reply_status)
+	return self:send_request(resp)
 end
 
 function client:send_result(result_status)
 	local result = require 'hj212.reply.result'
 	local resp = result:new(result_status)
-	return self:send_nowait(self:encode_packet(resp))
+	self:log('debug', "Sending result", result_status)
+	return self:send_request(resp)
 end
 
 function client:send_nowait(raw_data)

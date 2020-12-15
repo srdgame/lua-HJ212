@@ -29,7 +29,7 @@ function pack.static.parse(raw, index, on_crc_err)
 	--print(data_len, raw_len, index)
 	if data_len + 12 > raw_len - index + 1 then
 		if index ~= 1 then
-			return nil, string.sub(raw, index), 'Data not enougth'
+			return nil, string.sub(raw, index), 'Data not enougth. data_len'..data_len..' raw_len'..raw_len
 		end
 		return nil, raw, 'Data not enough'
 	end

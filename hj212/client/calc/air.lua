@@ -2,10 +2,7 @@ local base = require 'hj212.client.calc.base'
 
 local air = base:subclass('hj212.client.calc.air')
 
-function air:initialize(cems, g_mol)
-	self._cems = cems
-	self._g_mol = g_mol or 22.4
-
+function air:initialize()
 	self._start = os.time()
 	self._last = os.time()
 	self._last_avg = nil
@@ -17,35 +14,6 @@ function air:initialize(cems, g_mol)
 	self._day = nil
 
 	self._waiting = {}
-end
-
-function air:to_Csn(Cs)
-	if not self._cems then
-		return Cs
-	end
-
-	local Ba = self._cems:Ba()
-	local Ps = self._cems:Ps()
-	local Ts = self._cems:Ts()
-
-	return Cs * (101325 / (Ba + Ps)) * ((273 + Ts) / 273)
-end
-
-function air:to_DryC(Cd)
-	local Xsw = self._cems:Xsw()
-	if not Xsw then
-		return Cd
-	else
-		return Cd / (1 - Xsw)
-	end
-end
-
-function air:toCq(Cv)
-	return (self._g_mol / 22.4) * Cv
-end
-
-function air:toCnox(Cno, Cno2)
-	return Cno * (Mno2/Mno) + Cno2
 end
 
 function air:set_value(value, timestamp, quality)

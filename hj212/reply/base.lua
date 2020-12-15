@@ -21,7 +21,9 @@ function resp:need_ack()
 end
 
 function resp:encode(client)
-	assert(client.sys and client.passwd and client.devid, 'Attribute missing')
+	assert(client.sys, "System code missing")
+	assert(client.passwd, "Password missing")
+	assert(client.devid, 'Device ID missing')
 
 	local cmd = self._command:command()
 	local params = self._command:encode()

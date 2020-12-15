@@ -5,7 +5,7 @@ local cmd = base:subclass('hj212.command.day_data')
 
 function cmd:initialize(data_time, begin_time, end_time)
 	local data_time = data_time or os.time()
-	base.initialize(types.COMMAND.DAY_DATA, {
+	base.initialize(self, types.COMMAND.DAY_DATA, {
 		DataTime = data_time,
 		BeginTime = begin_time,
 		EndTime = end_time,

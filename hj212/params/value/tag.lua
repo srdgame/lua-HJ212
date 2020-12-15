@@ -1,10 +1,10 @@
-local simple = require 'hj212.params.simple'
-local datetime = require 'hj212.params.datetime'
+local simple = require 'hj212.params.value.simple'
+local datetime = require 'hj212.params.value.datetime'
 local tag_info = require 'hj212.tags.info'
 
-local tv = simple:subclass('hj212.params.tag')
+local tv = simple:subclass('hj212.params.value.tag')
 
-local tv.static.DEFAULT_FMT = 'N32'
+tv.static.DEFAULT_FMT = 'N32'
 
 local TAGS = tag_info
 local TAGS_FMT = {}

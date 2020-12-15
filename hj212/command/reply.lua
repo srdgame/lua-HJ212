@@ -5,7 +5,7 @@ local reply = base:subclass('hj212.command.reply')
 
 function reply:initialize(result)
 	local result = result or types.REPLY.RUN
-	base.initialize(types.COMMAND.REPLY, {
+	base.initialize(self, types.COMMAND.REPLY, {
 		QnRtn = result
 	})
 end

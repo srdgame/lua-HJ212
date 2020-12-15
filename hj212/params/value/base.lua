@@ -1,6 +1,6 @@
 local class = require 'middleclass'
 
-local base = class('hj212.params.base')
+local base = class('hj212.params.value.base')
 
 function base:initialize(name, value)
 	self._name = name

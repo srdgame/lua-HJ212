@@ -1,16 +1,14 @@
 local class = require 'middleclass'
 local date = require 'date' -- date module for encoding/decoding
-local time = require 'hj212.time'
+local time = require 'hj212.utils.time'
+local params = require 'hj212.params'
 
-local date = class('hj212.data')
+local data = class('hj212.data')
 
 local date_fmt = '%Y%m%d%H%M%S'
 
 function data:initialize(sys, cmd, passwd, devid, need_ack, params)
-	assert(string.len(passwd) == 6)
-	assert(string.len(devid) == 24)
-	assert(sys >= 0 and sys <= 99)
-	self.session = math.floor(time.now())
+	self._session = math.floor(time.now())
 	self._sys = sys
 	self._cmd = cmd
 	self._passwd = passwd
@@ -21,12 +19,16 @@ end
 
 -- TODO: Packet spilit
 function data:encode()
-	local d = date(self.session)
+	assert(string.len(self._passwd) == 6)
+	assert(string.len(self._devid) == 24)
+	assert(self._sys >= 0 and self._sys <= 99)
+
+	local d = date(self._session)
 	local flag = (1 << 2 ) + (self._need_ack and 1 or 0)
 
 	local function encode(data, count, cur)
 		-- Hack the session with plus ticks
-		local pn = d:fmt(date_fmt) + string.format('%03d', (d:getticks()//1000 + cur))
+		local pn = d:fmt(date_fmt) + string.format('%03d', (d:getticks()//1000 + (cur or 0)))
 
 		local raw = {}
 		raw[#raw + 1] = string.format('QN=%s', pn)
@@ -41,9 +43,7 @@ function data:encode()
 			raw[#raw + 1] = string.format('PNO=%d', cur)
 		end
 
-		raw[#raw + 1] = 'CP=&&'
-		raw[#raw + 1] = data
-		raw[#raw + 1] = '&&'
+		raw[#raw + 1] = string.format('CP=&&%s&&', data)
 		return table.concat(raw, ';')
 	end
 
@@ -62,14 +62,14 @@ function data:encode()
 end
 
 function data:decode(raw, index)
-	local head, params, index = string.match(raw, '^(.-)CP=&&(.-)&&()', index)
-	if not head or not params then
+	local head, params_data, index = string.match(raw, '^(.-)CP=&&(.-)&&()', index)
+	if not head or not params_data then
 		return nil, "Invalid packet data"
 	end
 
 	local pn = string.match(raw, 'QN=([^;]+)')
 	pn = string.sub(pn, 1, -4)..'.'..string.sub(pn, -3)
-	self.session = math.floor(date.diff(date(pn), date(0)):spanseconds() * 1000)
+	self._session = math.floor(date.diff(date(pn), date(0)):spanseconds() * 1000)
 
 	self._sys = tonumber(string.match(raw, 'ST=(%d+)'))
 	self._cmd = tonumber(string.match(raw, 'CN=(%d+)'))
@@ -86,12 +86,15 @@ function data:decode(raw, index)
 		local cur = string.match(raw, 'PNO=(%d+)')
 	end
 
-	self._params:deocde(params)
+	if not self._params then
+		self._params = params:new()
+	end
+	self._params:decode(params_data)
 	return index
 end
 
 function data:session()
-	return self.session
+	return self._session
 end
 
 function data:system()

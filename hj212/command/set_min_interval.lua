@@ -5,7 +5,7 @@ local cmd = base:subclass('hj212.command.set_min_interval')
 
 function cmd:initialize(interval)
 	local interval = interval or 30
-	base.initialize(types.COMMAND.SET_MIN_INTERVAL, {
+	base.initialize(self, types.COMMAND.SET_MIN_INTERVAL, {
 		MinInterval = interval
 	})
 end

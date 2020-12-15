@@ -9,7 +9,7 @@ function req:initialize(tags, need_ack)
 	for i, v in ipairs(tags or {}) do
 		cmd:add_tag(v:data_time(), v)
 	end
-	base.initialize(cmd, need_ack)
+	base.initialize(self, cmd, need_ack)
 end
 
 return req

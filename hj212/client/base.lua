@@ -1,18 +1,35 @@
 local class = require 'middleclass'
 local packet = require 'hj212.packet'
 local types = require 'hj212.types'
+local pfinder = require 'hj212.utils.pfinder'
 
 local client = class('hj212.client.base')
 
-function client:initialize(system, dev_id, passwd, timeout)
+local command_finder = pfinder(types.COMMAND, 'hj212.client.handler')
+
+function client:initialize(system, dev_id, passwd, timeout, retry)
+	assert(system and dev_id and passwd)
 	self._system = system
 	self._dev_id = dev_id
 	self._passwd = passwd
 	self._timeout = (timeout or 10) * 1000
-	self._requests = {}
+	self._retry = retry or 3
 
 	self._meters = {}
 	self._treatment = {}
+
+	self._process_buf = nil
+	self._handlers = {}
+end
+
+function client:set_logger(log)
+	self._log = log
+end
+
+function client:log(level, ...)
+	if self._log then
+		self._log[level](self._log, ...)
+	end
 end
 
 function client:system()
@@ -33,6 +50,10 @@ end
 
 function client:timeout()
 	return self._timeout
+end
+
+function client:retry()
+	return self._retry
 end
 
 function client:set_timeout(timeout)
@@ -66,67 +87,120 @@ function client:get_treatement(id)
 	return self._treatments[id]
 end
 
-function client:connect(host, port)
-	assert(nil, 'Not implemented')
-end
-
 function client:request(request, response)
 	local session = request:session()
-	if self._requests[session] then
-		return nil, "Duplicated session found. "..session
+
+	local rdata = self:encode_packet(request)
+	local resp, err = self:send(session, rdata)
+	if resp then
+		return response(resp)
+	else
+		return response(nil, err)
+	end
+end
+
+function client:find_handler(cmd)
+	if self._handlers[cmd] then
+		return self._handlers[cmd]
 	end
 
-	self._requests[session] = {
-		req = request,
-		resp = response,
-		timeout = nil --- TIMEOUT 
-	}
+	local handler, err = command_finder(cmd)
+	if not handler then
+		self.log('error', err)
+		return nil, err
+	end
+	local h = handler:new(self)
 
-	return self:send(request:encode())
+	self._handlers[cmd] = h
+
+	return h
 end
 
 function client:on_request(request)
-	-- TODO:
+	self:log('debug', 'Process request', request:session(), request:command())
+	local cmd = request:command()
+	local handler = self:find_handler(cmd)
+
+	if request:need_ack() then
+		self:send_reply(handler and types.REPLY.RUN or types.REPLY.REJECT)
+	end
+
+	if handler then
+		local r, err = handler(request)
+		if request:need_ack() then
+			self:send_result(r and types.RESULT.SUCCESS or types.RESULT.UNKNOWN)
+		end
+	end
 end
 
 function client:process(raw_data)
-	local buf = self._buf and self._buf..raw_data or raw_data
+	local buf = self._process_buf and self._process_buf..raw_data or raw_data
 
-	local p, buf = packet.static.parse(buf, 1, function(bad_raw)
-		-- TODO:
+	local p, buf, err = packet.static.parse(buf, 1, function(bad_raw)
 		print('CRC Error Data Found')
 	end)
 
 	if string.len(buf) > 0 then
-		self._buf = buf
+		self._process_buf = buf
+	else
+		self._process_buf = nil
 	end
 
 	if not p then
-		return
+		return nil, err or 'Not enough data'
 	end
 
-	local session = p:session()
-
-	--- Session unique????
-	local req = self._request[session]
-	if req and req:system() == types.SYSTEM.REPLY then
-		print('On reply', p:session())
-		local r, err = req.resp(p)
+	if p:system() == types.SYSTEM.REPLY then
+		self:log('debug', 'On reply', p:session(), p:command())
+		return p, true
 	else
-		print('On request', p:session())
-		local r, err = self:on_request(p)
+		self:log('debug', 'On request', p:session(), p:command())
+		return p, false
 	end
 end
 
-function client:send(raw_data)
+function client:send(session, raw_data, timeout)
 	assert(nil, 'Not implemented')
 end
 
-function client:start()
+function client:encode_packet(pack)
+	local r, data = pcall(pack.encode, pack, {
+		sys = self._system,
+		passwd = self._passwd,
+		devid = self._dev_id
+	})
+	if r then
+		if type(data) == 'string' then
+			return data
+		end
+		return data:encode()
+	else
+		self:log('error', data or 'EEEEEEEEEEEEEE')
+		return '\r\n'
+	end
+end
+
+function client:send_reply(reply_status)
+	local reply = require 'hj212.reply.reply'
+	local resp = reply:new(reply_status)
+	return self:send_nowait(self:encode_packet(resp))
+end
+
+function client:send_result(result_status)
+	local result = require 'hj212.reply.result'
+	local resp = result:new(result_status)
+	return self:send_nowait(self:encode_packet(resp))
+end
+
+function client:send_nowait(raw_data)
 	assert(nil, 'Not implemented')
 end
 
-function client:stop()
+function client:connect()
+	assert(nil, 'Not implemented')
+end
+
+function client:close()
 	assert(nil, 'Not implemented')
 end
 

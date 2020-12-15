@@ -7,7 +7,7 @@ function cmd:initialize(pol_id, c_start_time, c_time)
 	local pol_id = pol_id or 'xxxxx'
 	local c_start_time = c_start_time or 0
 	local c_time = c_time or 2
-	base.initialize(types.COMMAND.SET_SAMPLE_INTERVAL, {
+	base.initialize(self, types.COMMAND.SET_SAMPLE_INTERVAL, {
 		PolId = pol_id,
 		CstartTime = c_start_time,
 		Ctime = c_time,

@@ -4,7 +4,7 @@ local types = require 'hj212.types'
 local cmd = base:subclass('hj212.command.treatment_start')
 
 function cmd:initialize()
-	base.initialize(types.COMMAND.TREATMENT_START, {})
+	base.initialize(self, types.COMMAND.TREATMENT_START, {})
 end
 
 return cmd

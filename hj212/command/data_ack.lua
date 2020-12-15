@@ -4,7 +4,7 @@ local types = require 'hj212.types'
 local reply = base:subclass('hj212.command.data_ack')
 
 function reply:initialize()
-	base.initialize(types.COMMAND.DATA_ACK, {})
+	base.initialize(self, types.COMMAND.DATA_ACK, {})
 end
 
 return reply

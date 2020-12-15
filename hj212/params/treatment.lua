@@ -1,5 +1,5 @@
 local class = require 'middleclass'
-local simple = require 'hj212.params.simple'
+local simple = require 'hj212.params.value.simple'
 
 local device = class('hj212.params.treatment')
 

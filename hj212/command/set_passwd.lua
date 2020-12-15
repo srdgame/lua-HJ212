@@ -5,7 +5,7 @@ local cmd = base:subclass('hj212.command.set_passwd')
 
 function cmd:initialize(passwd)
 	local passwd = passwd or '123456'
-	base.initialize(types.COMMAND.SET_PASSWD, {
+	base.initialize(self, types.COMMAND.SET_PASSWD, {
 		NewPW = passwd
 	})
 end

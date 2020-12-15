@@ -32,7 +32,7 @@ if not f then
 	print(err)
 end
 
-f:write('return = ')
+f:write('return ')
 f:write(str)
 f:close()
 

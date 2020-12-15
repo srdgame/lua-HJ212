@@ -4,7 +4,7 @@ local types = require 'hj212.types'
 local reply = base:subclass('hj212.command.notice')
 
 function reply:initialize()
-	base.initialize(types.COMMAND.NOTICE, {})
+	base.initialize(self, types.COMMAND.NOTICE, {})
 end
 
 return reply

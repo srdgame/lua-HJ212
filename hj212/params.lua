@@ -48,8 +48,9 @@ params.static.PARAMS = PARAMS
 function params:initialize(obj)
 	self._devs = {}
 	self._tags = {}
-	for k, v in pairs(obj) do
-		sefl:set(k, v)
+	self._params = {}
+	for k, v in pairs(obj or {}) do
+		self:set(k, v)
 	end
 end
 
@@ -161,6 +162,7 @@ function params:encode()
 	local raw = {}
 	for _, v in ipairs(sort) do
 		local val = self._params[v]
+		--print(v, val)
 		raw[#raw + 1] = string.format('%s=%s', v, val:encode())
 	end
 
@@ -187,6 +189,7 @@ function params:decode(raw, index)
 
 	for param in string.gmatch(raw, '([^;]+);?') do
 		local key, val = string.match(param, '^([^=]+)=(%w+)')
+		print(key, val)
 		if PARAMS[key] then
 			self:set(key, val)
 		else

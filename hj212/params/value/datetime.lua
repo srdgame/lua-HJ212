@@ -1,7 +1,7 @@
-local base = require 'hj212.params.base'
+local base = require 'hj212.params.value.base'
 local date = require 'date'
 
-local param = base:subclass('hj212.params.datetime')
+local param = base:subclass('hj212.params.value.datetime')
 
 local date_fmt = '%Y%m%d%H%M%S'
 

@@ -5,7 +5,7 @@ local cmd = base:subclass('hj212.command.req_time_calib')
 
 function cmd:initialize(pol_id)
 	local pol_id = pol_id or 'xxxxx'
-	base.initialize(types.COMMAND.REQ_TIME_CALIB, {
+	base.initialize(self, types.COMMAND.REQ_TIME_CALIB, {
 		PolId = pol_id,
 	})
 end

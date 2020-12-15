@@ -1,4 +1,4 @@
-local crc16 = require 'hj212.crc'
+local crc16 = require 'hj212.utils.crc'
 local base = require 'hj212.packet.data'
 
 local pack = base:subclass('hj212.packet')
@@ -13,22 +13,25 @@ local function packet_crc(data_raw)
 end
 
 function pack.static.parse(raw, index, on_crc_err)
+	--print('begin', index, raw)
 	local index = string.find(raw, pack.static.HEADER, index or 1, true)
 	if not index then
 		if string.sub(raw, -1) == '#' then
-			return nil, '#' --- Keep the last #
+			return nil, '#', 'Header(##) missing' --- Keep the last #
 		end
-		return nil, ''
+		return nil, '', 'Header(##) missing'
 	end
 
 	-- Read the data_len XXXX
 	local data_len = tonumber(string.sub(raw, index + 2, index + 5))
+	assert(data_len and data_len > 0 and data_len < 9999)
 	local raw_len = string.len(raw)
-	if data_len + 12 > raw_len - index - 1 then
+	--print(data_len, raw_len, index)
+	if data_len + 12 > raw_len - index + 1 then
 		if index ~= 1 then
-			return nil, string.sub(raw)
+			return nil, string.sub(raw, index), 'Data not enougth'
 		end
-		return nil, raw
+		return nil, raw, 'Data not enough'
 	end
 
 	--- Check TAIL
@@ -36,9 +39,9 @@ function pack.static.parse(raw, index, on_crc_err)
 	if string.sub(raw, s_end, s_end + 1) ~= pack.static.TAIL then 
 		local index = string.find(raw, pack.static.HEADER, index + 2,  true)
 		if index then
-			return nil, string.sub(raw, index)
+			return nil, string.sub(raw, index), 'Tailer missing'
 		end
-		return nil
+		return nil, nil, 'Tailer missing'
 	end
 
 	local s_data = index + 6
@@ -50,17 +53,18 @@ function pack.static.parse(raw, index, on_crc_err)
 	local calc_crc = packet_crc(data_raw)
 	if calc_crc ~= crc then
 		if on_crc_err then
+			print(calc_crc, crc, data_raw)
 			on_crc_err(data_raw)
 		else
 			print('CRC error') -- TODO:
 		end
-		return nil, string.sub(raw, se + 2)
+		return nil, string.sub(raw, s_end + 2), 'CRC Error'
 	end
 
 	local obj = pack:new()
 	obj:decode(data_raw)
 
-	return obj, string.sub(raw, se + 2)
+	return obj, string.sub(raw, s_end + 2), 'Done'
 end
 
 function pack:initialize(...)
@@ -68,8 +72,7 @@ function pack:initialize(...)
 end
 
 function pack:encode_data(data)
-
-	local len = stream.len(data)
+	local len = string.len(data)
 
 	local raw = {
 		pack.static.HEADER

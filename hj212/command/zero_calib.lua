@@ -5,7 +5,7 @@ local cmd = base:subclass('hj212.command.zero_calib')
 
 function cmd:initialize(pol_id)
 	local pol_id = pol_id or 'xxxxx'
-	base.initialize(types.COMMAND.ZERO_CALIB, {
+	base.initialize(self, types.COMMAND.ZERO_CALIB, {
 		PolId = pol_id
 	})
 end

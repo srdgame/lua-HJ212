@@ -9,7 +9,7 @@ function req:initialize(status, need_ack)
 	for i, v in ipairs(status or {}) do
 		cmd:add_device(v:data_time(), v)
 	end
-	base.initialize(cmd, need_ack)
+	base.initialize(self, cmd, need_ack)
 end
 
 return req

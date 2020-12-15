@@ -5,7 +5,7 @@ local result = base:subclass('hj212.command.result')
 
 function result:initialize(result)
 	local result = result or types.RESULT.SUCCESS
-	base.initialize(types.COMMAND.RESULT, {
+	base.initialize(self, types.COMMAND.RESULT, {
 		ExeRtn = result
 	})
 end

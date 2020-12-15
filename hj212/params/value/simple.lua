@@ -1,6 +1,6 @@
-local base = require 'hj212.params.base'
+local base = require 'hj212.params.value.base'
 
-local simple = base:subclass('hj212.params.simple')
+local simple = base:subclass('hj212.params.value.simple')
 
 local parsers = {
 	C = {
@@ -27,16 +27,21 @@ local parsers = {
 	},
 	N = {
 		encode = function(fmt, val)
-			local i, f = string.match(fmt, 'N(%d+)([%.%d])?')
+			local i, f = string.match(fmt, 'N(%d+).?(%d*)')
+			i = tonumber(i)
+			f = tonumber(f)
 			assert(i)
+			assert(val)
 			local raw = string.format('%.0f', val * (10 ^ (f or 0)))
-			if string.len(raw) > count then
-				return string.sub(raw, 0 - count)
+			if string.len(raw) > i then
+				return string.sub(raw, 0 - i)
 			end
 			return raw
 		end,
 		decode = function(fmt, raw, index)
-			local i, f = string.match(fmt, 'N(%d+)([%.%d])?')
+			local i, f = string.match(fmt, 'N(%d+).?(%d*)')
+			i = tonumber(i)
+			f = tonumber(f)
 			assert(i)
 			local raw, index = string.match(raw, '^(%d+)()', index)
 			assert(string.len(raw) <= i)
@@ -60,7 +65,7 @@ local parsers = {
 }
 
 function simple:initialize(name, value, fmt)
-	base.initialize(name, value)
+	base.initialize(self, name, value)
 	self._format = fmt
 end
 
@@ -69,6 +74,9 @@ function simple:format()
 end
 
 function simple:encode()
+	--print(self, self._format, self._value)
+	assert(self._format and self._value)
+
 	local fmt = string.sub(self._format, 1, 1)
 	local parser = assert(parsers[fmt])
 
@@ -76,6 +84,8 @@ function simple:encode()
 end
 
 function simple:decode(raw, index)
+	assert(self._format)
+
 	local fmt = string.sub(self._format, 1, 1)
 	local parser = assert(parsers[fmt])
 

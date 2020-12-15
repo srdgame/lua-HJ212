@@ -5,7 +5,7 @@ local cmd = base:subclass('hj212.command.set_rdata_interval')
 
 function cmd:initialize(interval)
 	local interval = interval or 30
-	base.initialize(types.COMMAND.SET_RDATA_INTERVAL, {
+	base.initialize(self, types.COMMAND.SET_RDATA_INTERVAL, {
 		RtdInterval = interval
 	})
 end

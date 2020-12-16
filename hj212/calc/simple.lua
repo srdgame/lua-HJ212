@@ -6,8 +6,6 @@ function water:initialize(callback)
 	base.initialize(self, callback)
 
 	self._start = os.time()
-	self._last = os.time()
-	self._last_avg = nil
 	--- Sample data list for minutes calculation
 	self._simple_list = {}
 	--- Calculated
@@ -52,11 +50,7 @@ function water:on_min_trigger(now)
 		val_t = val_t + val
 	end
 
-	if self._last < now then
-		val_t = self._last_avg * (now - self._last)
-	end
-
-	local val_avg = val_t / (now - start)
+	local val_avg = val_t / #list
 
 	local val = {
 		total = val_t,
@@ -106,7 +100,7 @@ function water:on_hour_trigger(now)
 
 	assert(etime == now)
 
-	local val_avg = val_t / (now - start)
+	local val_avg = val_t / #list
 
 	local val = {
 		total = val_t,
@@ -125,7 +119,7 @@ end
 function water:on_day_trigger(now)
 	local now = math.floor(now)
 	if self._day and self._day.etime == now then
-		return self.-day
+		return self._day
 	end
 
 	local list = self._hour_list
@@ -155,7 +149,7 @@ function water:on_day_trigger(now)
 
 	assert(etime == now)
 
-	local val_avg = val_t / (now - start)
+	local val_avg = val_t / #list
 
 	self._day = {
 		total = val_t,

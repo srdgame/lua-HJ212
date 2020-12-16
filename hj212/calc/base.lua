@@ -9,6 +9,10 @@ function base:initialize(callback)
 	self._callback = callback
 end
 
+function base:set_value(value, timestamp, quality)
+	assert(nil, "Not implemented")
+end
+
 function base:set_mask(mask)
 	self._type_mask = mask
 end

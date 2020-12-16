@@ -66,18 +66,14 @@ function client:set_retry(retry)
 end
 
 function client:add_meter(meter)
-	self._meters[meter:sn()] = meter
+	table.insert(self._meters, meter)
 end
 
-function client:get_meter(sn)
-	assert(sn ~= nil)
-	return self._meters[sn]
-end
-
-function client:find_meter_sn(tag_name)
+function client:find_tag_sn(tag_name)
 	for k, v in pairs(self._meters) do
-		if v:has_tag(tag_name) then
-			return k
+		local tag = v:find_tag(tag_name)
+		if tag then
+			return tag:sn()
 		end
 	end
 	return nil, "Not found"

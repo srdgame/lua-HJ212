@@ -2,17 +2,11 @@ local class = require 'middleclass'
 
 local meter = class('hj212.client.meter')
 
-function meter:initialize(sn, tag_list, info_list)
-	assert(sn, 'Device serial number missing')
+function meter:initialize(tag_list, info_list)
 	assert(tag_list, 'Device tags missing')
 	assert(info_list, 'Device info missing')
-	self._sn = sn
 	self._tag_list = tag_list
 	self._info_list = info_list
-end
-
-function meter:sn()
-	return self._sn
 end
 
 function meter:find_tag(name)

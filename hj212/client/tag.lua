@@ -6,8 +6,9 @@ local air_calc = require 'hj212.calc.air'
 local tag = class('hj212.client.tag')
 
 --- Calc name
-function tag:initialize(name, calc, min, max)
+function tag:initialize(sn, name, calc, min, max)
 	assert(name, "Tag name missing")
+	self._sn = sn
 	self._name = name
 	if not calc then
 		if string.sub(name, 1, 1) == 'w' then
@@ -36,6 +37,10 @@ function tag:initialize(name, calc, min, max)
 	self._value = 0
 	self._timestamp = os.time()
 	self._flag = types.FLAG.Normal
+end
+
+function tag:sn()
+	return self._sn
 end
 
 function tag:name()

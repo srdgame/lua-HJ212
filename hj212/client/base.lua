@@ -5,21 +5,22 @@ local pfinder = require 'hj212.utils.pfinder'
 
 local client = class('hj212.client.base')
 
-local command_finder = pfinder(types.COMMAND, 'hj212.client.handler')
-
 function client:initialize(system, dev_id, passwd, timeout, retry)
 	assert(system and dev_id and passwd)
-	self._system = system
+	self._system = tonumber(system)
 	self._dev_id = dev_id
 	self._passwd = passwd
-	self._timeout = (timeout or 10) * 1000
-	self._retry = retry or 3
+	self._timeout = (tonumber(timeout) or 10) * 1000
+	self._retry = tonumber(retry) or 3
 
 	self._meters = {}
 	self._treatment = {}
 
 	self._process_buf = nil
 	self._handlers = {}
+	self._finders = {
+		pfinder(types.COMMAND, 'hj212.client.handler')
+	}
 end
 
 function client:set_logger(log)
@@ -92,7 +93,9 @@ function client:get_treatement(id)
 end
 
 function client:request(request, response)
-	local response = response or function() end
+	local response = response or function(reply, err)
+		return reply, err
+	end
 
 	local resp, err = self:send_request(request)
 	if resp then
@@ -102,12 +105,26 @@ function client:request(request, response)
 	end
 end
 
+function client:add_handler(packet_path_base)
+	table.insert(self._finders, 1, pfinder(types.COMMAND, packet_path_base))
+end
+
+function client:__find_handler(cmd)
+	for _, finder in pairs(self._finders) do
+		local handler, err = finder(cmd)
+		if handler then
+			return handler
+		end
+	end
+	return nil, "Command handler not found for CMD:"..cmd
+end
+
 function client:find_handler(cmd)
 	if self._handlers[cmd] then
 		return self._handlers[cmd]
 	end
 
-	local handler, err = command_finder(cmd)
+	local handler, err = self:__find_handler(cmd)
 	if not handler then
 		self:log('error', err)
 		return nil, err
@@ -120,19 +137,31 @@ function client:find_handler(cmd)
 end
 
 function client:on_request(request)
-	self:log('debug', 'Process request', request:session(), request:command())
 	local cmd = request:command()
-	local handler = self:find_handler(cmd)
+	local session = request:session()
+	self:log('info', 'Process request', session, cmd)
 
-	if request:need_ack() then
-		self:send_reply(handler and types.REPLY.RUN or types.REPLY.REJECT)
+	local handler, err = self:find_handler(cmd)
+
+	if not handler then
+		if request:need_ack() then
+			self:send_reply(session, types.REPLY.REJECT)
+		end
+		return
 	end
 
-	if handler then
-		local result, err = handler(request)
-		if request:need_ack() then
-			self:send_result(result and types.RESULT.SUCCESS or types.RESULT.ERR_UNKNOWN)
-		end
+	if request:need_ack() then
+		self:send_reply(session, types.REPLY.RUN)
+	end
+
+	local result, err = handler(request)
+	if not result then
+		self:log('error', 'Process request failed', session, cmd, err)
+	else
+		self:log('info', 'Process request successfully', session, cmd)
+	end
+	if request:need_ack() then
+		self:send_result(session, result and types.RESULT.SUCCESS or types.RESULT.ERR_UNKNOWN)
 	end
 end
 
@@ -184,17 +213,24 @@ function client:send_request(request)
 	end
 end
 
-function client:send_reply(reply_status)
+function client:send_reply(session, reply_status)
 	local reply = require 'hj212.reply.reply'
-	local resp = reply:new(reply_status)
+	local resp = reply:new(session, reply_status)
 	self:log('debug', "Sending reply", reply_status)
 	return self:send_request(resp)
 end
 
-function client:send_result(result_status)
+function client:send_result(session, result_status)
 	local result = require 'hj212.reply.result'
-	local resp = result:new(result_status)
+	local resp = result:new(session, result_status)
 	self:log('debug', "Sending result", result_status)
+	return self:send_request(resp)
+end
+
+function client:send_notice(session)
+	local notice = require 'hj212.reply.notice'
+	local resp = notice:new(session)
+	self:log('debug', "Sending notice")
 	return self:send_request(resp)
 end
 

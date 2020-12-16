@@ -12,13 +12,7 @@ function handler:process(request)
 
 	self:log('debug', "Set RData interval to "..interval)
 
-	if self._client.set_rdata_interval then
-		self._client:set_rdata_interval(interval)
-	else
-		return nil, "Client does not support changing rdata interval"
-	end
-
-	return true
+	return self._client:handle(types.COMMAND.SET_RDATA_INTERVAL, interval)
 end
 
 return handler

@@ -23,12 +23,18 @@ function data:encode()
 	assert(string.len(self._devid) == 24)
 	assert(self._sys >= 0 and self._sys <= 99)
 
-	local d = date(self._session)
 	local flag = (1 << 2 ) + (self._need_ack and 1 or 0)
 
 	local function encode(data, count, cur)
 		-- Hack the session with plus ticks
-		local pn = d:fmt(date_fmt) + string.format('%03d', (d:getticks()//1000 + (cur or 0)))
+		local session = self._session
+		if cur then
+			session = session + cur	
+		end
+	
+		local time = self._session // 1000
+		local ticks = self._session % 1000
+		local pn = date(time):fmt(date_fmt) .. string.format('%03d', ticks)
 
 		local raw = {}
 		raw[#raw + 1] = string.format('QN=%s', pn)
@@ -41,6 +47,8 @@ function data:encode()
 			raw[#raw + 1] = string.format('Flag=%s', string.format('%d', flag + 2))
 			raw[#raw + 1] = string.format('PNUM=%d', count)
 			raw[#raw + 1] = string.format('PNO=%d', cur)
+		else
+			raw[#raw + 1] = string.format('Flag=%s', string.format('%d', flag))
 		end
 
 		raw[#raw + 1] = string.format('CP=&&%s&&', data)
@@ -95,6 +103,10 @@ end
 
 function data:session()
 	return self._session
+end
+
+function data:set_session(session)
+	self._session = session
 end
 
 function data:system()

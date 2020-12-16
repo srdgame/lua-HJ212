@@ -18,8 +18,8 @@ function handler:__call(...)
 	end
 end
 
-function handler:send_reply(resp)
-	return self._client:send_request(resp)
+function handler:send_request(resp, response)
+	return self._client:send_request(resp, response)
 end
 
 return handler

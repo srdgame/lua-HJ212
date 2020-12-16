@@ -12,7 +12,9 @@ end
 function param:decode(raw, index)
 	local index = index or 1
 	local time_raw = string.sub(raw, index, index + 14 - 1)
+	print(time_raw)
 	self._value = math.floor(date.diff(date(time_raw), date(0)):spanseconds())
+	print(self._value)
 	return index + 14
 end
 

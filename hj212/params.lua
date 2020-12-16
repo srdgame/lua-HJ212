@@ -62,6 +62,18 @@ function params:get(name)
 	return nil, "Not exists!"
 end
 
+function params:as_num(name)
+	local r, err = self:get(name)
+	if r then
+		local rn = tonumber(r)
+		if not rn then
+			return nil, "Not numberic value"
+		end
+		return rn
+	end
+	return nil, err
+end
+
 function params:set(name, value)
 	local p = self._params[name]
 	if p then
@@ -74,6 +86,21 @@ function params:set(name, value)
 		p = simple:new(name, value, 'N32')
 	end
 	self._params[name] = p
+end
+
+function params:set_from_raw(name, raw_value)
+	local p = self._params[name]
+	if p then
+		return p:decode(raw_value)
+	end
+
+	if PARAMS[name] then
+		p = PARAMS[name]:new(name, 0)
+	else
+		p = simple:new(name, 0, 'N32')
+	end
+	self._params[name] = p
+	return p:decode(raw_value)
 end
 
 function params:add_device(data_time, dev)
@@ -191,7 +218,7 @@ function params:decode(raw, index)
 		local key, val = string.match(param, '^([^=]+)=(%w+)')
 		print("PARAMS", key, val)
 		if PARAMS[key] then
-			self:set(key, val)
+			self:set_from_raw(key, val)
 		else
 			if string.sub(name, 1, 2) == 'SB' then
 				local m = '^SB([^%-]+)%-(%w+)='

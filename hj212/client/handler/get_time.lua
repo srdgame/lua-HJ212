@@ -1,26 +1,23 @@
 local base = require 'hj212.client.handler.base'
 local command = require 'hj212.command.get_time'
-local reply = require 'hj212.reply.base'
+local request = require 'hj212.request.base'
 
 local handler = base:subclass('hj212.client.handler.get_time')
 
-function handler:process(request)
-	local params = request:params()
-	local val, err = params:get('PolId')
-	if val == nil then
+function handler:process(req)
+	local params = req:params()
+	local pid, err = params:get('PolId')
+	if pid == nil then
 		return nil, err
 	end
 
-	self:log('debug', "Get device time for:"..val)
+	self:log('debug', "Get device time for:"..pid)
 
 	local now = os.time()
-	if self._client.get_time then
-		now = self._client:get_time(val)
-	end
 
-	local resp = reply:new(command:new(val, now))
+	local resp = request:new(command:new(pid, now), false)
 
-	return self:send_reply(resp)
+	return self:send_request(resp)
 end
 
 return handler

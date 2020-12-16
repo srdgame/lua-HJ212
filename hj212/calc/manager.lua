@@ -1,4 +1,4 @@
-local class = require 'middeclass'
+local class = require 'middleclass'
 
 local mgr = class('hj212.calc.manager')
 
@@ -15,7 +15,7 @@ function mgr:initialize()
 end
 
 function mgr:reg(type_mask, calc)
-	if (typ & mgr.TYPES.MIN) = mgr.TYPES.MIN then
+	if (typ & mgr.TYPES.MIN) == mgr.TYPES.MIN then
 		table.insert(self._min_list, calc)
 	end
 	if (typ & mgr.TYPES.HOUR) == mgr.TYPES.HOUR then
@@ -35,7 +35,7 @@ local function unreg_list_obj(list, val)
 end
 
 function mgr:unreg(type_mask, calc)
-	if (typ & mgr.TYPES.MIN) = mgr.TYPES.MIN then
+	if (typ & mgr.TYPES.MIN) == mgr.TYPES.MIN then
 		unreg_list_obj(self._min_list, now)
 	end
 	if (typ & mgr.TYPES.HOUR) == mgr.TYPES.HOUR then
@@ -59,7 +59,7 @@ end
 -- type: TYPES
 -- now: time in seconds
 function mgr:trigger(typ, now)
-	if (typ & mgr.TYPES.MIN) = mgr.TYPES.MIN then
+	if (typ & mgr.TYPES.MIN) == mgr.TYPES.MIN then
 		on_trigger_list(self._min_list, mgr.TYPES.MIN, now)
 	end
 	if (typ & mgr.TYPES.HOUR) == mgr.TYPES.HOUR then

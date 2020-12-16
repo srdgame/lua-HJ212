@@ -9,8 +9,9 @@ function base:initialize(callback)
 	self._callback = callback
 end
 
-function base:set_value(value, timestamp, quality)
+function base:set_value(value, timestamp)
 	assert(nil, "Not implemented")
+	return value, timestamp
 end
 
 function base:set_mask(mask)
@@ -22,19 +23,21 @@ function base:on_trigger(typ, now)
 		if typ == mgr.TYPES.MIN then
 			assert(self.on_min_trigger)
 			local val = self:on_min_trigger(now)
-			self._callback(mgr.TYPES.MIN, val, now)
+			self._callback(mgr.TYPES.MIN, val)
 		end
 		if typ == mgr.TYPES.HOUR then
 			assert(self.on_hour_trigger)
 			local val = self:on_hour_trigger(now)
-			self._callback(mgr.TYPES.HOUR, val, now)
+			self._callback(mgr.TYPES.HOUR, val)
 		end
 		if typ == mgr.TYPES.DAY then
 			assert(self.on_day_trigger)
 			local val = self:on_day_trigger(now)
-			self._callback(mgr.TYPES.DAY, val, now)
+			self._callback(mgr.TYPES.DAY, val)
 		end
 	else
 		return nil, "Unexpected trigger type"..typ
 	end
 end
+
+return base

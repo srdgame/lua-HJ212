@@ -21,6 +21,10 @@ local function get_tag_format(name)
 			tag = v
 			break
 		end
+		if v.org_name and v.org_name == name then
+			tag = v
+			break
+		end
 		if string.len(k) == string.len(name) then
 			local km = nil
 			if string.sub(k, -2) == 'xx' then

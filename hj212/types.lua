@@ -48,14 +48,14 @@ _M.REPLY = {
 	ERR_UNKNOWN = 100,
 }
 
-_M.DEV_FLAG = {
+_M.FLAG = {
 	Normal		= 'N',
 	Stoped		= 'F',
 	Maintain	= 'M',
 	ByHand		= 'S',
 	Error		= 'D',
 	Calibration	= 'C',
-	OffLimit	= 'T',
+	Overproof	= 'T',
 	Connection	= 'B',
 }
 

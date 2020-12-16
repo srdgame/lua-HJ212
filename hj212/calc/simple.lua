@@ -7,7 +7,7 @@ function water:initialize(callback)
 
 	self._start = os.time()
 	--- Sample data list for minutes calculation
-	self._simple_list = {}
+	self._sample_list = {}
 	--- Calculated
 	self._min_list = {}
 	self._hour_list = {}
@@ -16,9 +16,10 @@ function water:initialize(callback)
 	self._waiting = {}
 end
 
-function water:set_value(value, timestamp, quality)
+function water:set_value(value, timestamp)
 	local timestamp = math.floor(timestamp)
-	table.insert(self._sample_list, {value, timestamp, quality})
+	table.insert(self._sample_list, {value, timestamp})
+	return value, timestamp
 end
 
 function water:on_min_trigger(now)

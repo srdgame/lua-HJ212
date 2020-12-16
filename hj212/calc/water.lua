@@ -1,11 +1,13 @@
-local base = require 'hj212.client.calc.base'
+local base = require 'hj212.calc.base'
 
-local water = base:subclass('hj212.client.calc.water')
+local water = base:subclass('hj212.calc.water')
 
 --- The upper tag, e.g. [w00000]
 -- If the upper tag not exists time will be used for caclue the (total) value
 --
-function water:initialize(upper_tag)
+function water:initialize(callback, upper_tag)
+	base.initialize(self, callback)
+
 	self._start = os.time()
 	self._last = os.time()
 	self._last_avg = nil

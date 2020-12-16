@@ -1,6 +1,6 @@
 local class = require 'middeclass'
 
-local mgr = class('hj212.client.calc.manager')
+local mgr = class('hj212.calc.manager')
 
 mgr.static.TYPES = {
 	MIN = 1,

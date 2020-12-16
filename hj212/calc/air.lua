@@ -1,8 +1,10 @@
-local base = require 'hj212.client.calc.base'
+local base = require 'hj212.calc.base'
 
-local air = base:subclass('hj212.client.calc.air')
+local air = base:subclass('hj212.calc.air')
 
-function air:initialize()
+function air:initialize(callback)
+	base.initialize(self, callback)
+
 	self._start = os.time()
 	self._last = os.time()
 	self._last_avg = nil
@@ -166,3 +168,5 @@ function air:on_day_trigger(now)
 
 	return self._day
 end
+
+return air

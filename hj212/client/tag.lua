@@ -1,42 +1,23 @@
 local class = require 'middleclass'
 local types = require 'hj212.types'
-local water_calc = require 'hj212.calc.simple'
-local air_calc = require 'hj212.calc.air'
 
 local tag = class('hj212.client.tag')
 
 --- Calc name
-function tag:initialize(meter, name, calc, min, max)
+function tag:initialize(name, min, max, his_calc)
 	assert(name, "Tag name missing")
-	self._meter = meter
 	self._name = name
-	if not calc then
-		if string.sub(name, 1, 1) == 'w' then
-			calc = 'water'
-		else
-			calc = 'air'
-		end
-	end
-	
-	if type(calc) == 'string'  then
-		if calc == 'water' then
-			calc = water_calc:new(function(typ, val)
-				self:on_calc_value(typ, val)
-			end)
-		end
-		if calc == 'air' then
-			calc = air_calc:new(function(typ, val)
-				self:on_calc_value(typ, val)
-			end)
-		end
-	end
-
-	self._calc = calc
 	self._min = min
 	self._max = max
+	self._his_calc = his_calc
+	self._meter = nil
 	self._value = 0
 	self._timestamp = os.time()
 	self._flag = types.FLAG.Normal
+end
+
+function tag:set_meter(mater)
+	self._meter = mater
 end
 
 function tag:meter()
@@ -47,23 +28,24 @@ function tag:name()
 	return self._name
 end
 
-function tag:calc()
-	return self._calc
+function tag:his_calc()
+	return self._his_calc
 end
 
 function tag:set_value(value, timestamp)
-	if self._min and self._value < self._min then
+	self._value = value
+	self._timestamp = timestamp
+
+	if self._min and value < self._min then
 		self._flag = types.FLAG.Overproof
 	end
-	if self._max and self._value > self._max then
+	if self._max and value > self._max then
 		self._flag = types.FLAG.Overproof
 	end
 
-	if self._calc then
-		self._value, self._timestamp = self._calc:set_value(value, timestamp)
-	else
-		self._value = value
-		self._timestamp = timestamp
+	if self._his_calc then
+		print(self._his_calc)
+		self._his_calc:push(value, timestamp)
 	end
 end
 
@@ -78,10 +60,6 @@ function tag:query_rdata()
 		--- EFlag is optional
 		SampleTime = self._timestamp
 	}
-end
-
-function tag:on_calc_value(typ, val)
-	assert(nil, "Not implmented")
 end
 
 function tag:query_min_data(start_time, end_time)

@@ -9,6 +9,9 @@ function meter:initialize(sn, info_list, tag_list)
 	self._sn = sn
 	self._info_list = info_list
 	self._tag_list = tag_list
+	for k, v in pairs(tag_list) do
+		v:set_meter(self)
+	end
 end
 
 function meter:sn()

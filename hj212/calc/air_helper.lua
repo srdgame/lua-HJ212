@@ -1,15 +1,7 @@
 local _M = {}
 
 -- 18
-function _M.Csn(Cs)
-	if not self._cems then
-		return Cs
-	end
-
-	local Ba = self._cems:Ba()
-	local Ps = self._cems:Ps()
-	local Ts = self._cems:Ts()
-
+function _M.Csn(Cs, Ba, Ps, Ts)
 	return Cs * (101325 / (Ba + Ps)) * ((273 + Ts) / 273)
 end
 

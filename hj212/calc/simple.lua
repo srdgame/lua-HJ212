@@ -1,6 +1,6 @@
 local base = require 'hj212.calc.base'
 
-local water = base:subclass('hj212.calc.water_simple')
+local water = base:subclass('hj212.calc.simple')
 
 function water:initialize(callback)
 	base.initialize(self, callback)
@@ -16,10 +16,9 @@ function water:initialize(callback)
 	self._waiting = {}
 end
 
-function water:set_value(value, timestamp)
+function water:push(value, timestamp)
 	local timestamp = math.floor(timestamp)
 	table.insert(self._sample_list, {value, timestamp})
-	return value, timestamp
 end
 
 function water:on_min_trigger(now)

@@ -9,9 +9,8 @@ function base:initialize(callback)
 	self._callback = callback
 end
 
-function base:set_value(value, timestamp)
+function base:push(value, timestamp)
 	assert(nil, "Not implemented")
-	return value, timestamp
 end
 
 function base:set_mask(mask)

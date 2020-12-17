@@ -1,12 +1,14 @@
 local class = require 'middleclass'
+local cems = require 'hj212.client.station.cems'
 
 local station = class('hj212.client.station')
 
-function station:initialize(system, id)
+function station:initialize(system, id, Kv)
 	self._system = tonumber(system)
 	self._id = id
 	self._tag_list = {}
 	self._meters = {}
+	self._cems = cems:new(self, Kv or 1)
 end
 
 function station:system()
@@ -19,6 +21,18 @@ end
 
 function station:meters()
 	return self._meters
+end
+
+function station:cems()
+	return self._cems
+end
+
+function station:water_tag()
+	return self:find_tag('w00000')
+end
+
+function station:air_tag()
+	return self:find_tag('a00000')
 end
 
 function station:find_tag(name)

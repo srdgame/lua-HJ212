@@ -23,21 +23,19 @@ function water:initialize(callback, upper_tag)
 	self._waiting = {}
 end
 
-function water:set_value(value, timestamp)
+function water:push(value, timestamp)
 	local timestamp = math.floor(timestamp)
 	if self._upper then
 		self._upper:get_value(function(upper_value)
-			self:_set_value(upper_value, value, timestamp)
+			self:_push(upper_value, value, timestamp)
 		end)
 	else
 		local t = timestamp - self._last
-		self:_set_value(t, value, timestamp)
+		self:_push(t, value, timestamp)
 	end
-	-- TODO: FIXME:
-	return value, timestamp
 end
 
-function water:_set_value(bvalue, value, timestamp)
+function water:_push(bvalue, value, timestamp)
 	assert(timestamp > self._last, 'Last timestamp')
 
 	local val = bvalue * value * (10 ^ -3)

@@ -5,15 +5,15 @@ local pfinder = require 'hj212.utils.pfinder'
 
 local client = class('hj212.client.base')
 
-function client:initialize(system, dev_id, passwd, timeout, retry)
-	assert(system and dev_id and passwd)
-	self._system = tonumber(system)
-	self._dev_id = dev_id
+function client:initialize(station, passwd, timeout, retry)
+	assert(station and passwd)
+	self._station = station
+	self._system = tonumber(station:system())
+	self._dev_id = station:id()
 	self._passwd = passwd
 	self._timeout = (tonumber(timeout) or 10) * 1000
 	self._retry = tonumber(retry) or 3
 
-	self._station = station:new(system, dev_id)
 	self._treatment = {}
 
 	self._process_buf = nil

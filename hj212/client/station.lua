@@ -2,11 +2,11 @@ local class = require 'middleclass'
 
 local station = class('hj212.client.station')
 
-function station:initialize(client, system, id)
-	self._client = client
-	self._system = system
+function station:initialize(system, id)
+	self._system = tonumber(system)
 	self._id = id
 	self._tag_list = {}
+	self._meters = {}
 end
 
 function station:system()
@@ -15,6 +15,10 @@ end
 
 function station:id()
 	return self._id
+end
+
+function station:meters()
+	return self._meters
 end
 
 function station:find_tag(name)
@@ -31,6 +35,7 @@ end
 
 function station:add_meter(meter)
 	assert(meter)
+	table.insert(self._meters, meter)
 	for name, tag in pairs(meter:tag_list()) do
 		assert(self._tag_list[name] == nil)
 		self._tag_list[name] = tag

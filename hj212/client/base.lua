@@ -13,7 +13,7 @@ function client:initialize(system, dev_id, passwd, timeout, retry)
 	self._timeout = (tonumber(timeout) or 10) * 1000
 	self._retry = tonumber(retry) or 3
 
-	self._meters = {}
+	self._station = station:new(system, dev_id)
 	self._treatment = {}
 
 	self._process_buf = nil
@@ -31,6 +31,10 @@ function client:log(level, ...)
 	if self._log then
 		self._log[level](self._log, ...)
 	end
+end
+
+function client:station()
+	return self._station
 end
 
 function client:system()
@@ -65,18 +69,11 @@ function client:set_retry(retry)
 	self._retry = retry
 end
 
-function client:add_meter(meter)
-	table.insert(self._meters, meter)
-end
-
 function client:find_tag_sn(tag_name)
-	for k, v in pairs(self._meters) do
-		local tag = v:find_tag(tag_name)
-		if tag then
-			return tag:sn()
-		end
+	local meter = self._station:find_tag_meter(tag_name)
+	if meter then
+		return meter:sn()
 	end
-	return nil, "Not found"
 end
 
 function client:add_treatment(treatment)

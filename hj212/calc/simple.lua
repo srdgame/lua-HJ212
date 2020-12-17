@@ -1,43 +1,19 @@
 local base = require 'hj212.calc.base'
 
-local water = base:subclass('hj212.calc.simple')
+local simple = base:subclass('hj212.calc.simple')
 
-function water:initialize(callback)
+function simple:initialize(callback)
 	base.initialize(self, callback)
-
-	self._start = os.time()
-	--- Sample data list for minutes calculation
-	self._sample_list = {}
-	--- Calculated
-	self._min_list = {}
-	self._hour_list = {}
-	self._day = nil
 
 	self._waiting = {}
 end
 
-function water:push(value, timestamp)
+function simple:push(value, timestamp)
 	local timestamp = math.floor(timestamp)
 	table.insert(self._sample_list, {value, timestamp})
 end
 
-function water:on_min_trigger(now)
-	local now = math.floor(now)
-	local list = self._sample_list
-	local last = list[#list]
-	if last and last.etime >= now then
-		return last
-	end
-
-	if #list == 0 then
-		self._start = now
-		return nil, "There is no sample data"
-	end
-
-	local start = self._start
-	self._start = now
-	self._sample_list = {}
-
+local function calc_list(list, start, now)
 	local val_t = 0
 	local val_min = 0
 	local val_max = 0
@@ -52,7 +28,7 @@ function water:on_min_trigger(now)
 
 	local val_avg = val_t / #list
 
-	local val = {
+	return {
 		total = val_t,
 		avg = val_avg,
 		min = val_min,
@@ -60,17 +36,13 @@ function water:on_min_trigger(now)
 		stime = start,
 		etime = now,
 	}
-
-	table.insert(self._min_list, val)
-
-	return val
 end
 
-function water:on_hour_trigger(now)
-	local now = math.floor(now)
-	local list = self._min_list
-	local last = list[#list]
+function simple:on_min_trigger(now, duration)
+	local list = self._sample_list
+	local last = self._min_list[#self._min_list]
 	if last and last.etime >= now then
+		assert(now == last.etime, "Last end time not equal to now")
 		return last
 	end
 
@@ -78,12 +50,51 @@ function water:on_hour_trigger(now)
 		return nil, "There is no sample data"
 	end
 
-	self._min_list = {}
+	self._sample_list = {}
 
-	local start = list[#list].stime
+	while #list > 0 and list[1][2] < (now - duration) do
+		last = self._min_list[#self._min_list]
+		local start = last and last.etime or self:day_start()
+		local item_start = list[1][2]
+		while start + duration < item_start do
+			start = start + duration
+		end
+		local etime = start + duration
+
+		local old_list = {}
+		local new_list = {}
+		for i, v in ipairs(list) do
+			if v[2] < etime then
+				old_list[#old_list + 1] = v
+			else
+				new_list[#new_list + 1] = v
+			end
+		end
+		list = new_list
+
+		if #old_list > 0 then
+			local val = calc_list(old_list, start, etime)
+			table.insert(self._min_list, val)
+			self._callback(mgr.TRYPES.MIN, val)
+		end
+	end
+	if #list == 0 then
+		return nil, "There is no sample data for current duration"
+	end
+
+	local start = now - duration
+
+	local val = calc_list(list, start, now)
+
+	table.insert(self._min_list, val)
+
+	return val
+end
+
+local function calc_list_2(list, start, now)
 	local etime = start
-
 	local val_t = 0
+	local val_t_avg = 0
 	local val_min = 0
 	local val_max = 0
 
@@ -96,13 +107,14 @@ function water:on_hour_trigger(now)
 		val_max = v.max > val_max and v.max or val_max
 
 		val_t = val_t + v.total
+		val_t_avg = val_t_avg + v.avg
 	end
 
 	assert(etime == now)
 
-	local val_avg = val_t / #list
+	local val_avg = val_t_avg / #list
 
-	local val = {
+	self._day = {
 		total = val_t,
 		avg = val_avg,
 		min = val_min,
@@ -110,15 +122,66 @@ function water:on_hour_trigger(now)
 		stime = start,
 		etime = now,
 	}
+end
+
+function simple:on_hour_trigger(now)
+	local now = math.floor(now)
+	local list = self._min_list
+	local last = self._hour_list[#self._hour_list]
+	if last and last.etime >= now then
+		assert(now == last.etime, "Last end time not equal to now")
+		return last
+	end
+
+	if #list == 0 then
+		return nil, "There is no sample data"
+	end
+
+	self._min_list = {}
+
+	while #list > 0 and list[1][2] < (now - duration) do
+		last = self._hour_list[#self._hour_list]
+		local start = last and last.etime or self:day_start()
+		local item_start = list[1][2]
+		while start + duration < item_start do
+			start = start + duration
+		end
+		local etime = start + duration
+
+		local old_list = {}
+		local new_list = {}
+		for i, v in ipairs(list) do
+			if v[2] < etime then
+				old_list[#old_list + 1] = v
+			else
+				new_list[#new_list + 1] = v
+			end
+		end
+		list = new_list
+
+		if #old_list > 0 then
+			local val = calc_list(old_list, start, etime)
+			table.insert(self._min_list, val)
+			self._callback(mgr.TRYPES.MIN, val)
+		end
+	end
+	if #list == 0 then
+		return nil, "There is no sample data for current duration"
+	end
+
+	local start = now - duration
+
+	local val = calc_list_2(list, start, now)
 
 	table.insert(self._hour_list, val)
 
 	return val
 end
 
-function water:on_day_trigger(now)
+function simple:on_day_trigger(now)
 	local now = math.floor(now)
 	if self._day and self._day.etime == now then
+		assert(now == last.etime, "Last end time not equal to now")
 		return self._day
 	end
 
@@ -129,38 +192,13 @@ function water:on_day_trigger(now)
 
 	self._hour_list = {}
 
-	local start = list[#list].stime
-	local etime = start
+	local start = self._day and self._day.etime or (now - duration)
 
-	local val_t = 0
-	local val_min = 0
-	local val_max = 0
+	local val = calc_list_2(list, start, now)
 
-	for i, v in ipairs(list) do
-		assert(v.stime > start, "Start time issue")
-		assert(v.etime > etime, "Last time issue")
-		etime = v.etime
+	self._day = val
 
-		val_min = v.min < val_min and v.min or val_min
-		val_max = v.max > val_max and v.max or val_max
-
-		val_t = val_t + v.total
-	end
-
-	assert(etime == now)
-
-	local val_avg = val_t / #list
-
-	self._day = {
-		total = val_t,
-		avg = val_avg,
-		min = val_min,
-		max = val_max,
-		stime = start,
-		etime = now,
-	}
-
-	return self._day
+	return val
 end
 
-return water
+return simple

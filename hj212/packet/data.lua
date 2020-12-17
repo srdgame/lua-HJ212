@@ -34,7 +34,7 @@ function data:encode()
 	
 		local time = self._session // 1000
 		local ticks = self._session % 1000
-		local pn = date(time):fmt(date_fmt) .. string.format('%03d', ticks)
+		local pn = date(time):tolocal():fmt(date_fmt) .. string.format('%03d', ticks)
 
 		local raw = {}
 		raw[#raw + 1] = string.format('QN=%s', pn)
@@ -77,7 +77,7 @@ function data:decode(raw, index)
 
 	local pn = string.match(raw, 'QN=([^;]+)')
 	pn = string.sub(pn, 1, -4)..'.'..string.sub(pn, -3)
-	self._session = math.floor(date.diff(date(pn), date(0)):spanseconds() * 1000)
+	self._session = math.floor(date.diff(date(pn):toutc(), date(0)):spanseconds() * 1000)
 
 	self._sys = tonumber(string.match(raw, 'ST=(%d+)'))
 	self._cmd = tonumber(string.match(raw, 'CN=(%d+)'))

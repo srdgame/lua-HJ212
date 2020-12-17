@@ -6,14 +6,14 @@ local param = base:subclass('hj212.params.value.datetime')
 local date_fmt = '%Y%m%d%H%M%S'
 
 function param:encode()
-	return date(self._value):fmt(date_fmt)
+	return date(self._value):tolocal():fmt(date_fmt)
 end
 
 function param:decode(raw, index)
 	local index = index or 1
 	local time_raw = string.sub(raw, index, index + 14 - 1)
 	print(time_raw)
-	self._value = math.floor(date.diff(date(time_raw), date(0)):spanseconds())
+	self._value = math.floor(date.diff(date(time_raw):toutc(), date(0)):spanseconds())
 	print(self._value)
 	return index + 14
 end

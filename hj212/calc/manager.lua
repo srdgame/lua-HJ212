@@ -6,6 +6,7 @@ mgr.static.TYPES = {
 	MIN = 1,
 	HOUR = 2,
 	DAY = 4,
+	ALL = 0xFF,
 }
 
 function mgr:initialize()
@@ -15,13 +16,13 @@ function mgr:initialize()
 end
 
 function mgr:reg(type_mask, calc)
-	if (typ & mgr.TYPES.MIN) == mgr.TYPES.MIN then
+	if (type_mask & mgr.TYPES.MIN) == mgr.TYPES.MIN then
 		table.insert(self._min_list, calc)
 	end
-	if (typ & mgr.TYPES.HOUR) == mgr.TYPES.HOUR then
+	if (type_mask & mgr.TYPES.HOUR) == mgr.TYPES.HOUR then
 		table.insert(self._hour_list, calc)
 	end
-	if (typ & mgr.TYPES.DAY) == mgr.TYPES.DAY then
+	if (type_mask & mgr.TYPES.DAY) == mgr.TYPES.DAY then
 		table.insert(self._day_list, calc)
 	end	
 end
@@ -46,9 +47,9 @@ function mgr:unreg(type_mask, calc)
 	end	
 end
 
-local function on_trigger_list(calc_list, typ, now)
+local function on_trigger_list(calc_list, typ, now, duration)
 	for _, v in ipairs(calc_list) do
-		local r, err = v:on_trigger(typ, now)
+		local r, err = v:on_trigger(typ, now, duration)
 		if not r then
 			print(err)
 		end
@@ -58,15 +59,16 @@ end
 -- 
 -- type: TYPES
 -- now: time in seconds
-function mgr:trigger(typ, now)
+function mgr:trigger(typ, now, duration)
+	local now = math.floor(now)
 	if (typ & mgr.TYPES.MIN) == mgr.TYPES.MIN then
-		on_trigger_list(self._min_list, mgr.TYPES.MIN, now)
+		on_trigger_list(self._min_list, mgr.TYPES.MIN, now, duration)
 	end
 	if (typ & mgr.TYPES.HOUR) == mgr.TYPES.HOUR then
-		on_trigger_list(self._hour_list, mgr.TYPES.HOUR, now)
+		on_trigger_list(self._hour_list, mgr.TYPES.HOUR, now, duration)
 	end
 	if (typ & mgr.TYPES.DAY) == mgr.TYPES.DAY then
-		on_trigger_list(self._day_list, mgr.TYPES.DAY, now)
+		on_trigger_list(self._day_list, mgr.TYPES.DAY, now, duration)
 	end
 end
 

@@ -44,7 +44,6 @@ function tag:set_value(value, timestamp)
 	end
 
 	if self._his_calc then
-		print(self._his_calc)
 		self._his_calc:push(value, timestamp)
 	end
 end

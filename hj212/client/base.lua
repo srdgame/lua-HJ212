@@ -179,6 +179,9 @@ function client:process(raw_data)
 		self:log('debug', 'On reply', p:session(), p:command())
 		return p, true
 	else
+		local ss = p:session()
+		ss = ss // 1000
+		print(os.date('%c', ss))
 		self:log('debug', 'On request', p:session(), p:command())
 		return p, false
 	end

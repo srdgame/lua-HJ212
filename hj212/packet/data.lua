@@ -57,7 +57,7 @@ function data:encode()
 
 	local pdata = self._params:encode()
 
-	if type(pdata) == table then
+	if type(pdata) == 'table' then
 		local count = #pdata
 		local t = {}
 		for i, v in ipairs(pdata) do

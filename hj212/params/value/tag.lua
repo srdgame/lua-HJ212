@@ -1,8 +1,8 @@
-local simple = require 'hj212.params.value.simple'
+local base = require 'hj212.params.value.simple'
 local datetime = require 'hj212.params.value.datetime'
 local tag_info = require 'hj212.tags.info'
 
-local tv = simple:subclass('hj212.params.value.tag')
+local tv = base:subclass('hj212.params.value.tag')
 
 tv.static.DEFAULT_FMT = 'N32'
 
@@ -52,7 +52,7 @@ end
 
 function tv:initialize(name, value)
 	local fmt = get_tag_format(name)
-	base.initialize(name, value, fmt)
+	base.initialize(self, name, value, fmt)
 end
 
 function tv:encode()

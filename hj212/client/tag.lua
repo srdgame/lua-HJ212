@@ -1,5 +1,6 @@
 local class = require 'middleclass'
 local types = require 'hj212.types'
+local param_tag = require 'hj212.params.tag'
 
 local tag = class('hj212.client.tag')
 
@@ -52,25 +53,40 @@ function tag:get_value()
 	return self._value, self._timestamp
 end
 
-function tag:query_rdata()
-	return {
+function tag:query_rdata(now)
+	return param_tag:new(self._name, {
 		Rtd = self._value,
 		Flag = self._flag,
 		--- EFlag is optional
 		SampleTime = self._timestamp
-	}
+	}, now)
+end
+
+function tag:convert_data(data)
+	local rdata = {}
+	for k, v in ipairs(data) do
+		rdata[#rdata + 1] = param_tag:new(self._name, {
+			Avg = v.avg,
+			Min = v.min,
+			Max = v.max,
+		}, v.stime)
+	end
+	return rdata
 end
 
 function tag:query_min_data(start_time, end_time)
-	assert(nil, "Not implmented")
+	local data = self._his_calc:query_min_data(start_time, end_time)
+	return self:convert_data(data)
 end
 
 function tag:query_hour_data(start_time, end_time)
-	assert(nil, "Not implmented")
+	local data = self._his_calc:query_hour_data(start_time, end_time)
+	return self:convert_data(data)
 end
 
 function tag:query_day_data(start_time, end_time)
-	assert(nil, "Not implmented")
+	local data = self._his_calc:query_day_data(start_time, end_time)
+	return self:convert_data(data)
 end
 
 return tag

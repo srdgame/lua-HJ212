@@ -52,6 +52,11 @@ function simple:on_min_trigger(now, duration)
 
 	self._sample_list = {}
 
+	while list[#list][2] > now do
+		table.insert(self._sample_list, list[#list])
+		table.remove(list, #list)
+	end
+
 	while #list > 0 and list[1][2] < (now - duration) do
 		last = self._min_list[#self._min_list]
 		local start = last and last.etime or self:day_start()

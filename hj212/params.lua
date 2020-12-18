@@ -111,6 +111,7 @@ function params:add_device(data_time, dev)
 end
 
 function params:add_tag(data_time, tag)
+	assert(data_time)
 	local t = self._tags[data_time] or {}
 	table.insert(t, tag)
 	self._tags[data_time] = t
@@ -120,29 +121,27 @@ end
 function params:encode_devices(base)
 	local data = {}
 	for data_time, devs in pairs(self._devs) do
-		local dt_val = datetime:new(data_time)
+		local function create_data_sub()
+			local data_sub = copy.deep(base)
+			table.insert(data_sub, string.format('DataTime=%s', datetime:new(data_time):encode()))
+			local len = string.len(table.concat(data_sub, ';'))
+			return data_sub, len
+		end
+		local data_sub, len = create_data_sub()
 
-		local data_sub = copy.deep(base)
-		table.insert(data_sub, string.format('DataTime=%s', dt_val))
-
-		local len = string.len(table.concat(data_sub, ';'))
 		for i, dev in ipairs(devs) do
 			local dev_data = dev:encode()
 			len = len + string.len(dev_data) + 1
 
-			if len < max_packet_len then
-				table.insert(data_sub, dev_data)
-			else
-				table.insert(data, data_sub)
-				data_sub = copy.deep(base)
-				table.insert(data_sub, string.format('DataTime=%s', dt_val))
-
-				len = string.len(table.concat(data_sub, ';')) + string.len(dev_data) + 1
-				table.insert(data_sub, dev_data)
+			if len > max_packet_len then
+				table.insert(data, table.concat(data_sub, ';'))
+				data_sub, len = create_data_sub()
+				len = len + string.len(dev_data) + 1
 			end
+			table.insert(data_sub, dev_data)
 		end
 		-- Insert data_sub to data
-		table.insert(data, data_sub)
+		table.insert(data, table.concat(data_sub, ';'))
 	end
 
 	return data
@@ -151,28 +150,27 @@ end
 function params:encode_tags(base)
 	local data = {}
 	for data_time, tags in pairs(self._tags) do
+		local function create_data_sub()
+			local data_sub = copy.deep(base)
+			table.insert(data_sub, string.format('DataTime=%s', datetime:new(data_time):encode()))
+			local len = string.len(table.concat(data_sub, ';'))
+			return data_sub, len
+		end
+		local data_sub, len = create_data_sub()
 
-		local data_sub = copy.deep(base)
-		table.insert(data_sub, string.format('DataTime=%s', data_time))
-
-		local len = string.len(table.concat(data_sub, ';'))
 		for i, tag in ipairs(tags) do
 			local tag_data = tag:encode()
 			len = len + string.len(tag_data) + 1
 
 			if len > max_packet_len then
-				table.insert(data_sub, tag_data)
-			else
-				table.insert(data, data_sub)
-				data_sub = copy.deep(base)
-				table.insert(data_sub, string.format('DataTime=%s', data_time))
-
-				len = string.len(table.concat(data_sub, ';')) + string.len(tag_data) + 1
-				table.insert(data, tag_data)
+				table.insert(data, table.concat(data_sub, ';'))
+				data_sub, len = create_data_sub()
+				len = len + string.len(tag_data) + 1
 			end
+			table.insert(data_sub, tag_data)
 		end
 		-- Insert data_sub to data
-		table.insert(data, data_sub)
+		table.insert(data, table.concat(data_sub, ';'))
 	end
 
 	return data

@@ -65,17 +65,17 @@ function station:set_tag_value(name, value, timestamp)
 	return nil, "No such tag:"..name
 end
 
-function station:rdata()
+function station:rdata(now)
 	local data = {}
-	for _, tag in ipairs(self._tag_list) do
-		data[#data + 1] = tag:query_rdata()
+	for _, tag in pairs(self._tag_list) do
+		data[#data + 1] = tag:query_rdata(now)
 	end
 	return data
 end
 
 function station:min_data(start_time, end_time)
 	local data = {}
-	for _, tag in ipairs(self._tag_list) do
+	for _, tag in pairs(self._tag_list) do
 		local vals = tag:query_min_data(start_time, end_time)
 		table.move(vals, 1, #vals, #data + 1, data)
 	end
@@ -84,7 +84,7 @@ end
 
 function station:hour_data(start_time, end_time)
 	local data = {}
-	for _, tag in ipairs(self._tag_list) do
+	for _, tag in pairs(self._tag_list) do
 		local vals = tag:query_hour_data(start_time, end_time)
 		table.move(vals, 1, #vals, #data + 1, data)
 	end
@@ -93,7 +93,7 @@ end
 
 function station:day_data(start_time, end_time)
 	local data = {}
-	for _, tag in ipairs(self._tag_list) do
+	for _, tag in pairs(self._tag_list) do
 		local vals = tag:query_day_data(start_time, end_time)
 		table.move(vals, 1, #vals, #data + 1, data)
 	end
@@ -102,7 +102,7 @@ end
 
 function station:info_data()
 	local data = {}
-	for _, info in ipairs(self._info_list) do
+	for _, info in pairs(self._info_list) do
 		local value, timestamp = info:get_value()
 		data[#data + 1] = {
 			value = value,

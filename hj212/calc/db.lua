@@ -15,6 +15,16 @@ local base = class('hj212.calc.db')
 -- }
 --
 function base:initialize()
+	--self._samples = {}
+end
+
+function base:push_sample(timestamp, value, value2, value3)
+	assert(nil, "Not implemented")
+	--table.insert(self._samples, {timestamp, value, value2, value3})
+end
+
+function base:save_samples()
+	assert(nil, "Not implemented")
 end
 
 function base:read(cate, start_time, end_time)

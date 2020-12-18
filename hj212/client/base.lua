@@ -86,15 +86,12 @@ function client:get_treatement(id)
 end
 
 function client:request(request, response)
-	local response = response or function(reply, err)
-		return reply, err
-	end
-
+	print('client:request', request, response)
 	local resp, err = self:send_request(request)
-	if resp then
-		return response(resp)
+	if response then
+		return response(resp, err)
 	else
-		return response(nil, err)
+		return resp, err
 	end
 end
 

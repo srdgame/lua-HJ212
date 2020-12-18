@@ -1,9 +1,9 @@
 local class = require 'middleclass'
 local datetime = require 'hj212.params.value.datetime'
 local simple = require 'hj212.params.value.simple'
-local tag = require 'hj212.params.value.tag'
+local tag_val = require 'hj212.params.value.tag'
 
-local params = class('hj212.params.tag')
+local tag = class('hj212.params.tag')
 
 local fmts = {}
 local function ES(fmt)
@@ -18,34 +18,43 @@ end
 
 local PARAMS = {
 	SampleTime = datetime,
-	Rtd = tag,
-	Min = tag,
-	Avg = tag,
-	Max = tag,
-	ZsRtd = tag,
-	ZsMin = tag,
-	ZsAvg = tag,
+	Rtd = tag_val,
+	Min = tag_val,
+	Avg = tag_val,
+	Max = tag_val,
+	ZsRtd = tag_val,
+	ZsMin = tag_val,
+	ZsAvg = tag_val,
 	Flag = ES('C1'),
 	EFlag = ES('C4'),
-	Cou	= tag, -- TODO:
+	Cou	= tag_val, -- TODO:
 	Data = ES('N3.1'),
 	DayDate = ES('N3.1'),
 	NightData = ES('N3.1'),
 	SN = ES('C24'),
-	Info = tag,
+	Info = tag_val,
 }
 
-params.static.PARAMS = PARAMS
+tag.static.PARAMS = PARAMS
 
-function params:initialize(tag_name, obj)
+function tag:initialize(tag_name, obj, data_time)
 	self._name = tag_name
+	self._data_time = data_time
 	self._items = {}
 	for k, v in pairs(obj or {}) do
 		self:set(k, v)
 	end
 end
 
-function params:get(name)
+function tag:name()
+	return self._name
+end
+
+function tag:data_time()
+	return self._data_time
+end
+
+function tag:get(name)
 	local p = self._items[name]
 	if p then
 		return p:value()
@@ -53,7 +62,7 @@ function params:get(name)
 	return nil, "Not exists!"
 end
 
-function params:set(name, value, fmt)
+function tag:set(name, value, fmt)
 	local p = self._items[name]
 	if p then
 		return p:set_value(value)
@@ -67,7 +76,7 @@ function params:set(name, value, fmt)
 	self._items[name] = p
 end
 
-function params:encode()
+function tag:encode()
 	local raw = {}
 	local sort = {}
 	for k, v in pairs(self._items) do
@@ -81,7 +90,7 @@ function params:encode()
 	return table.concat(raw, ',')
 end
 
-function params:decode(raw, index)
+function tag:decode(raw, index)
 	self._items = {}
 
 	for param in string.gmatch(raw, '([^;,]+),?') do
@@ -94,4 +103,4 @@ function params:decode(raw, index)
 	end
 end
 
-return params
+return tag

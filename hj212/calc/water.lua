@@ -10,7 +10,7 @@ local MAX_TIMESTAMP_GAP = 5 -- tenseconds
 function water:initialize(callback, upper_tag)
 	base.initialize(self, callback)
 
-	self._last = os.time()
+	self._last = os.time() - 1 --- Make sure last will not be same as tiemstamp
 	self._last_avg = nil
 	self._upper = upper_tag
 
@@ -33,7 +33,9 @@ function water:push(value, timestamp)
 end
 
 function water:_push(bvalue, value, timestamp)
-	assert(timestamp >= self._last, 'Last timestamp')
+	if timestamp <= self._last then
+		return -- TODO:
+	end
 
 	local val = bvalue * value * (10 ^ -3)
 
@@ -138,6 +140,11 @@ function water:on_min_trigger(now, duration)
 		return nil, "There is no sample data"
 	end
 	self._sample_list = {}
+
+	while list[#list][2] > now do
+		table.insert(self._sample_list, list[#list])
+		table.remove(list, #list)
+	end
 
 	--- Calculate the upper tag first
 	local upper_val =  nil

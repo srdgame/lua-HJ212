@@ -15,8 +15,8 @@ end
 
 local function calc_list(list, start, now)
 	local val_t = 0
-	local val_min = 0
-	local val_max = 0
+	local val_min = list[1][1]
+	local val_max = list[1][1]
 
 	for i, v in ipairs(list) do
 		local val = v[1]
@@ -26,6 +26,7 @@ local function calc_list(list, start, now)
 		val_t = val_t + val
 	end
 
+	print('simple.calc_list', val_t, #list)
 	local val_avg = val_t / #list
 
 	return {
@@ -100,8 +101,8 @@ local function calc_list_2(list, start, now)
 	local etime = start
 	local val_t = 0
 	local val_t_avg = 0
-	local val_min = 0
-	local val_max = 0
+	local val_min = list[1].min
+	local val_max = list[1].max
 
 	for i, v in ipairs(list) do
 		assert(v.stime > start, "Start time issue")

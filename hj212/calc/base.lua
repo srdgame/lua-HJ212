@@ -11,8 +11,9 @@ for k, v in pairs(mgr.static.TYPES) do
 end
 base.static.TYPE_NAMES = type_names
 
-function base:initialize(callback, db)
+function base:initialize(callback, db, type_mask)
 	local callback = callback
+	self._type_mask = type_mask ~= nil and type_mask or mgr.static.TYPES.ALL
 	self._db = db
 	self._callback = function(typ, val)
 		if db then
@@ -71,20 +72,22 @@ function base:set_mask(mask)
 end
 
 function base:on_trigger(typ, now, duration)
-	print(typ, now, duration)
 	if (self._type_mask & typ) == typ then
 		if typ == mgr.TYPES.MIN then
 			assert(self.on_min_trigger)
+			assert(duration % 60 == 0)
 			local val = self:on_min_trigger(now, duration)
 			self._callback(mgr.TYPES.MIN, val)
 		end
 		if typ == mgr.TYPES.HOUR then
 			assert(self.on_hour_trigger)
+			assert(duration % 3600 == 0)
 			local val = self:on_hour_trigger(now, duration)
 			self._callback(mgr.TYPES.HOUR, val)
 		end
 		if typ == mgr.TYPES.DAY then
 			assert(self.on_day_trigger)
+			assert(duration % (3600 * 24) == 0)
 			local val = self:on_day_trigger(now, duration)
 			self._callback(mgr.TYPES.DAY, val)
 		end

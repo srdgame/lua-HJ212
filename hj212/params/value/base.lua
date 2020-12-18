@@ -7,7 +7,7 @@ function base:initialize(name, value)
 	self._value = value
 end
 
-function base:name()
+function base:value_name()
 	return self._name
 end
 

@@ -72,8 +72,8 @@ end
 
 local function calc_list(upper_val, list, start, now, last, last_avg)
 	local val_t = 0
-	local val_min = 0
-	local val_max = 0
+	local val_min = list[1][2]
+	local val_max = list[1][2]
 
 	for i, v in ipairs(list) do
 		local val = v[1]
@@ -93,8 +93,10 @@ local function calc_list(upper_val, list, start, now, last, last_avg)
 	local val_avg = 0
 	if not upper_val then
 		val_avg = val_t / (now - start)
+		print('water.calc_list 1', val_t, now - start, val_avg, val_min, val_max)
 	else
 		val_avg = (val_t / upper_val.total) * (10 ^ -3)
+		print('water.calc_list 2', val_t, upper_val.total, val_avg, val_min, val_max)
 	end
 
 	return {
@@ -219,15 +221,15 @@ end
 local function calc_list_2(upper_val, list, start, now)
 	local etime = start
 	local val_t = 0
-	local val_min = 0
-	local val_max = 0
+	local val_min = list[1].min
+	local val_max = list[2].max
 
 	for _, v in ipairs(list) do
 		assert(v.stime > start, "Start time issue")
 		assert(v.etime > etime, "Last time issue")
 		etime = v.etime
 
-		val_min = v.min < val_min  and v.min or val_min
+		val_min = v.min < val_min and v.min or val_min
 		val_max = v.max > val_max and v.max or val_max
 
 		val_t = val_t + v.total

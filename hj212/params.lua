@@ -46,7 +46,9 @@ local PARAMS = {
 params.static.PARAMS = PARAMS
 
 function params:initialize(obj)
+	self._has_devs = false
 	self._devs = {}
+	self._has_tags = false
 	self._tags = {}
 	self._params = {}
 	for k, v in pairs(obj or {}) do
@@ -104,18 +106,19 @@ function params:set_from_raw(name, raw_value)
 end
 
 function params:add_device(data_time, dev)
+	assert(data_time)
+	self._has_devs = true
 	local t = self._devs[data_time] or {}
 	table.insert(t, dev)
 	self._devs[data_time] = t
-	self._params['DataTime'] = nil
 end
 
 function params:add_tag(data_time, tag)
 	assert(data_time)
+	self._has_tags = true
 	local t = self._tags[data_time] or {}
 	table.insert(t, tag)
 	self._tags[data_time] = t
-	self._params['DataTime'] = nil
 end
 
 function params:encode_devices(base)
@@ -123,7 +126,7 @@ function params:encode_devices(base)
 	for data_time, devs in pairs(self._devs) do
 		local function create_data_sub()
 			local data_sub = copy.deep(base)
-			table.insert(data_sub, string.format('DataTime=%s', datetime:new(data_time):encode()))
+			table.insert(data_sub, string.format('DataTime=%s', datetime:new('DataTime', data_time):encode()))
 			local len = string.len(table.concat(data_sub, ';'))
 			return data_sub, len
 		end
@@ -150,9 +153,12 @@ end
 function params:encode_tags(base)
 	local data = {}
 	for data_time, tags in pairs(self._tags) do
+		table.sort(tags, function(a, b)
+			return a:tag_name() < b:tag_name()
+		end)
 		local function create_data_sub()
 			local data_sub = copy.deep(base)
-			table.insert(data_sub, string.format('DataTime=%s', datetime:new(data_time):encode()))
+			table.insert(data_sub, string.format('DataTime=%s', datetime:new('DataTime', data_time):encode()))
 			local len = string.len(table.concat(data_sub, ';'))
 			return data_sub, len
 		end
@@ -177,6 +183,11 @@ function params:encode_tags(base)
 end
 
 function params:encode()
+	-- Remove the DataTime if has devs or tags
+	if self._has_tags or self._has_devs then
+		self._params['DataTime'] = nil
+	end
+
 	--- Sort the base keys
 	local sort = {}
 	for k, v in pairs(self._params) do
@@ -187,7 +198,6 @@ function params:encode()
 	local raw = {}
 	for _, v in ipairs(sort) do
 		local val = self._params[v]
-		--print(v, val)
 		raw[#raw + 1] = string.format('%s=%s', v, val:encode())
 	end
 
@@ -209,12 +219,11 @@ end
 
 function params:decode(raw, index)
 	self._params = {}
-	self._devs = {}
-	self._tags = {}
+	local devs = {}
+	local tags = {}
 
 	for param in string.gmatch(raw, '([^;]+);?') do
 		local key, val = string.match(param, '^([^=]+)=(%w+)')
-		print("PARAMS", key, val)
 		if PARAMS[key] then
 			self:set_from_raw(key, val)
 		else
@@ -235,15 +244,25 @@ function params:decode(raw, index)
 				local m = '^([^%-]+)%-(%w+)='
 				local tag_name, type_name = string.match(name, m)
 				if tag_name and type_name then
-					if self._tags[tag_name] then
+					if tags[tag_name] then
 						print('WARN: duplicated '..tag_name)
 					end
 					tag = tag_param:new(tag_name)
 					tag:decode(param)
-					self._tags[tag_name] = tag
+					tags[tag_name] = tag
 				end
 			end
 		end
+	end
+
+	local data_time = self:get('DataTime')
+	if #tags > 0 then
+		self._tags[data_time] = tags
+		self._has_tags = true
+	end
+	if #devs > 0 then
+		self._devs[data_time] = devs
+		self._has_devs = true
 	end
 end
 

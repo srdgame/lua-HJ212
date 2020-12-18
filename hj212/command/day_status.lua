@@ -4,7 +4,6 @@ local types = require 'hj212.types'
 local cmd = base:subclass('hj212.command.day_status')
 
 function cmd:initialize(data_time, begin_time, end_time)
-	local data_time = data_time or nil -- optional
 	base.initialize(self, types.COMMAND.DAY_STATUS, {
 		DataTime = data_time,
 		BeginTime = begin_time,

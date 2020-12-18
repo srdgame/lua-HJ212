@@ -11,7 +11,7 @@ function client:initialize(station, passwd, timeout, retry)
 	self._system = tonumber(station:system())
 	self._dev_id = station:id()
 	self._passwd = passwd
-	self._timeout = (tonumber(timeout) or 10) * 1000
+	self._timeout = (tonumber(timeout) or 5) * 1000
 	self._retry = tonumber(retry) or 3
 
 	self._treatment = {}

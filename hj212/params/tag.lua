@@ -46,7 +46,7 @@ function tag:initialize(tag_name, obj, data_time)
 	end
 end
 
-function tag:name()
+function tag:tag_name()
 	return self._name
 end
 

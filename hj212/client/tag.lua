@@ -25,7 +25,7 @@ function tag:meter()
 	return self._meter
 end
 
-function tag:name()
+function tag:tag_name()
 	return self._name
 end
 

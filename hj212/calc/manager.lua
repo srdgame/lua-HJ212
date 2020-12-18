@@ -61,13 +61,13 @@ end
 -- now: time in seconds
 function mgr:trigger(typ, now, duration)
 	local now = math.floor(now)
-	if (typ & mgr.TYPES.MIN) == mgr.TYPES.MIN then
+	if typ == mgr.TYPES.MIN then
 		on_trigger_list(self._min_list, mgr.TYPES.MIN, now, duration)
 	end
-	if (typ & mgr.TYPES.HOUR) == mgr.TYPES.HOUR then
+	if typ == mgr.TYPES.HOUR then
 		on_trigger_list(self._hour_list, mgr.TYPES.HOUR, now, duration)
 	end
-	if (typ & mgr.TYPES.DAY) == mgr.TYPES.DAY then
+	if typ == mgr.TYPES.DAY then
 		on_trigger_list(self._day_list, mgr.TYPES.DAY, now, duration)
 	end
 end

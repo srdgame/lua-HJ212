@@ -34,9 +34,6 @@ function base:add_device(...)
 end
 
 function base:encode()
-	for k,v in pairs(self._attrs) do
-		self._params:set(k, v)
-	end
 	return self._params
 end
 

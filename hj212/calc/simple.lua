@@ -49,7 +49,6 @@ local function calc_list(list, start, now)
 end
 
 function simple:on_min_trigger(now, duration)
-	print('simple:on_min_trigger')
 	local list = self._sample_list
 	local last = self._min_list[#self._min_list]
 	if last and last.etime >= now then

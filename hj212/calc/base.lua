@@ -92,8 +92,8 @@ function base:sample_meta()
 	assert(nil, "Not implemented")
 end
 
-function base:push_rdata(timestamp, value)
-	self._callback(mgr.TYPES.RDATA, {timestamp=timestamp, value=value})
+function base:push_rdata(timestamp, value, flag)
+	self._callback(mgr.TYPES.RDATA, {timestamp=timestamp, value=value, flag=flag})
 end
 
 function base:on_trigger(typ, now, duration)

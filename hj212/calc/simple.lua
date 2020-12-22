@@ -1,16 +1,25 @@
 local base = require 'hj212.calc.base'
+local mgr = require 'hj212.calc.manager'
 
 local simple = base:subclass('hj212.calc.simple')
 
-function simple:initialize(callback)
-	base.initialize(self, callback)
+function simple:initialize(callback, mask)
+	base.initialize(self, callback, mask)
 
 	self._waiting = {}
 end
 
 function simple:push(value, timestamp)
-	local timestamp = math.floor(timestamp)
-	table.insert(self._sample_list, {value, timestamp})
+	local val = {value, math.floor(timestamp)}
+	table.insert(self._sample_list, val)
+	self:push_sample(val)
+end
+
+function simple:sample_meta()
+	return {
+		{ name = 'value', type = 'DOUBLE', not_null = true },
+		{ name = 'timestamp', type = 'DOUBLE', not_null = true },
+	}
 end
 
 local function calc_list(list, start, now)
@@ -26,7 +35,7 @@ local function calc_list(list, start, now)
 		val_t = val_t + val
 	end
 
-	print('simple.calc_list', val_t, #list)
+	--print('simple.calc_list', val_t, #list)
 	local val_avg = val_t / #list
 
 	return {
@@ -40,6 +49,7 @@ local function calc_list(list, start, now)
 end
 
 function simple:on_min_trigger(now, duration)
+	print('simple:on_min_trigger')
 	local list = self._sample_list
 	local last = self._min_list[#self._min_list]
 	if last and last.etime >= now then
@@ -62,7 +72,7 @@ function simple:on_min_trigger(now, duration)
 		last = self._min_list[#self._min_list]
 		local start = last and last.etime or self:day_start()
 		local item_start = list[1][2]
-		while start + duration < item_start do
+		while start + duration <= item_start do
 			start = start + duration
 		end
 		local etime = start + duration
@@ -81,7 +91,7 @@ function simple:on_min_trigger(now, duration)
 		if #old_list > 0 then
 			local val = calc_list(old_list, start, etime)
 			table.insert(self._min_list, val)
-			self._callback(mgr.TRYPES.MIN, val)
+			self._callback(mgr.TYPES.MIN, val)
 		end
 	end
 	if #list == 0 then
@@ -149,7 +159,7 @@ function simple:on_hour_trigger(now)
 		last = self._hour_list[#self._hour_list]
 		local start = last and last.etime or self:day_start()
 		local item_start = list[1][2]
-		while start + duration < item_start do
+		while start + duration <= item_start do
 			start = start + duration
 		end
 		local etime = start + duration
@@ -168,7 +178,7 @@ function simple:on_hour_trigger(now)
 		if #old_list > 0 then
 			local val = calc_list(old_list, start, etime)
 			table.insert(self._min_list, val)
-			self._callback(mgr.TRYPES.MIN, val)
+			self._callback(mgr.TYPES.HOUR, val)
 		end
 	end
 	if #list == 0 then

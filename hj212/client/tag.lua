@@ -53,7 +53,11 @@ function tag:get_value()
 	return self._value, self._timestamp
 end
 
-function tag:query_rdata(now)
+function tag:query_rdata(now, save)
+	if save and self._his_calc then
+		self._his_calc:push_rdata(self._timestamp, self._value, self._flag)
+	end
+
 	return param_tag:new(self._name, {
 		Rtd = self._value,
 		Flag = self._flag,

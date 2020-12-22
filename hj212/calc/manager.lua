@@ -3,6 +3,7 @@ local class = require 'middleclass'
 local mgr = class('hj212.calc.manager')
 
 mgr.static.TYPES = {
+	RDATA = 0, -- This not called by trigger only used for history saving
 	MIN = 1,
 	HOUR = 2,
 	DAY = 4,
@@ -15,14 +16,15 @@ function mgr:initialize()
 	self._day_list = {}
 end
 
-function mgr:reg(type_mask, calc)
-	if (type_mask & mgr.TYPES.MIN) == mgr.TYPES.MIN then
+function mgr:reg(calc)
+	local mask = calc:mask()
+	if (mask & mgr.TYPES.MIN) == mgr.TYPES.MIN then
 		table.insert(self._min_list, calc)
 	end
-	if (type_mask & mgr.TYPES.HOUR) == mgr.TYPES.HOUR then
+	if (mask & mgr.TYPES.HOUR) == mgr.TYPES.HOUR then
 		table.insert(self._hour_list, calc)
 	end
-	if (type_mask & mgr.TYPES.DAY) == mgr.TYPES.DAY then
+	if (mask & mgr.TYPES.DAY) == mgr.TYPES.DAY then
 		table.insert(self._day_list, calc)
 	end	
 end
@@ -35,14 +37,15 @@ local function unreg_list_obj(list, val)
 	end
 end
 
-function mgr:unreg(type_mask, calc)
-	if (typ & mgr.TYPES.MIN) == mgr.TYPES.MIN then
+function mgr:unreg(calc)
+	local mask = calc:mask()
+	if (mask & mgr.TYPES.MIN) == mgr.TYPES.MIN then
 		unreg_list_obj(self._min_list, now)
 	end
-	if (typ & mgr.TYPES.HOUR) == mgr.TYPES.HOUR then
+	if (mask & mgr.TYPES.HOUR) == mgr.TYPES.HOUR then
 		unreg_list_obj(self._hour_list, now)
 	end
-	if (typ & mgr.TYPES.DAY) == mgr.TYPES.DAY then
+	if (mask & mgr.TYPES.DAY) == mgr.TYPES.DAY then
 		unreg_list_obj(self._day_list, now)
 	end	
 end

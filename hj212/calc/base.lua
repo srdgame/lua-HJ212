@@ -11,15 +11,17 @@ for k, v in pairs(mgr.static.TYPES) do
 end
 base.static.TYPE_NAMES = type_names
 
-function base:initialize(callback, db, type_mask)
+function base:initialize(callback, type_mask)
 	local callback = callback
 	self._type_mask = type_mask ~= nil and type_mask or mgr.static.TYPES.ALL
-	self._db = db
 	self._callback = function(typ, val)
+		local db = self._db
+		--- Using start time as timestamp
+		val.timestamp = val.timestamp or val.stime
 		if db then
 			local name = type_names[typ]
 			if name then
-				db:write(name, {val})
+				db:write(name, val)
 			end
 		end
 		if callback then
@@ -36,11 +38,30 @@ function base:initialize(callback, db, type_mask)
 	self._day = nil
 end
 
+function base:set_db(db)
+	self._db = db
+	if self._db then
+		self:load_from_db()
+	end
+end
+
+function base:db()
+	return self._db
+end
+
+function base:set_mask(mask)
+	self._type_mask = mask
+end
+
+function base:mask()
+	return self._type_mask
+end
+
 function base:day_start()
 	return os.time() + date():getbias() * 60
 end
 
-function base:init()
+function base:load_from_db()
 	if self._db then
 		local day_start_time = self:day_start()
 		self._hour_list = self._db:read('HOUR', day_start_time, self._start)
@@ -53,13 +74,7 @@ function base:init()
 		if #self._min_list > 0 then
 			min_start_time = self._min_list[#self._min_list].etime
 		end
-		self._sample_list = self._db:read('SAMPLE', min_start_time, self._start)
-	end
-end
-
-function base:save_sample(timestamp, value, ...)
-	if self._db then
-		self._db:push_sample(timestamp, value, ...)
+		self._sample_list = self._db:read_samples(min_start_time, self._start)
 	end
 end
 
@@ -67,8 +82,18 @@ function base:push(value, timestamp)
 	assert(nil, "Not implemented")
 end
 
-function base:set_mask(mask)
-	self._type_mask = mask
+function base:push_sample(data)
+	if self._db then
+		self._db:push_sample(data)
+	end
+end
+
+function base:sample_meta()
+	assert(nil, "Not implemented")
+end
+
+function base:push_rdata(timestamp, value)
+	self._callback(mgr.TYPES.RDATA, {timestamp=timestamp, value=value})
 end
 
 function base:on_trigger(typ, now, duration)
@@ -91,6 +116,7 @@ function base:on_trigger(typ, now, duration)
 			local val = self:on_day_trigger(now, duration)
 			self._callback(mgr.TYPES.DAY, val)
 		end
+		return true
 	else
 		return nil, "Unexpected trigger type"..typ
 	end

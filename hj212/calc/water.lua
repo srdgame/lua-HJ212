@@ -1,4 +1,5 @@
 local base = require 'hj212.calc.base'
+local mgr = require 'hj212.calc.manager'
 
 local water = base:subclass('hj212.calc.water')
 
@@ -7,8 +8,8 @@ local MAX_TIMESTAMP_GAP = 5 -- tenseconds
 --- The upper tag, e.g. [w00000]
 -- If the upper tag not exists time will be used for caclue the (total) value
 --
-function water:initialize(callback, upper_tag)
-	base.initialize(self, callback)
+function water:initialize(callback, mask, upper_tag)
+	base.initialize(self, callback, mask)
 
 	self._last = os.time() - 1 --- Make sure last will not be same as tiemstamp
 	self._last_avg = nil
@@ -22,6 +23,7 @@ end
 
 function water:push(value, timestamp)
 	local timestamp = math.floor(timestamp)
+	assert(timestamp)
 	if self._upper then
 		self._upper:get_value(timestmap, function(upper_value)
 			self:_push(upper_value, value, timestamp)
@@ -39,7 +41,9 @@ function water:_push(bvalue, value, timestamp)
 
 	local val = bvalue * value * (10 ^ -3)
 
-	table.insert(self._sample_list, {val, value, timestamp})
+	local sample = {val, value, timestamp}
+	table.insert(self._sample_list, sample)
+	self:push_sample(sample)
 
 	self._last_avg = (val) / (timestamp - self._last)
 	self._last = timestamp
@@ -57,6 +61,14 @@ function water:_push(bvalue, value, timestamp)
 		end
 	end
 	self._waiting = {}
+end
+
+function water:sample_meta()
+	return {
+		{ name = 'val', type = 'DOUBLE', not_null = true },
+		{ name = 'value', type = 'DOUBLE', not_null = true },
+		{ name = 'timestamp', type = 'DOUBLE', not_null = true },
+	}
 end
 
 function water:get_value(timestamp, val_calc)
@@ -79,7 +91,7 @@ local function calc_list(upper_val, list, start, now, last, last_avg)
 		local val = v[1]
 		local raw_val = v[2]
 		val_min = raw_val < val_min and raw_val or val_min
-		val_max = raw_val < val_max and raw_val or val_max
+		val_max = raw_val > val_max and raw_val or val_max
 
 		val_t = val_t + val
 	end
@@ -93,10 +105,10 @@ local function calc_list(upper_val, list, start, now, last, last_avg)
 	local val_avg = 0
 	if not upper_val then
 		val_avg = val_t / (now - start)
-		print('water.calc_list 1', val_t, now - start, val_avg, val_min, val_max)
+		--print('water.calc_list 1', val_t, now - start, val_avg, val_min, val_max)
 	else
 		val_avg = (val_t / upper_val.total) * (10 ^ -3)
-		print('water.calc_list 2', val_t, upper_val.total, val_avg, val_min, val_max)
+		--print('water.calc_list 2', val_t, upper_val.total, val_avg, val_min, val_max)
 	end
 
 	return {
@@ -138,14 +150,14 @@ function water:on_min_trigger(now, duration)
 		return last
 	end
 
-	if #list == 0 then
-		return nil, "There is no sample data"
-	end
 	self._sample_list = {}
 
-	while list[#list][2] > now do
+	while #list > 0 and list[#list][3] > now do
 		table.insert(self._sample_list, list[#list])
-		table.remove(list, #list)
+		table.remove(list)
+	end
+	if #list == 0 then
+		return nil, "There is no sample data"
 	end
 
 	--- Calculate the upper tag first
@@ -162,7 +174,7 @@ function water:on_min_trigger(now, duration)
 		last = self._min_list[#self._min_list]
 		local start = last and last.etime or self:day_start()
 		local item_start = list[1][3]
-		while start + duration < item_start do
+		while start + duration <= item_start do
 			start = start + duration
 		end
 		local etime = start + duration
@@ -181,6 +193,7 @@ function water:on_min_trigger(now, duration)
 			end
 		end
 		list = new_list
+		assert(#old_list > 0)
 
 		local upper_val = nil
 		if self._upper then
@@ -190,7 +203,7 @@ function water:on_min_trigger(now, duration)
 		if upper_val and #old_list > 0 then
 			local val = calc_list(upper_val, old_list, start, etime, last_time, last_avg)
 			table.insert(self._min_list, val)
-			self._callback(mgr.TRYPES.MIN, val)
+			self._callback(mgr.TYPES.MIN, val)
 		else
 			--TODO:
 		end
@@ -281,7 +294,7 @@ function water:on_hour_trigger(now, duration)
 		last = self._hour_list[#self._hour_list]
 		local start = last and last.etime or self:day_start()
 		local item_start = list[1][3]
-		while start + duration < item_start do
+		while start + duration <= item_start do
 			start = start + duration
 		end
 		local etime = start + duration
@@ -296,6 +309,7 @@ function water:on_hour_trigger(now, duration)
 			end
 		end
 		list = new_list
+		assert(#old_list > 0)
 
 		local upper_val = nil
 		if self._upper then
@@ -305,7 +319,7 @@ function water:on_hour_trigger(now, duration)
 		if upper_val and #old_list > 0 then
 			local val = calc_list_2(upper_val, old_list, start, etime)
 			table.insert(self._min_list, val)
-			self._callback(mgr.TRYPES.MIN, val)
+			self._callback(mgr.TYPES.HOUR, val)
 		else
 			--TODO:
 		end

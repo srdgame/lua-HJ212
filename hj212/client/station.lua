@@ -47,6 +47,10 @@ function station:find_tag_meter(name)
 	return nil, "Not found"
 end
 
+function station:tags()
+	return self._tag_list
+end
+
 function station:add_meter(meter)
 	assert(meter)
 	table.insert(self._meters, meter)
@@ -65,10 +69,10 @@ function station:set_tag_value(name, value, timestamp)
 	return nil, "No such tag:"..name
 end
 
-function station:rdata(now)
+function station:rdata(now, save)
 	local data = {}
 	for _, tag in pairs(self._tag_list) do
-		data[#data + 1] = tag:query_rdata(now)
+		data[#data + 1] = tag:query_rdata(now, save)
 	end
 	return data
 end

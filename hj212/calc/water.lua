@@ -83,6 +83,9 @@ function water:get_value(timestamp, val_calc)
 end
 
 local function calc_list(upper_val, list, start, now, last, last_avg)
+	if #list == 0 then
+		return {total=0,avg=0,min=0,max=0,stime=start,etime=now}
+	end
 	local val_t = 0
 	local val_min = list[1][2]
 	local val_max = list[1][2]
@@ -171,13 +174,12 @@ function water:on_min_trigger(now, duration)
 	end
 
 	while #list > 0 and list[1][3] < now - duration do
-		last = self._min_list[#self._min_list]
-		local start = last and last.etime or self:day_start()
+		local etime = now - duration
 		local item_start = list[1][3]
-		while start + duration <= item_start do
-			start = start + duration
+		while etime - duration > item_start do
+			etime = etime - duration
 		end
-		local etime = start + duration
+		local start = etime - duration
 
 		local old_list = {}
 		local new_list = {}
@@ -192,8 +194,8 @@ function water:on_min_trigger(now, duration)
 				new_list[#new_list + 1] = v
 			end
 		end
-		list = new_list
 		assert(#old_list > 0)
+		list = new_list
 
 		local upper_val = nil
 		if self._upper then
@@ -207,9 +209,6 @@ function water:on_min_trigger(now, duration)
 		else
 			--TODO:
 		end
-	end
-	if #list == 0 then
-		return nil, "There is no sample data for current duration"
 	end
 
 	local start = now - duration
@@ -232,6 +231,9 @@ function water:on_min_trigger(now, duration)
 end
 
 local function calc_list_2(upper_val, list, start, now)
+	if #list == 0 then
+		return {total=0,avg=0,min=0,max=0,stime=start,etime=now}
+	end
 	local etime = start
 	local val_t = 0
 	local val_min = list[1].min
@@ -291,13 +293,12 @@ function water:on_hour_trigger(now, duration)
 	end
 	
 	while #list > 0 and list[1].etime < now - duration do
-		last = self._hour_list[#self._hour_list]
-		local start = last and last.etime or self:day_start()
+		local etime = now - duration
 		local item_start = list[1][3]
-		while start + duration <= item_start do
-			start = start + duration
+		while etime - duration > item_start do
+			etime = etime - duration
 		end
-		local etime = start + duration
+		local start = etime - duration
 
 		local old_list = {}
 		local new_list = {}
@@ -308,8 +309,8 @@ function water:on_hour_trigger(now, duration)
 				new_list[#new_list + 1] = v
 			end
 		end
-		list = new_list
 		assert(#old_list > 0)
+		list = new_list
 
 		local upper_val = nil
 		if self._upper then
@@ -324,11 +325,8 @@ function water:on_hour_trigger(now, duration)
 			--TODO:
 		end
 	end
-	if #list == 0 then
-		return nil, "There is no sample data for current duration"
-	end
 
-	if not upper_value then
+	if not upper_val then
 		return nil, err
 	end
 	

@@ -23,6 +23,9 @@ function simple:sample_meta()
 end
 
 local function calc_list(list, start, now)
+	if #list == 0 then
+		return {total=0,avg=0,min=0,max=0,stime=start,etime=now}
+	end
 	local val_t = 0
 	local val_min = list[1][1]
 	local val_max = list[1][1]
@@ -68,13 +71,12 @@ function simple:on_min_trigger(now, duration)
 	end
 
 	while #list > 0 and list[1][2] < (now - duration) do
-		last = self._min_list[#self._min_list]
-		local start = last and last.etime or self:day_start()
-		local item_start = list[1][2]
-		while start + duration <= item_start do
-			start = start + duration
+		local etime = now - duration
+		local item_start = list[1][3]
+		while etime - duration > item_start do
+			etime = etime - duration
 		end
-		local etime = start + duration
+		local start = etime - duration
 
 		local old_list = {}
 		local new_list = {}
@@ -85,6 +87,7 @@ function simple:on_min_trigger(now, duration)
 				new_list[#new_list + 1] = v
 			end
 		end
+		assert(#old_list > 0)
 		list = new_list
 
 		if #old_list > 0 then
@@ -92,9 +95,6 @@ function simple:on_min_trigger(now, duration)
 			table.insert(self._min_list, val)
 			self._callback(mgr.TYPES.MIN, val)
 		end
-	end
-	if #list == 0 then
-		return nil, "There is no sample data for current duration"
 	end
 
 	local start = now - duration
@@ -107,6 +107,9 @@ function simple:on_min_trigger(now, duration)
 end
 
 local function calc_list_2(list, start, now)
+	if #list == 0 then
+		return {total=0,avg=0,min=0,max=0,stime=start,etime=now}
+	end
 	local etime = start
 	local val_t = 0
 	local val_t_avg = 0
@@ -139,7 +142,7 @@ local function calc_list_2(list, start, now)
 	}
 end
 
-function simple:on_hour_trigger(now)
+function simple:on_hour_trigger(now, duration)
 	local now = math.floor(now)
 	local list = self._min_list
 	local last = self._hour_list[#self._hour_list]
@@ -154,14 +157,14 @@ function simple:on_hour_trigger(now)
 
 	self._min_list = {}
 
+	--- If the first item timestamp not in current duration
 	while #list > 0 and list[1][2] < (now - duration) do
-		last = self._hour_list[#self._hour_list]
-		local start = last and last.etime or self:day_start()
-		local item_start = list[1][2]
-		while start + duration <= item_start do
-			start = start + duration
+		local etime = now - duration
+		local item_start = list[1][3]
+		while etime - duration > item_start do
+			etime = etime - duration
 		end
-		local etime = start + duration
+		local start = etime - duration
 
 		local old_list = {}
 		local new_list = {}
@@ -172,16 +175,12 @@ function simple:on_hour_trigger(now)
 				new_list[#new_list + 1] = v
 			end
 		end
+		assert(#old_list > 0)
 		list = new_list
 
-		if #old_list > 0 then
-			local val = calc_list(old_list, start, etime)
-			table.insert(self._min_list, val)
-			self._callback(mgr.TYPES.HOUR, val)
-		end
-	end
-	if #list == 0 then
-		return nil, "There is no sample data for current duration"
+		local val = calc_list(old_list, start, etime)
+		table.insert(self._min_list, val)
+		self._callback(mgr.TYPES.HOUR, val)
 	end
 
 	local start = now - duration
@@ -193,7 +192,7 @@ function simple:on_hour_trigger(now)
 	return val
 end
 
-function simple:on_day_trigger(now)
+function simple:on_day_trigger(now, duration)
 	local now = math.floor(now)
 	if self._day and self._day.etime == now then
 		assert(now == last.etime, "Last end time not equal to now")

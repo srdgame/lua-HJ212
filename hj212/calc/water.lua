@@ -156,7 +156,7 @@ function water:on_min_trigger(now, duration)
 	self._sample_list = {}
 
 	while #list > 0 and list[#list][3] > now do
-		print('Pushing later item into samples list', list[#list][3])
+		print('Pushing later item into sample list', list[#list][3], now)
 		table.insert(self._sample_list, list[#list])
 		table.remove(list)
 	end
@@ -251,7 +251,7 @@ local function calc_list_2(upper_val, list, start, now)
 		val_t = val_t + v.total
 	end
 
-	assert(etime == now, "Min data list has been calculated before hour calculation")
+	assert(etime <= now)
 
 	local val_avg = 0
 	if not upper_val then
@@ -281,10 +281,16 @@ function water:on_hour_trigger(now, duration)
 		return last
 	end
 
+	self._min_list = {}
+	while #list > 0 and list[#list].etime > now do
+		print('Pushing later item into min list', list[#list].etime, now)
+		table.insert(self._min_list, list[#list])
+		table.remove(list)
+	end
+
 	if #list == 0 then
 		return nil, "There is no min data"
 	end
-	self._min_list = {}
 
 	--- Calculate the upper tag first
 	local upper_val = nil

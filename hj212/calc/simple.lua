@@ -32,6 +32,7 @@ local function calc_list(list, start, now)
 
 	for i, v in ipairs(list) do
 		local val = v[1]
+		assert(type(val) == 'number')
 		val_min = val < val_min and val or val_min
 		val_max = val > val_max and val or val_max
 
@@ -55,6 +56,7 @@ function simple:on_min_trigger(now, duration)
 	local list = self._sample_list
 	local last = self._min_list[#self._min_list]
 	if last and last.etime >= now then
+		print(#list)
 		assert(now == last.etime, "Last end time not equal to now")
 		return last
 	end
@@ -65,8 +67,8 @@ function simple:on_min_trigger(now, duration)
 
 	self._sample_list = {}
 
-	while list[#list][2] > now do
-		--print('Push later items into samples list', list[#list][2])
+	while #list > 0 and list[#list][2] > now do
+		print('Push later items into samples list', list[#list][2], now)
 		table.insert(self._sample_list, list[#list])
 		table.remove(list, #list)
 	end
@@ -129,16 +131,11 @@ local function calc_list_2(list, start, now)
 		val_t_avg = val_t_avg + v.avg
 	end
 
-	if etime ~= now then
-		for i, v in ipairs(list) do
-			print(v.start, v.etime)
-		end
-	end
-	assert(etime == now, 'etime:'..etime..'\tnow:'..now)
+	assert(etime <= now, 'etime:'..etime..'\tnow:'..now)
 
 	local val_avg = val_t_avg / #list
 
-	self._day = {
+	return {
 		total = val_t,
 		avg = val_avg,
 		min = val_min,
@@ -157,11 +154,17 @@ function simple:on_hour_trigger(now, duration)
 		return last
 	end
 
+	self._min_list = {}
+
+	while #list > 0 and list[#list].etime > now do
+		print('Push later items into min list', list[#list].etime, now)
+		table.insert(self._min_list, list[#list])
+		table.remove(list, #list)
+	end
+
 	if #list == 0 then
 		return nil, "There is no sample data"
 	end
-
-	self._min_list = {}
 
 	--- If the first item timestamp not in current duration
 	while #list > 0 and list[1].stime < (now - duration) do

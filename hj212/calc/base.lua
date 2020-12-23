@@ -21,7 +21,7 @@ function base:initialize(callback, type_mask)
 		val.timestamp = val.timestamp or val.stime
 		if db then
 			if name then
-				db:write(name, val, timestamp)
+				assert(db:write(name, val))
 			end
 		end
 		if callback then
@@ -57,13 +57,25 @@ function base:mask()
 	return self._type_mask
 end
 
-function base:day_start()
-	return os.time() + date():getbias() * 60
+function base:day_start(timestamp)
+	local d = timestamp and date(timestamp):tolocal() or date(false) --- local time
+	d:setseconds(0)
+	d:setminutes(0)
+	d:sethours(0)
+	return date.diff(d:toutc(), date(0)):spanseconds()
+end
+
+function base:hour_start(timestamp)
+	local d = timestamp and date(timestamp):tolocal() or date(false) --- local time
+	d:setseconds(0)
+	d:setminutes(0)
+	return date.diff(d:toutc(), date(0)):spanseconds()
 end
 
 function base:load_from_db()
 	if self._db then
 		local day_start_time = self:day_start()
+		--print(os.date('%c', day_start_time))
 		self._hour_list = self._db:read('HOUR', day_start_time, self._start)
 		local hour_start_time = day_start_time
 		if #self._hour_list > 0 then

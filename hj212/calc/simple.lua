@@ -94,7 +94,7 @@ function simple:on_min_trigger(now, duration)
 		if #old_list > 0 then
 			local val = calc_list(old_list, start, etime)
 			table.insert(self._min_list, val)
-			self._callback(mgr.TYPES.MIN, val)
+			self._callback(mgr.TYPES.MIN, val, etime)
 		end
 	end
 
@@ -118,8 +118,8 @@ local function calc_list_2(list, start, now)
 	local val_max = list[1].max
 
 	for i, v in ipairs(list) do
-		assert(v.stime > start, "Start time issue")
-		assert(v.etime > etime, "Last time issue")
+		assert(v.stime >= start, "Start time issue")
+		assert(v.etime >= etime, "Last time issue")
 		etime = v.etime
 
 		val_min = v.min < val_min and v.min or val_min
@@ -129,7 +129,12 @@ local function calc_list_2(list, start, now)
 		val_t_avg = val_t_avg + v.avg
 	end
 
-	assert(etime == now)
+	if etime ~= now then
+		for i, v in ipairs(list) do
+			print(v.start, v.etime)
+		end
+	end
+	assert(etime == now, 'etime:'..etime..'\tnow:'..now)
 
 	local val_avg = val_t_avg / #list
 
@@ -179,9 +184,9 @@ function simple:on_hour_trigger(now, duration)
 		assert(#old_list > 0)
 		list = new_list
 
-		local val = calc_list(old_list, start, etime)
+		local val = calc_list_2(old_list, start, etime)
 		table.insert(self._min_list, val)
-		self._callback(mgr.TYPES.HOUR, val)
+		self._callback(mgr.TYPES.HOUR, val, etime)
 	end
 
 	local start = now - duration

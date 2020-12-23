@@ -206,7 +206,7 @@ function water:on_min_trigger(now, duration)
 		if upper_val and #old_list > 0 then
 			local val = calc_list(upper_val, old_list, start, etime, last_time, last_avg)
 			table.insert(self._min_list, val)
-			self._callback(mgr.TYPES.MIN, val)
+			self._callback(mgr.TYPES.MIN, val, etime)
 		else
 			--TODO:
 		end
@@ -241,8 +241,8 @@ local function calc_list_2(upper_val, list, start, now)
 	local val_max = list[2].max
 
 	for _, v in ipairs(list) do
-		assert(v.stime > start, "Start time issue")
-		assert(v.etime > etime, "Last time issue")
+		assert(v.stime >= start, "Start time issue")
+		assert(v.etime >= etime, "Last time issue")
 		etime = v.etime
 
 		val_min = v.min < val_min and v.min or val_min
@@ -321,7 +321,7 @@ function water:on_hour_trigger(now, duration)
 		if upper_val and #old_list > 0 then
 			local val = calc_list_2(upper_val, old_list, start, etime)
 			table.insert(self._min_list, val)
-			self._callback(mgr.TYPES.HOUR, val)
+			self._callback(mgr.TYPES.HOUR, val, etime)
 		else
 			--TODO:
 		end

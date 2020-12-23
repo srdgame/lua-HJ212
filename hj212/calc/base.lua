@@ -14,18 +14,18 @@ base.static.TYPE_NAMES = type_names
 function base:initialize(callback, type_mask)
 	local callback = callback
 	self._type_mask = type_mask ~= nil and type_mask or mgr.static.TYPES.ALL
-	self._callback = function(typ, val)
+	self._callback = function(typ, val, timestamp)
 		local db = self._db
+		local name = type_names[typ]
 		--- Using start time as timestamp
 		val.timestamp = val.timestamp or val.stime
 		if db then
-			local name = type_names[typ]
 			if name then
-				db:write(name, val)
+				db:write(name, val, timestamp)
 			end
 		end
 		if callback then
-			callback(typ, val)
+			callback(name or 'UNKNOWN', val, timestamp)
 		end
 	end
 
@@ -92,8 +92,8 @@ function base:sample_meta()
 	assert(nil, "Not implemented")
 end
 
-function base:push_rdata(timestamp, value, flag)
-	self._callback(mgr.TYPES.RDATA, {timestamp=timestamp, value=value, flag=flag})
+function base:push_rdata(timestamp, value, flag, now)
+	self._callback(mgr.TYPES.RDATA, {timestamp=timestamp, value=value, flag=flag}, now)
 end
 
 function base:on_trigger(typ, now, duration)
@@ -103,7 +103,7 @@ function base:on_trigger(typ, now, duration)
 			assert(duration % 60 == 0)
 			local val, err = self:on_min_trigger(now, duration)
 			if val then
-				self._callback(mgr.TYPES.MIN, val)
+				self._callback(mgr.TYPES.MIN, val, now)
 			end
 		end
 		if typ == mgr.TYPES.HOUR then
@@ -111,7 +111,7 @@ function base:on_trigger(typ, now, duration)
 			assert(duration % 3600 == 0)
 			local val = self:on_hour_trigger(now, duration)
 			if val then
-				self._callback(mgr.TYPES.HOUR, val)
+				self._callback(mgr.TYPES.HOUR, val, now)
 			end
 		end
 		if typ == mgr.TYPES.DAY then
@@ -119,7 +119,7 @@ function base:on_trigger(typ, now, duration)
 			assert(duration % (3600 * 24) == 0)
 			local val = self:on_day_trigger(now, duration)
 			if val then
-				self._callback(mgr.TYPES.DAY, val)
+				self._callback(mgr.TYPES.DAY, val, now)
 			end
 		end
 		return true

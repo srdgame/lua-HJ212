@@ -55,7 +55,7 @@ end
 
 function tag:query_rdata(now, save)
 	if save and self._his_calc then
-		self._his_calc:push_rdata(self._timestamp, self._value, self._flag)
+		self._his_calc:push_rdata(self._timestamp, self._value, self._flag, now)
 	end
 
 	return param_tag:new(self._name, {

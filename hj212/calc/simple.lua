@@ -46,8 +46,8 @@ local function calc_list(list, start, now)
 		avg = val_avg,
 		min = val_min,
 		max = val_max,
-		stime = start,
-		etime = now,
+		stime = start,  -- Duration start
+		etime = now,	-- Duration end
 	}
 end
 
@@ -170,7 +170,7 @@ function simple:on_hour_trigger(now, duration)
 		local old_list = {}
 		local new_list = {}
 		for i, v in ipairs(list) do
-			if v[2] < etime then
+			if v.stime < etime then
 				old_list[#old_list + 1] = v
 			else
 				new_list[#new_list + 1] = v

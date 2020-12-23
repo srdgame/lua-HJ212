@@ -304,7 +304,7 @@ function water:on_hour_trigger(now, duration)
 		local old_list = {}
 		local new_list = {}
 		for _, v in ipairs(list) do
-			if v.etime < etime then
+			if v.stime < etime then
 				old_list[#old_list + 1] = v
 			else
 				new_list[#new_list + 1] = v

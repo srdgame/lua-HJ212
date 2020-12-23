@@ -86,7 +86,7 @@ function client:get_treatement(id)
 end
 
 function client:request(request, response)
-	print('client:request', request, response)
+	--print('client:request', request, response)
 	local resp, err = self:send_request(request)
 	if response then
 		return response(resp, err)

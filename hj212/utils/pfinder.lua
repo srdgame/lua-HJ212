@@ -9,8 +9,14 @@ return function(types, base_pn)
 	for k,v in pairs(types) do
 		codes[v] = string.lower(k)
 	end
+	local p_map = {}
 
 	return function(code, appendix)
+		local p_m = p_map[code]
+		if p_m then
+			return p_m[1], p_m[2]
+		end
+
 		local key = codes[code]
 		if not key then
 			return nil, "No package found:"..code
@@ -22,6 +28,9 @@ return function(types, base_pn)
 		if not r then
 			return nil, p
 		end
+
+		p_map[code] = {p, p_name}
+
 		return p, p_name
 	end
 end

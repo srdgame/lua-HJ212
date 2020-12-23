@@ -156,6 +156,7 @@ function water:on_min_trigger(now, duration)
 	self._sample_list = {}
 
 	while #list > 0 and list[#list][3] > now do
+		print('Pushing later item into samples list', list[#list][3])
 		table.insert(self._sample_list, list[#list])
 		table.remove(list)
 	end
@@ -292,9 +293,9 @@ function water:on_hour_trigger(now, duration)
 		upper_val, err = self._upper:on_hour_trigger(now)
 	end
 	
-	while #list > 0 and list[1].etime < now - duration do
+	while #list > 0 and list[1].stime < now - duration do
 		local etime = now - duration
-		local item_start = list[1][3]
+		local item_start = list[1].stime
 		while etime - duration > item_start do
 			etime = etime - duration
 		end

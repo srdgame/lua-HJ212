@@ -66,13 +66,14 @@ function simple:on_min_trigger(now, duration)
 	self._sample_list = {}
 
 	while list[#list][2] > now do
+		--print('Push later items into samples list', list[#list][2])
 		table.insert(self._sample_list, list[#list])
 		table.remove(list, #list)
 	end
 
 	while #list > 0 and list[1][2] < (now - duration) do
 		local etime = now - duration
-		local item_start = list[1][3]
+		local item_start = list[1][2]
 		while etime - duration > item_start do
 			etime = etime - duration
 		end
@@ -158,9 +159,9 @@ function simple:on_hour_trigger(now, duration)
 	self._min_list = {}
 
 	--- If the first item timestamp not in current duration
-	while #list > 0 and list[1][2] < (now - duration) do
+	while #list > 0 and list[1].stime < (now - duration) do
 		local etime = now - duration
-		local item_start = list[1][3]
+		local item_start = list[1].stime
 		while etime - duration > item_start do
 			etime = etime - duration
 		end

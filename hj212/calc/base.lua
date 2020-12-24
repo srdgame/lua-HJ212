@@ -1,3 +1,4 @@
+local logger = require 'hj212.logger'
 local class = require 'middleclass'
 local mgr = require 'hj212.calc.manager'
 local date = require 'date'
@@ -11,7 +12,7 @@ for k, v in pairs(mgr.static.TYPES) do
 end
 base.static.TYPE_NAMES = type_names
 
-function base:initialize(callback, type_mask)
+function base:initialize(callback, type_mask, name)
 	local callback = callback
 	self._type_mask = type_mask ~= nil and type_mask or mgr.static.TYPES.ALL
 	self._callback = function(typ, val, timestamp)
@@ -28,6 +29,7 @@ function base:initialize(callback, type_mask)
 			callback(name or 'UNKNOWN', val, timestamp)
 		end
 	end
+	self._name = name
 
 	self._start = os.time()
 	--- Sample data list for minutes calculation
@@ -43,6 +45,10 @@ function base:set_db(db)
 	if self._db then
 		self:load_from_db()
 	end
+end
+
+function base:log(level, fmt, ...)
+	logger.log(level, '['..self._name..']'..fmt, ...)
 end
 
 function base:db()

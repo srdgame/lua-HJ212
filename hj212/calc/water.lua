@@ -8,8 +8,8 @@ local MAX_TIMESTAMP_GAP = 5 -- tenseconds
 --- The upper tag, e.g. [w00000]
 -- If the upper tag not exists time will be used for caclue the (total) value
 --
-function water:initialize(callback, mask, upper_tag)
-	base.initialize(self, callback, mask)
+function water:initialize(callback, mask, name, upper_tag)
+	base.initialize(self, callback, mask, name)
 
 	self._last = os.time() - 1 --- Make sure last will not be same as tiemstamp
 	self._last_avg = nil
@@ -82,8 +82,8 @@ function water:get_value(timestamp, val_calc)
 	})
 end
 
-local function calc_list(upper_val, list, start, now, last, last_avg)
-	if #list == 0 then
+local function calc_list(upper, upper_val, list, start, now, last, last_avg)
+	if (upper and not upper_val) or #list == 0 then
 		return {total=0,avg=0,min=0,max=0,stime=start,etime=now}
 	end
 	local val_t = 0
@@ -110,7 +110,11 @@ local function calc_list(upper_val, list, start, now, last, last_avg)
 		val_avg = val_t / (now - start)
 		--print('water.calc_list 1', val_t, now - start, val_avg, val_min, val_max)
 	else
-		val_avg = (val_t / upper_val.total) * (10 ^ -3)
+		if upper_val.total > 0 then
+			val_avg = (val_t / upper_val.total) * (10 ^ -3)
+		else
+			val_avg = 0
+		end
 		--print('water.calc_list 2', val_t, upper_val.total, val_avg, val_min, val_max)
 	end
 
@@ -156,12 +160,9 @@ function water:on_min_trigger(now, duration)
 	self._sample_list = {}
 
 	while #list > 0 and list[#list][3] > now do
-		print('Pushing later item into sample list', list[#list][3], now)
+		self:log('debug', 'Pushing later item into sample list', list[#list][3], now)
 		table.insert(self._sample_list, 1, list[#list])
 		table.remove(list)
-	end
-	if #list == 0 then
-		return nil, "There is no sample data"
 	end
 
 	--- Calculate the upper tag first
@@ -169,12 +170,12 @@ function water:on_min_trigger(now, duration)
 	if self._upper then
 		local val, err = self._upper:on_min_trigger(now)
 		if not val then
-			return nil, err
+			self:log('error', 'water:on_min_trigger failed to get upper value', err)
 		end
 		upper_val = val
 	end
 
-	while #list > 0 and list[1][3] < now - duration do
+	while #list > 0 and list[1][3] < (now - duration) do
 		local etime = now - duration
 		local item_start = list[1][3]
 		while etime - duration > item_start do
@@ -203,36 +204,23 @@ function water:on_min_trigger(now, duration)
 			upper_val = self._upper:query_min(etime)
 		end
 
-		if upper_val and #old_list > 0 then
-			local val = calc_list(upper_val, old_list, start, etime, last_time, last_avg)
-			table.insert(self._min_list, val)
-			self._callback(mgr.TYPES.MIN, val, etime)
-		else
-			--TODO:
-		end
+		self:log('debug', 'WATER: calcuate older min value', start, etime)
+		local val = calc_list(self._upper, upper_val, old_list, start, etime, last_time, last_avg)
+		table.insert(self._min_list, val)
+		self._callback(mgr.TYPES.MIN, val, etime)
 	end
 
 	local start = now - duration
 
-	--- Calculate the upper tag first
-	local upper_val =  nil
-	if self._upper then
-		local val, err = self._upper:on_min_trigger(now)
-		if not val then
-			return nil, err
-		end
-		upper_val = val
-	end
-
-	local val = calc_list(upper_val, list, start, now, self._last, self._last_avg)
+	local val = calc_list(self._upper, upper_val, list, start, now, self._last, self._last_avg)
 
 	table.insert(self._min_list, val)
 
 	return val
 end
 
-local function calc_list_2(upper_val, list, start, now)
-	if #list == 0 then
+local function calc_list_2(upper, upper_val, list, start, now)
+	if (upper and not upper_val) or #list == 0 then
 		return {total=0,avg=0,min=0,max=0,stime=start,etime=now}
 	end
 	local etime = start
@@ -255,9 +243,13 @@ local function calc_list_2(upper_val, list, start, now)
 
 	local val_avg = 0
 	if not upper_val then
-		val_avg = val_t_avg / (now - start)
+		val_avg = val_t / (now - start)
 	else
-		val_avg = (val_t / upper_val.total) * (10 ^ -3)
+		if upper_val.total > 0 then
+			val_avg = (val_t / upper_val.total) * (10 ^ -3)
+		else
+			val_avg = 0
+		end
 	end
 
 	return {
@@ -283,13 +275,9 @@ function water:on_hour_trigger(now, duration)
 
 	self._min_list = {}
 	while #list > 0 and list[#list].etime > now do
-		print('Pushing later item into min list', list[#list].etime, now)
+		self:log('debug', 'Pushing later item into min list', list[#list].etime, now)
 		table.insert(self._min_list, 1, list[#list])
 		table.remove(list)
-	end
-
-	if #list == 0 then
-		return nil, "There is no min data"
 	end
 
 	--- Calculate the upper tag first
@@ -299,7 +287,7 @@ function water:on_hour_trigger(now, duration)
 		upper_val, err = self._upper:on_hour_trigger(now)
 	end
 	
-	while #list > 0 and list[1].stime < now - duration do
+	while #list > 0 and list[1].stime < (now - duration) do
 		local etime = now - duration
 		local item_start = list[1].stime
 		while etime - duration > item_start do
@@ -324,22 +312,15 @@ function water:on_hour_trigger(now, duration)
 			upper_val = self._upper:query_hour(etime)
 		end
 
-		if upper_val and #old_list > 0 then
-			local val = calc_list_2(upper_val, old_list, start, etime)
-			table.insert(self._min_list, val)
-			self._callback(mgr.TYPES.HOUR, val, etime)
-		else
-			--TODO:
-		end
+		self:log('debug', 'WATER: calcuate older hour value', start, etime)
+		local val = calc_list_2(self._upper, upper_val, old_list, start, etime)
+		table.insert(self._min_list, val)
+		self._callback(mgr.TYPES.HOUR, val, etime)
 	end
 
-	if not upper_val then
-		return nil, err
-	end
-	
 	local start = now - duration
 
-	local val = calc_list_2(upper_val, list, start,  now)
+	local val = calc_list_2(self._upper, upper_val, list, start,  now)
 
 	table.insert(self._hour_list, val)
 
@@ -353,10 +334,6 @@ function water:on_day_trigger(now, duration)
 	end
 
 	local list = self._hour_list
-	if #list == 0 then
-		return nil, "There is no min data"
-	end
-
 	self._hour_list = {}
 
 	--- Calculate the upper tag first
@@ -364,14 +341,14 @@ function water:on_day_trigger(now, duration)
 	if self._upper then
 		local val, err = self._upper:on_day_trigger(now)
 		if not val then
-			return nil, err
+			self:log('error', 'on_day_trigger failed to get upper', err)
 		end
 		upper_val = val
 	end
 
 	local start = now - duration
 
-	local val = calc_list_2(upper_val, list, start, now)
+	local val = calc_list_2(self._upper, upper_val, list, start, now)
 
 	self._day = val
 

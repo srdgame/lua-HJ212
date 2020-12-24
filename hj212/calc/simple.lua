@@ -3,8 +3,8 @@ local mgr = require 'hj212.calc.manager'
 
 local simple = base:subclass('hj212.calc.simple')
 
-function simple:initialize(callback, mask)
-	base.initialize(self, callback, mask)
+function simple:initialize(callback, mask, name)
+	base.initialize(self, callback, mask, name)
 
 	self._waiting = {}
 end
@@ -56,19 +56,14 @@ function simple:on_min_trigger(now, duration)
 	local list = self._sample_list
 	local last = self._min_list[#self._min_list]
 	if last and last.etime >= now then
-		print(#list)
 		assert(now == last.etime, "Last end time not equal to now")
 		return last
-	end
-
-	if #list == 0 then
-		return nil, "There is no sample data"
 	end
 
 	self._sample_list = {}
 
 	while #list > 0 and list[#list][2] > now do
-		print('Push later items into samples list', list[#list][2], now)
+		self:log('debug', 'Push later items into samples list', list[#list][2], now)
 		table.insert(self._sample_list, 1, list[#list])
 		table.remove(list, #list)
 	end
@@ -93,11 +88,10 @@ function simple:on_min_trigger(now, duration)
 		assert(#old_list > 0)
 		list = new_list
 
-		if #old_list > 0 then
-			local val = calc_list(old_list, start, etime)
-			table.insert(self._min_list, val)
-			self._callback(mgr.TYPES.MIN, val, etime)
-		end
+		self:log('debug', 'SIMPLE: calculate older min value', start, etime)
+		local val = calc_list(old_list, start, etime)
+		table.insert(self._min_list, val)
+		self._callback(mgr.TYPES.MIN, val, etime)
 	end
 
 	local start = now - duration
@@ -157,13 +151,9 @@ function simple:on_hour_trigger(now, duration)
 	self._min_list = {}
 
 	while #list > 0 and list[#list].etime > now do
-		print('Push later items into min list', list[#list].etime, now)
+		self:log('debug', 'Push later items into min list', list[#list].etime, now)
 		table.insert(self._min_list, 1, list[#list])
 		table.remove(list, #list)
-	end
-
-	if #list == 0 then
-		return nil, "There is no sample data"
 	end
 
 	--- If the first item timestamp not in current duration
@@ -187,6 +177,7 @@ function simple:on_hour_trigger(now, duration)
 		assert(#old_list > 0)
 		list = new_list
 
+		self:log('debug', 'SIMPLE: calculate older hour value', start, etime)
 		local val = calc_list_2(old_list, start, etime)
 		table.insert(self._min_list, val)
 		self._callback(mgr.TYPES.HOUR, val, etime)
@@ -209,9 +200,6 @@ function simple:on_day_trigger(now, duration)
 	end
 
 	local list = self._hour_list
-	if #list == 0 then
-		return nil, "There is no sample data"
-	end
 
 	self._hour_list = {}
 

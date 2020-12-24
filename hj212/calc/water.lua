@@ -157,7 +157,7 @@ function water:on_min_trigger(now, duration)
 
 	while #list > 0 and list[#list][3] > now do
 		print('Pushing later item into sample list', list[#list][3], now)
-		table.insert(self._sample_list, list[#list])
+		table.insert(self._sample_list, 1, list[#list])
 		table.remove(list)
 	end
 	if #list == 0 then
@@ -241,8 +241,8 @@ local function calc_list_2(upper_val, list, start, now)
 	local val_max = list[2].max
 
 	for _, v in ipairs(list) do
-		assert(v.stime >= start, "Start time issue")
-		assert(v.etime >= etime, "Last time issue")
+		assert(v.stime >= start, "Start time issue:"..v.stime..'\t'..start)
+		assert(v.etime >= etime, "Last time issue:"..v.etime..'\t'..etime)
 		etime = v.etime
 
 		val_min = v.min < val_min and v.min or val_min
@@ -284,7 +284,7 @@ function water:on_hour_trigger(now, duration)
 	self._min_list = {}
 	while #list > 0 and list[#list].etime > now do
 		print('Pushing later item into min list', list[#list].etime, now)
-		table.insert(self._min_list, list[#list])
+		table.insert(self._min_list, 1, list[#list])
 		table.remove(list)
 	end
 

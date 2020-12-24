@@ -169,7 +169,7 @@ function base:query_hour_data(start_time, end_time)
 end
 
 function base:query_day_data(start_time, end_time)
-	if end_time == start_time and end_time == self._day.etime then
+	if end_time == start_time and end_time == self._day.stime then
 		return {self._day}
 	end
 	-- TODO:

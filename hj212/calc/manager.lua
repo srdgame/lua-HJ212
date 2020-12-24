@@ -1,4 +1,5 @@
 local class = require 'middleclass'
+local logger = require 'hj212.logger'
 
 local mgr = class('hj212.calc.manager')
 
@@ -52,9 +53,12 @@ end
 
 local function on_trigger_list(calc_list, typ, now, duration)
 	for _, v in ipairs(calc_list) do
-		local r, err = v:on_trigger(typ, now, duration)
+		local r, rr, err = xpcall(v.on_trigger, debug.traceback, v, typ, now, duration)
 		if not r then
-			print(err)
+			logger.log('error', rr)
+		end
+		if not rr then
+			logger.log('error', err)
 		end
 	end
 end

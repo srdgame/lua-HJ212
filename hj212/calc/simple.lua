@@ -69,7 +69,7 @@ function simple:on_min_trigger(now, duration)
 
 	while #list > 0 and list[#list][2] > now do
 		print('Push later items into samples list', list[#list][2], now)
-		table.insert(self._sample_list, list[#list])
+		table.insert(self._sample_list, 1, list[#list])
 		table.remove(list, #list)
 	end
 
@@ -120,8 +120,8 @@ local function calc_list_2(list, start, now)
 	local val_max = list[1].max
 
 	for i, v in ipairs(list) do
-		assert(v.stime >= start, "Start time issue")
-		assert(v.etime >= etime, "Last time issue")
+		assert(v.stime >= start, "Start time issue:"..v.stime..'\t'..start)
+		assert(v.etime >= etime, "Last time issue:"..v.etime..'\t'..etime)
 		etime = v.etime
 
 		val_min = v.min < val_min and v.min or val_min
@@ -158,7 +158,7 @@ function simple:on_hour_trigger(now, duration)
 
 	while #list > 0 and list[#list].etime > now do
 		print('Push later items into min list', list[#list].etime, now)
-		table.insert(self._min_list, list[#list])
+		table.insert(self._min_list, 1, list[#list])
 		table.remove(list, #list)
 	end
 

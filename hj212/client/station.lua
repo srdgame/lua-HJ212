@@ -5,6 +5,9 @@ local waitable = require 'hj212.client.station.waitable'
 local station = class('hj212.client.station')
 
 function station:initialize(system, id, sleep_func)
+	assert(system, 'System code missing')
+	assert(id, 'Device id missing')
+	assert(sleep_func, 'Sleep function missing')
 	self._system = tonumber(system)
 	self._id = id
 	self._sleep_func = sleep_func

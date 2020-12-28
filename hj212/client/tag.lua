@@ -33,17 +33,21 @@ function tag:his_calc()
 	return self._his_calc
 end
 
+function tag:value_flag(value)
+	local flag = types.FLAG.Normal
+	if self._min and value < self._min then
+		flag = types.FLAG.Overproof
+	end
+	if self._max and value > self._max then
+		flag = types.FLAG.Overproof
+	end
+	return flag
+end
+
 function tag:set_value(value, timestamp)
 	self._value = value
 	self._timestamp = timestamp
-
-	if self._min and value < self._min then
-		self._flag = types.FLAG.Overproof
-	end
-	if self._max and value > self._max then
-		self._flag = types.FLAG.Overproof
-	end
-
+	self._flag = self:value_flag(value)
 	if self._his_calc then
 		self._his_calc:push(value, timestamp)
 	end
@@ -51,6 +55,11 @@ end
 
 function tag:get_value()
 	return self._value, self._timestamp
+end
+
+--- Wait until value is available
+function tag:wait(timestamp)
+	assert(nil, "Not Implemented")
 end
 
 function tag:query_rdata(now, save)

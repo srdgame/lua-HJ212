@@ -161,24 +161,30 @@ function base:get_current_data(list, start_time, end_time)
 end
 
 function base:query_min_data(start_time, end_time)
-	if start_time >= self:day_start() then
+	if #self._min_list > 0 and self._min_list[1].stime < start_time then
 		return self:get_current_data(self._min_list, start_time, end_time)
+	else
+		local name = type_names[mgr.TYPES.MIN]
+		return self._db:read(name, start_time, end_time)
 	end
-	-- TODO:
 end
 
 function base:query_hour_data(start_time, end_time)
-	if start_time >= self:day_start() then
+	if #self._hour_list > 0 and self._hour_list[1].stime < start_time then
 		return self:get_current_data(self._hour_list, start_time, end_time)
+	else
+		local name = type_names[mgr.TYPES.HOUR]
+		return self._db:read(name, start_time, end_time)
 	end
-	-- TODO:
 end
 
 function base:query_day_data(start_time, end_time)
 	if end_time == start_time and end_time == self._day.stime then
 		return {self._day}
+	else
+		local name = type_names[mgr.TYPES.DAY]
+		return self._db:read(name, start_time, end_time)
 	end
-	-- TODO:
 end
 
 return base

@@ -1,17 +1,16 @@
 local class = require 'middleclass'
-
 local cems = class('hj212.client.station.cems')
 
 local tag_map = {
 	Ba = 'a01006',
 	Ps = 'a01013',
 	ts = 'a01012',
-	Kv = '',
+	Kv = 'Kv',
 	Vp = 'a01011',
 	F = 'a01016',
 }
 
-function cems:initialize(station, Kv)
+function cems:initialize(station)
 	self._station = station
 end
 

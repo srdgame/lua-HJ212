@@ -4,9 +4,10 @@ local waitable = require 'hj212.client.station.waitable'
 
 local station = class('hj212.client.station')
 
-function station:initialize(system, id)
+function station:initialize(system, id, sleep_func)
 	self._system = tonumber(system)
 	self._id = id
+	self._sleep_func = sleep_func
 	self._tag_list = {}
 	self._meters = {}
 	self._cems = cems:new(self)
@@ -20,6 +21,10 @@ end
 
 function station:id()
 	return self._id
+end
+
+function station:sleep(ms)
+	return self._sleep_func(ms)
 end
 
 function station:meters()

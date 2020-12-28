@@ -12,7 +12,18 @@ function waitable:value(self, timestamp)
 	if not tag then
 		return nil, err
 	end
-	return tag:wait(timestamp)
+
+	local now = os.time()
+	-- Ten seconds
+	while os.time() - now < 10 do
+		local val, timestamp = self:get_value()
+		if val ~= nil then
+			return val
+		end
+
+		self._station:sleep(100) -- 100 ms
+	end
+	return nil, "Timeout to get value"
 end
 
 return waitable

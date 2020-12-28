@@ -57,11 +57,6 @@ function tag:get_value()
 	return self._value, self._timestamp
 end
 
---- Wait until value is available
-function tag:wait(timestamp)
-	assert(nil, "Not Implemented")
-end
-
 function tag:query_rdata(now, save)
 	if save and self._his_calc then
 		self._his_calc:push_rdata(self._timestamp, self._value, self._flag, now)

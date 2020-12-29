@@ -1,20 +1,97 @@
 local class = require 'middleclass'
+local logger = require 'hj212.logger'
 local types = require 'hj212.types'
 local param_tag = require 'hj212.params.tag'
+local tag_info = require 'hj212.tags.info'
+local calc_mgr_m = require 'hj212.calc.manager'
 
 local tag = class('hj212.client.tag')
 
 --- Calc name
-function tag:initialize(name, min, max, his_calc)
+-- Has COU is nil will using auto detect
+function tag:initialize(station, name, min, max, calc_name, has_cou)
 	assert(name, "Tag name missing")
+	self._station = station
 	self._name = name
 	self._min = min
 	self._max = max
-	self._his_calc = his_calc
 	self._meter = nil
-	self._value = 0
-	self._timestamp = os.time()
 	self._flag = types.FLAG.Normal
+	self._calc_name = calc_name
+	self._has_cou = has_cou
+	self._his_calc = nil
+	self._inited = false
+end
+
+function tag:init(calc_mgr)
+	if self._inited then
+		return
+	end
+
+	local tag_name = self._name
+	assert(tag and tag_name)
+	local calc_name = self._calc_name
+	if not calc_name then
+		if string.sub(tag_name, 1, 1) == 'w' then
+			calc_name = 'water'
+		elseif string.sub(tag_name, 1, 1) == 'a' then
+			calc_name = 'air'
+		else
+			calc_name = 'simple'
+		end
+	end
+	assert(calc_name)
+
+	local m = assert(require('hj212.calc.'..calc_name))
+
+	local has_cou = self._has_cou
+	for _, info in ipairs(tag_info) do
+		if info.cou_unit then
+			has_cou = true
+		end
+	end
+
+	local upper_tag = nil
+	if has_cou and calc_name == 'water' then
+		local w, err = self._station:water()
+		if not w then
+			logger.log('error', 'Fetch WATER flow failed. err:'..err)
+		end
+		upper_tag = w and w:tag() or nil
+	end
+	if has_cou and calc_name == 'air' then
+		local w, err = self._station:air()
+		if not w then
+			logger.log('error', 'Fetch AIR flow failed. err:'..err)
+		end
+		upper_tag = w and w:tag() or nil
+	end
+	--- w00000 a00000 has cou, but they are the COU Base
+	if upper_tag == self then
+		upper_tag = nil
+	end
+	if upper_tag then
+		-- Make sure upper is inited
+		upper_tag:init(calc_mgr)
+	end
+
+	logger.log('info', string.format('TAG [%06s] calc_type:%s\tcou:%s\tupper:%s',
+		tag_name, calc_name, has_cou, upper_tag ~= nil))
+
+	local cou_base = upper_tag and upper_tag:his_calc() or nil
+	local mask = calc_mgr_m.TYPES.ALL
+
+	self._his_calc = m:new(tag_name, mask, self._min, self._max, cou_base)
+
+	self._his_calc:set_callback(function(type_name, val, timestamp)
+		self:on_calc_value(type_name, val, timestamp)
+	end)
+
+	calc_mgr:reg(self._his_calc)
+
+	self._inited = true
+
+	return true
 end
 
 function tag:set_meter(mater)
@@ -42,6 +119,10 @@ function tag:value_flag(value)
 		flag = types.FLAG.Overproof
 	end
 	return flag
+end
+
+function tag:on_calc_value(type_name, val, timestamp)
+	assert(nil, "Not implemented")
 end
 
 function tag:set_value(value, timestamp)
@@ -74,6 +155,8 @@ function tag:convert_data(data)
 	local rdata = {}
 	for k, v in ipairs(data) do
 		rdata[#rdata + 1] = param_tag:new(self._name, {
+			Cou = v.cou,
+			Flag = v.flag,
 			Avg = v.avg,
 			Min = v.min,
 			Max = v.max,

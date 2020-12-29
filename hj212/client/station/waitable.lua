@@ -7,7 +7,11 @@ function waitable:initialize(station, tag_name)
 	self._tag_name = tag_name
 end
 
-function waitable:value(self, timestamp)
+function waitable:tag()
+	return self._station:find_tag(self._tag_name)
+end
+
+function waitable:value(timestamp)
 	local tag, err = self._station:find_tag(self._tag_name)
 	if not tag then
 		return nil, err
@@ -16,7 +20,7 @@ function waitable:value(self, timestamp)
 	local now = os.time()
 	-- Ten seconds
 	while os.time() - now < 10 do
-		local val, timestamp = self:get_value()
+		local val, timestamp = tag:get_value()
 		if val ~= nil then
 			return val
 		end

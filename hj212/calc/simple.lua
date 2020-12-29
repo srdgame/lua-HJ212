@@ -1,12 +1,11 @@
 local base = require 'hj212.calc.base'
 local mgr = require 'hj212.calc.manager'
+local types = require 'hj212.types'
 
 local simple = base:subclass('hj212.calc.simple')
 
-function simple:initialize(callback, mask, name)
-	base.initialize(self, callback, mask, name)
-
-	self._waiting = {}
+function simple:initialize(name, mask, min, max)
+	base.initialize(self, name, mask, min, max)
 end
 
 function simple:push(value, timestamp)
@@ -24,9 +23,9 @@ end
 
 local function calc_list(list, start, now)
 	if #list == 0 then
-		return {total=0,avg=0,min=0,max=0,stime=start,etime=now}
+		return {cou=0,avg=0,min=0,max=0,stime=start,etime=now,flag=types.FLAG.Connection}
 	end
-	local val_t = 0
+	local val_cou = 0
 	local val_min = list[1][1]
 	local val_max = list[1][1]
 
@@ -36,14 +35,14 @@ local function calc_list(list, start, now)
 		val_min = val < val_min and val or val_min
 		val_max = val > val_max and val or val_max
 
-		val_t = val_t + val
+		val_cou = val_cou + val
 	end
 
-	--print('simple.calc_list', val_t, #list)
-	local val_avg = val_t / #list
+	--print('simple.calc_list', val_cou, #list)
+	local val_avg = val_cou / #list
 
 	return {
-		total = val_t,
+		cou = val_cou,
 		avg = val_avg,
 		min = val_min,
 		max = val_max,
@@ -91,7 +90,7 @@ function simple:on_min_trigger(now, duration)
 		self:log('debug', 'SIMPLE: calculate older min value', start, etime)
 		local val = calc_list(old_list, start, etime)
 		table.insert(self._min_list, val)
-		self._callback(mgr.TYPES.MIN, val, etime)
+		self:on_value(mgr.TYPES.MIN, val, etime)
 	end
 
 	local start = now - duration
@@ -105,10 +104,10 @@ end
 
 local function calc_list_2(list, start, now)
 	if #list == 0 then
-		return {total=0,avg=0,min=0,max=0,stime=start,etime=now}
+		return {cou=0,avg=0,min=0,max=0,stime=start,etime=now,flag=types.FLAG.Connection}
 	end
 	local etime = start
-	local val_t = 0
+	local val_cou = 0
 	local val_t_avg = 0
 	local val_min = list[1].min
 	local val_max = list[1].max
@@ -121,7 +120,7 @@ local function calc_list_2(list, start, now)
 		val_min = v.min < val_min and v.min or val_min
 		val_max = v.max > val_max and v.max or val_max
 
-		val_t = val_t + v.total
+		val_cou = val_cou + v.cou
 		val_t_avg = val_t_avg + v.avg
 	end
 
@@ -130,7 +129,7 @@ local function calc_list_2(list, start, now)
 	local val_avg = val_t_avg / #list
 
 	return {
-		total = val_t,
+		cou = val_cou,
 		avg = val_avg,
 		min = val_min,
 		max = val_max,
@@ -180,7 +179,7 @@ function simple:on_hour_trigger(now, duration)
 		self:log('debug', 'SIMPLE: calculate older hour value', start, etime)
 		local val = calc_list_2(old_list, start, etime)
 		table.insert(self._min_list, val)
-		self._callback(mgr.TYPES.HOUR, val, etime)
+		self:on_value(mgr.TYPES.HOUR, val, etime)
 	end
 
 	local start = now - duration

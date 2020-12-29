@@ -1,3 +1,5 @@
+local logger = require 'hj212.logger'
+
 local _M = {}
 
 -- 18
@@ -44,16 +46,29 @@ end
 
 -- 29
 function _M.Vs(Kv, Vp)
+	logger.log('trace', 'Vs:', 'Kv', Kv, 'Vp', Vp)
 	return Kv * Vp
 end
 
 -- 30
+function _M.Qs(F, Vs)
+	logger.log('trace', 'Qs:', 'F', F, 'Vs', Vs)
+	return F * Vs
+end
+
 function _M.Qsh(F, Vsh)
-	return 3600 * F * Vsh
+	logger.log('trace', 'Qsh:', 'F', F, 'Vs', Vs)
+	return F * Vsh * 3600
 end
 
 -- 31
+function _M.Qsn(Qs, t_s, Ba, Ps, Xsw)
+	logger.log('trace', 'Qsn:', 'Qs', Qs, 't_s', t_s, 'Ba', Ba, 'Ps', Ps, 'Xsw', Xsw)
+	return Qs * (273 / (273 + t_s)) * ((Ba + Ps) / 101325) * (1 - Xsw)
+end
+
 function _M.Qsnh(Qsh, t_s, Ba, Ps, Xsw)
+	logger.log('trace', 'Qsnh:', 'Qsh', Qsh, 't_s', t_s, 'Ba', Ba, 'Ps', Ps, 'Xsw', Xsw)
 	return Qsh * (273 / (273 + t_s)) * ((Ba + Ps) / 101325) * (1 - Xsw)
 end
 

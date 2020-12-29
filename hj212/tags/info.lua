@@ -1,6 +1,6 @@
 return {
 	{
-		calc_unit = "立方米";
+		cou_unit = "立方米";
 		desc = "污水";
 		format = "N5.2";
 		name = "w00000";
@@ -22,7 +22,7 @@ return {
 		unit = "[色]度";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "溶解性总固体";
 		format = "N4";
 		name = "w01006";
@@ -41,7 +41,7 @@ return {
 		unit = "摄氏度";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "悬浮物";
 		format = "N4";
 		name = "w01012";
@@ -55,7 +55,7 @@ return {
 		unit = "微西[门子]/厘米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "五日生化需氧量";
 		format = "N5.1";
 		name = "w01017";
@@ -63,7 +63,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "化学需氧量";
 		format = "N5.1";
 		name = "w01018";
@@ -71,14 +71,14 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "高锰酸盐指数";
 		format = "N3.1";
 		name = "w01019";
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "总有机碳";
 		format = "N3.1";
 		name = "w01020";
@@ -113,14 +113,14 @@ return {
 		unit = "贝可[勒尔]/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "表面活性剂";
 		format = "N3.2";
 		name = "w19001";
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "阴离子表面活性剂";
 		format = "N3.2";
 		name = "w19002";
@@ -128,7 +128,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "钡";
 		format = "N3.3";
 		name = "w20012";
@@ -136,7 +136,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "硼";
 		format = "N3.3";
 		name = "w20023";
@@ -144,7 +144,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "钴";
 		format = "N3.4";
 		name = "w20038";
@@ -152,7 +152,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "钼";
 		format = "N3.4";
 		name = "w20061";
@@ -160,7 +160,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "毫克";
+		cou_unit = "毫克";
 		desc = "铊";
 		format = "N4";
 		name = "w20089";
@@ -168,7 +168,7 @@ return {
 		unit = "纳克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "锡";
 		format = "N3.1";
 		name = "w20092";
@@ -176,7 +176,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "总汞";
 		format = "N3.2";
 		name = "w20111";
@@ -184,7 +184,7 @@ return {
 		unit = "微克/升";
 	};
 	{
-		calc_unit = "毫克";
+		cou_unit = "毫克";
 		desc = "烷基汞";
 		format = "N4";
 		name = "w20113";
@@ -192,7 +192,7 @@ return {
 		unit = "纳克/升";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "总镉";
 		format = "N3.1";
 		name = "w20115";
@@ -200,7 +200,7 @@ return {
 		unit = "微克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "总铬";
 		format = "N3.3";
 		name = "w20116";
@@ -208,7 +208,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "六价铬";
 		format = "N2.3";
 		name = "w20117";
@@ -216,7 +216,7 @@ return {
 		unit = "微克/升";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "总砷";
 		format = "N2.3";
 		name = "w20119";
@@ -224,7 +224,7 @@ return {
 		unit = "微克/升";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "总铅";
 		format = "N4";
 		name = "w20120";
@@ -232,7 +232,7 @@ return {
 		unit = "微克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "总镍";
 		format = "N3.2";
 		name = "w20121";
@@ -240,7 +240,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "总铜";
 		format = "N3.2";
 		name = "w20122";
@@ -248,7 +248,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "总锌";
 		format = "N3.3";
 		name = "w20123";
@@ -256,7 +256,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "总锰";
 		format = "N3.3";
 		name = "w20124";
@@ -264,7 +264,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "总铁";
 		format = "N3.3";
 		name = "w20125";
@@ -272,7 +272,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "总银";
 		format = "N3.3";
 		name = "w20126";
@@ -280,7 +280,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "总铍";
 		format = "N3.3";
 		name = "w20127";
@@ -288,7 +288,7 @@ return {
 		unit = "微克/升";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "总硒";
 		format = "N4.2";
 		name = "w20128";
@@ -296,56 +296,56 @@ return {
 		unit = "微克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "铜";
 		format = "N3.3";
 		name = "w20138";
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "锌";
 		format = "N3.3";
 		name = "w20139";
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "硒";
 		format = "N3.3";
 		name = "w20140";
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "砷";
 		format = "N3.3";
 		name = "w20141";
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "汞";
 		format = "N3.3";
 		name = "w20142";
 		unit = "微克/升";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "镉";
 		format = "N3.3";
 		name = "w20143";
 		unit = "微克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "铅";
 		format = "N3.3";
 		name = "w20144";
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "总氮";
 		format = "N4.2";
 		name = "w21001";
@@ -353,7 +353,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "氨氮";
 		format = "N4.2";
 		name = "w21003";
@@ -361,7 +361,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "凯氏氮";
 		format = "N3.1";
 		name = "w21004";
@@ -369,7 +369,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "亚硝酸盐";
 		format = "N2.3";
 		name = "w21006";
@@ -377,7 +377,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "硝酸盐";
 		format = "N2.3";
 		name = "w21007";
@@ -385,7 +385,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "总磷";
 		format = "N3.2";
 		name = "w21011";
@@ -393,7 +393,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "氰化物";
 		format = "N3.3";
 		name = "w21016";
@@ -401,7 +401,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "氟化物";
 		format = "N4.2";
 		name = "w21017";
@@ -409,7 +409,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "硫化物";
 		format = "N3.3";
 		name = "w21019";
@@ -417,7 +417,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "氯化物";
 		format = "N3.1";
 		name = "w21022";
@@ -425,14 +425,14 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "硫酸盐";
 		format = "N6";
 		name = "w21038";
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "石油类";
 		format = "N3.2";
 		name = "w22001";
@@ -440,7 +440,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "挥发酚";
 		format = "N3.4";
 		name = "w23002";
@@ -448,7 +448,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "苯并[α]芘";
 		format = "N3.1";
 		name = "w25043";
@@ -456,7 +456,7 @@ return {
 		unit = "微克/升";
 	};
 	{
-		calc_unit = "毫克";
+		cou_unit = "毫克";
 		desc = "六六六";
 		format = "N4";
 		name = "w33001";
@@ -464,7 +464,7 @@ return {
 		unit = "纳克/升";
 	};
 	{
-		calc_unit = "毫克";
+		cou_unit = "毫克";
 		desc = "滴滴涕";
 		format = "N4";
 		name = "w33007";
@@ -472,7 +472,7 @@ return {
 		unit = "纳克/升";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "有机氮";
 		format = "N3.1";
 		name = "w99001";
@@ -480,7 +480,7 @@ return {
 		unit = "毫克/升";
 	};
 	{
-		calc_unit = "立方米";
+		cou_unit = "立方米";
 		desc = "废气";
 		format = "N6.1";
 		name = "a00000";
@@ -586,7 +586,7 @@ return {
 		unit = "摄氏度";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "二氧化碳";
 		format = "N3.3";
 		name = "a05001";
@@ -594,28 +594,28 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "甲烷";
 		format = "N4.1";
 		name = "a05002";
 		unit = "纳克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "三氯一氟甲烷";
 		format = "N7.3";
 		name = "a05008";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "二氯二氟甲烷";
 		format = "N7.3";
 		name = "a05009";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "三氯三氟乙烷";
 		format = "N7.3";
 		name = "a05013";
@@ -629,14 +629,14 @@ return {
 		unit = "%";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "砷";
 		format = "N1.6";
 		name = "a20007";
 		unit = "纳克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "铍及其化合物";
 		format = "N4.4";
 		name = "a20016";
@@ -644,7 +644,7 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "镉及其化合物";
 		format = "N3.4";
 		name = "a20025";
@@ -652,14 +652,14 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "镉";
 		format = "N3.3";
 		name = "a20026";
 		unit = "纳克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "铅及其化合物";
 		format = "N2.4";
 		name = "a20043";
@@ -667,14 +667,14 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "铅";
 		format = "N3.3";
 		name = "a20044";
 		unit = "纳克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "汞及其化合物";
 		format = "N4.4";
 		name = "a20057";
@@ -682,14 +682,14 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "汞";
 		format = "N3.2";
 		name = "a20058";
 		unit = "纳克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "镍及其化合物";
 		format = "N3.3";
 		name = "a20063";
@@ -697,7 +697,7 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "锡及其化合物";
 		format = "N4.3";
 		name = "a20091";
@@ -705,7 +705,7 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "氨（氨气）";
 		format = "N4.3";
 		name = "a21001";
@@ -713,7 +713,7 @@ return {
 		unit = "纳克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "氮氧化物";
 		format = "N5.1";
 		name = "a21002";
@@ -721,21 +721,21 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "一氧化氮";
 		format = "N4.1";
 		name = "a21003";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "二氧化氮";
 		format = "N4.1";
 		name = "a21004";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "一氧化碳";
 		format = "N3.3";
 		name = "a21005";
@@ -743,7 +743,7 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "氰化物";
 		format = "N3.3";
 		name = "a21017";
@@ -751,7 +751,7 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "氟化物";
 		format = "N2.3";
 		name = "a21018";
@@ -759,7 +759,7 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "氯气";
 		format = "N4.3";
 		name = "a21022";
@@ -767,7 +767,7 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "氯化氢";
 		format = "N4.3";
 		name = "a21024";
@@ -775,7 +775,7 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "二氧化硫";
 		format = "N5.2";
 		name = "a21026";
@@ -783,7 +783,7 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "硫化氢";
 		format = "N3.2";
 		name = "a21028";
@@ -791,7 +791,7 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "酚类";
 		format = "N3.3";
 		name = "a23001";
@@ -799,133 +799,133 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "二氯甲烷";
 		format = "N7.3";
 		name = "a24003";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "三氯甲烷";
 		format = "N7.3";
 		name = "a24004";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "四氯甲烷";
 		format = "N7.3";
 		name = "a24005";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "二溴一氯甲烷";
 		format = "N7.3";
 		name = "a24006";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "一溴二氯甲烷";
 		format = "N7.3";
 		name = "a24007";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "溴甲烷";
 		format = "N7.3";
 		name = "a24008";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "三溴甲烷";
 		format = "N7.3";
 		name = "a24009";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "氯乙烷";
 		format = "N7.3";
 		name = "a24015";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,1-二氯乙烷";
 		format = "N7.3";
 		name = "a24016";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,2-二氯乙烷";
 		format = "N7.3";
 		name = "a24017";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,1,1-三氯乙烷";
 		format = "N7.3";
 		name = "a24018";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,1,2-三氯乙烷";
 		format = "N7.3";
 		name = "a24019";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,1,2,2-四氯乙烷";
 		format = "N7.3";
 		name = "a24020";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,2-二氯丙烷";
 		format = "N7.3";
 		name = "a24027";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,2-二溴乙烷";
 		format = "N7.3";
 		name = "a24034";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "环己烷";
 		format = "N7.3";
 		name = "a24036";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "正己烷";
 		format = "N7.3";
 		name = "a24042";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "正庚烷";
 		format = "N7.3";
 		name = "a24043";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "氯乙烯";
 		format = "N4.3";
 		name = "a24046";
@@ -933,56 +933,56 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,1-二氯乙烯";
 		format = "N7.3";
 		name = "a24047";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "三氯乙烯";
 		format = "N7.3";
 		name = "a24049";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "四氯乙烯";
 		format = "N7.3";
 		name = "a24050";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "丙烯";
 		format = "N7.3";
 		name = "a24053";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,3-二氯丙烯";
 		format = "N7.3";
 		name = "a24054";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,4-二恶烷";
 		format = "N7.3";
 		name = "a24072";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,3-丁二烯";
 		format = "N7.3";
 		name = "a24078";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "碳氢化合物";
 		format = "N5.2";
 		name = "a24087";
@@ -990,56 +990,56 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "非甲烷总烃";
 		format = "N7.3";
 		name = "a24088";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "氯甲烷";
 		format = "N7.3";
 		name = "a24099";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "反式-1,2-二氯乙烯";
 		format = "N7.3";
 		name = "a24110";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "顺式-1,2-二氯乙烯";
 		format = "N7.3";
 		name = "a24111";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "反式-1,3-二氯丙烯";
 		format = "N7.3";
 		name = "a24112";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "六氯-1,3-丁二烯";
 		format = "N7.3";
 		name = "a24113";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "苯";
 		format = "N7.3";
 		name = "a25002";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "甲苯";
 		format = "N4.2";
 		name = "a25003";
@@ -1047,14 +1047,14 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "乙苯";
 		format = "N7.3";
 		name = "a25004";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "二甲苯";
 		format = "N4.2";
 		name = "a25005";
@@ -1062,28 +1062,28 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,2-二甲基苯";
 		format = "N7.3";
 		name = "a25006";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,3-二甲基苯";
 		format = "N7.3";
 		name = "a25007";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,4-二甲基苯";
 		format = "N7.3";
 		name = "a25008";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "氯苯";
 		format = "N4.3";
 		name = "a25010";
@@ -1091,63 +1091,63 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,2-二氯苯";
 		format = "N7.3";
 		name = "a25011";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,3-二氯苯";
 		format = "N7.3";
 		name = "a25012";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,4-二氯苯";
 		format = "N7.3";
 		name = "a25013";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1-乙基-4-甲基苯";
 		format = "N7.3";
 		name = "a25014";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,2,4-三氯苯";
 		format = "N7.3";
 		name = "a25015";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,2,4-三甲基苯";
 		format = "N7.3";
 		name = "a25019";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,2,3-三甲基苯";
 		format = "N7.3";
 		name = "a25020";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "1,3,5-三甲基苯";
 		format = "N7.3";
 		name = "a25021";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "硝基苯";
 		format = "N3.4";
 		name = "a25023";
@@ -1155,14 +1155,14 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "乙烯基苯";
 		format = "N7.3";
 		name = "a25038";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "苯并[a]芘";
 		format = "N4.3";
 		name = "a25044";
@@ -1170,14 +1170,14 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "四氢呋喃";
 		format = "N7.3";
 		name = "a25072";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "苯胺类";
 		format = "N4.3";
 		name = "a26001";
@@ -1185,21 +1185,21 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "乙酸乙酯";
 		format = "N7.3";
 		name = "a29017";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "乙酸乙烯酯";
 		format = "N7.3";
 		name = "a29026";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "甲醇";
 		format = "N4.3";
 		name = "a30001";
@@ -1207,14 +1207,14 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "异丙醇";
 		format = "N7.3";
 		name = "a30008";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "硫醇";
 		format = "N4.3";
 		name = "a30022";
@@ -1222,7 +1222,7 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "甲醛";
 		format = "N3.3";
 		name = "a31001";
@@ -1230,7 +1230,7 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "乙醛";
 		format = "N3.4";
 		name = "a31002";
@@ -1238,49 +1238,49 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "丙酮";
 		format = "N7.3";
 		name = "a31024";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "2-丁酮";
 		format = "N7.3";
 		name = "a31025";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "甲基异丁基甲酮";
 		format = "N7.3";
 		name = "a31030";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "总悬浮颗粒物TSP";
 		format = "N4.3";
 		name = "a34001";
 		unit = "纳克/立方米";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "可吸入颗粒物PM10";
 		format = "N3.3";
 		name = "a34002";
 		unit = "纳克/立方米";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "细微颗粒物PM2.5";
 		format = "N3.3";
 		name = "a34004";
 		unit = "纳克/立方米";
 	};
 	{
-		calc_unit = "克";
+		cou_unit = "克";
 		desc = "亚微米颗粒物PM1.0";
 		format = "N3.3";
 		name = "a34005";
@@ -1292,7 +1292,7 @@ return {
 		unit = "吨/平方千米x月";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "烟尘";
 		format = "N4";
 		name = "a34013";
@@ -1300,14 +1300,14 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "炭黑尘";
 		format = "N4";
 		name = "a34017";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "沥青烟";
 		format = "N4.3";
 		name = "a34038";
@@ -1315,7 +1315,7 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "硫酸雾";
 		format = "N4.3";
 		name = "a34039";
@@ -1323,7 +1323,7 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "铬酸雾";
 		format = "N2.3";
 		name = "a34040";
@@ -1331,14 +1331,14 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "丙烯腈";
 		format = "N7.3";
 		name = "a99010";
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "光气";
 		format = "N3.3";
 		name = "a99049";
@@ -1346,7 +1346,7 @@ return {
 		unit = "毫克/立方米";
 	};
 	{
-		calc_unit = "千克";
+		cou_unit = "千克";
 		desc = "二硫化碳";
 		format = "N4.3";
 		name = "a99051";

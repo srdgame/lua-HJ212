@@ -1,5 +1,6 @@
-local logger = require 'hj212.logger'
 local class = require 'middleclass'
+local types = require 'hj212.types'
+local logger = require 'hj212.logger'
 local mgr = require 'hj212.calc.manager'
 local date = require 'date'
 
@@ -12,24 +13,13 @@ for k, v in pairs(mgr.static.TYPES) do
 end
 base.static.TYPE_NAMES = type_names
 
-function base:initialize(callback, type_mask, name)
-	local callback = callback
+function base:initialize(name, type_mask, min, max)
+	assert(name, "Name missing")
 	self._type_mask = type_mask ~= nil and type_mask or mgr.static.TYPES.ALL
-	self._callback = function(typ, val, timestamp)
-		local db = self._db
-		local name = type_names[typ]
-		--- Using start time as timestamp
-		val.timestamp = val.timestamp or val.stime
-		if db then
-			if name then
-				assert(db:write(name, val))
-			end
-		end
-		if callback then
-			callback(name or 'UNKNOWN', val, timestamp)
-		end
-	end
+	self._callback = callback
 	self._name = name
+	self._min = min
+	self._max = max
 
 	self._start = os.time()
 	--- Sample data list for minutes calculation
@@ -38,6 +28,37 @@ function base:initialize(callback, type_mask, name)
 	self._min_list = {}
 	self._hour_list = {}
 	self._day = nil
+end
+
+function base:set_callback(callback)
+	self._callback = callback
+end
+
+function base:on_value(typ, val, now)
+	local name = type_names[typ]
+	assert(name, string.format('type is unknown %s', typ))
+
+	val.timestamp = val.timestamp or val.stime
+	val.flag = val.flag or self:value_flag(val.avg or val.value)
+
+	if self._db then
+		assert(self._db:write(name, val))
+	end
+
+	if self._callback then
+		self._callback(name, val, now)
+	end
+end
+
+function base:value_flag(value)
+	local flag = types.FLAG.Normal
+	if self._min and value < self._min then
+		flag = types.FLAG.Overproof
+	end
+	if self._max and value > self._max then
+		flag = types.FLAG.Overproof
+	end
+	return flag
 end
 
 function base:set_db(db)
@@ -110,8 +131,26 @@ function base:sample_meta()
 	assert(nil, "Not implemented")
 end
 
+function base:query_min(etime)
+	for _, v in ipairs(self._min_list) do
+		if v.etime == etime then
+			return v
+		end
+	end
+	return nil, "No value end with "..etime
+end
+
+function base:query_hour(etime)
+	for _, v in ipairs(self._hour_list) do
+		if v.etime == etime then
+			return v
+		end
+	end
+	return nil, "No value end with "..etime
+end
+
 function base:push_rdata(timestamp, value, flag, now)
-	self._callback(mgr.TYPES.RDATA, {timestamp=timestamp, value=value, flag=flag}, now)
+	self:on_value(mgr.TYPES.RDATA, {timestamp=timestamp, value=value, flag=flag}, now)
 end
 
 function base:on_trigger(typ, now, duration)
@@ -121,7 +160,7 @@ function base:on_trigger(typ, now, duration)
 			assert(duration % 60 == 0)
 			local val, err = self:on_min_trigger(now, duration)
 			if val then
-				self._callback(mgr.TYPES.MIN, val, now)
+				self:on_value(mgr.TYPES.MIN, val, now)
 			end
 		end
 		if typ == mgr.TYPES.HOUR then
@@ -129,7 +168,7 @@ function base:on_trigger(typ, now, duration)
 			assert(duration % 3600 == 0)
 			local val = self:on_hour_trigger(now, duration)
 			if val then
-				self._callback(mgr.TYPES.HOUR, val, now)
+				self:on_value(mgr.TYPES.HOUR, val, now)
 			end
 		end
 		if typ == mgr.TYPES.DAY then
@@ -137,7 +176,7 @@ function base:on_trigger(typ, now, duration)
 			assert(duration % (3600 * 24) == 0)
 			local val = self:on_day_trigger(now, duration)
 			if val then
-				self._callback(mgr.TYPES.DAY, val, now)
+				self:on_value(mgr.TYPES.DAY, val, now)
 			end
 		end
 		return true

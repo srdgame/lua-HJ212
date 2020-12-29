@@ -1,4 +1,5 @@
 local class = require 'middleclass'
+local utils_sort = require 'hj212.utils.sort'
 local cems = require 'hj212.client.station.cems'
 local waitable = require 'hj212.client.station.waitable'
 
@@ -62,6 +63,12 @@ function station:tags()
 	return self._tag_list
 end
 
+function station:init(calc_mgr)
+	utils_sort.for_each_sorted_key(self._tag_list, function(tag)
+		tag:init(calc_mgr)
+	end)
+end
+
 function station:add_meter(meter)
 	assert(meter)
 	table.insert(self._meters, meter)
@@ -73,6 +80,9 @@ end
 
 --- Tags value
 function station:set_tag_value(name, value, timestamp)
+	assert(name ~= nil)
+	assert(value ~= nil)
+	assert(timestamp ~= nil)
 	local tag = self._tag_list[name]
 	if tag then
 		return tag:set_value(value, timestamp)

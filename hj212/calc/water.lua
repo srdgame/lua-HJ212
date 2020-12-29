@@ -1,17 +1,18 @@
 local base = require 'hj212.calc.base'
 local mgr = require 'hj212.calc.manager'
+local types = require 'hj212.types'
 
 local water = base:subclass('hj212.calc.water')
 
 local MAX_TIMESTAMP_GAP = 5 -- tenseconds
 
 --- The upper tag, e.g. [w00000]
--- If the upper tag not exists time will be used for caclue the (total) value
+-- If the upper tag not exists time will be used for caclue the (COU) value
 --
-function water:initialize(callback, mask, name, upper_tag)
-	base.initialize(self, callback, mask, name)
+function water:initialize(name, mask, min, max, upper_tag)
+	base.initialize(self, name, mask, min, max)
 
-	self._last = os.time() - 1 --- Make sure last will not be same as tiemstamp
+	self._last = os.time() - 5 -- five seconds
 	self._last_avg = nil
 	self._upper = upper_tag
 
@@ -25,7 +26,7 @@ function water:push(value, timestamp)
 	local timestamp = math.floor(timestamp)
 	assert(timestamp)
 	if self._upper then
-		self._upper:get_value(timestmap, function(upper_value)
+		self._upper:get_value(timestamp, function(upper_value)
 			self:_push(upper_value, value, timestamp)
 		end)
 	else
@@ -84,9 +85,9 @@ end
 
 local function calc_list(upper, upper_val, list, start, now, last, last_avg)
 	if (upper and not upper_val) or #list == 0 then
-		return {total=0,avg=0,min=0,max=0,stime=start,etime=now}
+		return {cou=0,avg=0,min=0,max=0,stime=start,etime=now,flag=types.FLAG.CONNECTION}
 	end
-	local val_t = 0
+	local val_cou = 0
 	local val_min = list[1][2]
 	local val_max = list[1][2]
 
@@ -96,54 +97,36 @@ local function calc_list(upper, upper_val, list, start, now, last, last_avg)
 		val_min = raw_val < val_min and raw_val or val_min
 		val_max = raw_val > val_max and raw_val or val_max
 
-		val_t = val_t + val
+		val_cou = val_cou + val
 	end
 
 	if last and last_avg then
 		if last < now then
-			val_t = last_avg * (now - last)
+			val_cou = last_avg * (now - last)
 		end
 	end
 
 	local val_avg = 0
 	if not upper_val then
-		val_avg = val_t / (now - start)
-		--print('water.calc_list 1', val_t, now - start, val_avg, val_min, val_max)
+		val_avg = val_cou / (now - start)
+		--print('water.calc_list 1', val_cou, now - start, val_avg, val_min, val_max)
 	else
-		if upper_val.total > 0 then
-			val_avg = (val_t / upper_val.total) * (10 ^ -3)
+		if upper_val.cou > 0 then
+			val_avg = (val_cou / upper_val.cou) * (10 ^ -3)
 		else
 			val_avg = 0
 		end
-		--print('water.calc_list 2', val_t, upper_val.total, val_avg, val_min, val_max)
+		--print('water.calc_list 2', val_cou, upper_val.cou, val_avg, val_min, val_max)
 	end
 
 	return {
-		total = val_t,
+		cou = val_cou,
 		avg = val_avg,
 		min = val_min,
 		max = val_max,
 		stime = start,
 		etime = now,
 	}
-end
-
-function water:query_min(etime)
-	for _, v in ipairs(self._min_list) do
-		if v.etime == etime then
-			return v
-		end
-	end
-	return nil, "No value end with "..etime
-end
-
-function water:query_hour(etime)
-	for _, v in ipairs(self._hour_list) do
-		if v.etime == etime then
-			return v
-		end
-	end
-	return nil, "No value end with "..etime
 end
 
 function water:on_min_trigger(now, duration)
@@ -221,10 +204,10 @@ end
 
 local function calc_list_2(upper, upper_val, list, start, now)
 	if (upper and not upper_val) or #list == 0 then
-		return {total=0,avg=0,min=0,max=0,stime=start,etime=now}
+		return {cou=0,avg=0,min=0,max=0,stime=start,etime=now,flag=types.FLAG.CONNECTION}
 	end
 	local etime = start
-	local val_t = 0
+	local val_cou = 0
 	local val_min = list[1].min
 	local val_max = list[2].max
 
@@ -236,24 +219,24 @@ local function calc_list_2(upper, upper_val, list, start, now)
 		val_min = v.min < val_min and v.min or val_min
 		val_max = v.max > val_max and v.max or val_max
 
-		val_t = val_t + v.total
+		val_cou = val_cou + v.cou
 	end
 
 	assert(etime <= now)
 
 	local val_avg = 0
 	if not upper_val then
-		val_avg = val_t / (now - start)
+		val_avg = val_cou / (now - start)
 	else
-		if upper_val.total > 0 then
-			val_avg = (val_t / upper_val.total) * (10 ^ -3)
+		if upper_val.cou > 0 then
+			val_avg = (val_cou / upper_val.cou) * (10 ^ -3)
 		else
 			val_avg = 0
 		end
 	end
 
 	return {
-		total = val_t,
+		cou = val_cou,
 		avg = val_avg,
 		min = val_min,
 		max = val_max,

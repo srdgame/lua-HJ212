@@ -2,7 +2,6 @@ local class = require 'middleclass'
 local logger = require 'hj212.logger'
 local types = require 'hj212.types'
 local param_tag = require 'hj212.params.tag'
-local tag_info = require 'hj212.tags.info'
 local calc_mgr_m = require 'hj212.calc.manager'
 
 local tag = class('hj212.client.tag')
@@ -29,6 +28,7 @@ function tag:init(calc_mgr)
 	end
 
 	local tag_name = self._name
+	local has_cou = self._has_cou
 	assert(tag and tag_name)
 	local calc_name = self._calc_name
 	if not calc_name then
@@ -40,16 +40,12 @@ function tag:init(calc_mgr)
 			calc_name = 'simple'
 		end
 	end
+	if not has_cou then
+		calc_name = 'simple'
+	end
 	assert(calc_name)
 
 	local m = assert(require('hj212.calc.'..calc_name))
-
-	local has_cou = self._has_cou
-	for _, info in ipairs(tag_info) do
-		if info.cou_unit then
-			has_cou = true
-		end
-	end
 
 	local upper_tag = nil
 	if has_cou and calc_name == 'water' then
@@ -130,8 +126,9 @@ function tag:set_value(value, timestamp)
 	self._timestamp = timestamp
 	self._flag = self:value_flag(value)
 	if self._his_calc then
-		self._his_calc:push(value, timestamp)
+		return self._his_calc:push(value, timestamp)
 	end
+	return true
 end
 
 function tag:get_value()
@@ -154,13 +151,22 @@ end
 function tag:convert_data(data)
 	local rdata = {}
 	for k, v in ipairs(data) do
-		rdata[#rdata + 1] = param_tag:new(self._name, {
-			Cou = v.cou,
-			Flag = v.flag,
-			Avg = v.avg,
-			Min = v.min,
-			Max = v.max,
-		}, v.stime)
+		if self._has_cou then
+			rdata[#rdata + 1] = param_tag:new(self._name, {
+				Cou = v.cou,
+				Flag = v.flag,
+				Avg = v.avg,
+				Min = v.min,
+				Max = v.max,
+			}, v.stime)
+		else
+			rdata[#rdata + 1] = param_tag:new(self._name, {
+				Flag = v.flag,
+				Avg = v.avg,
+				Min = v.min,
+				Max = v.max,
+			}, v.stime)
+		end
 	end
 	return rdata
 end

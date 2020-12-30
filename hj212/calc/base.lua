@@ -2,6 +2,7 @@ local class = require 'middleclass'
 local types = require 'hj212.types'
 local logger = require 'hj212.logger'
 local mgr = require 'hj212.calc.manager'
+local data_list = require 'hj212.calc.data_list'
 local date = require 'date'
 
 local base = class('hj212.calc.base')
@@ -13,6 +14,32 @@ for k, v in pairs(mgr.static.TYPES) do
 end
 base.static.TYPE_NAMES = type_names
 
+
+base.static.calc_list_stime = function(list, etime, duration)
+	assert(list, "list missing")
+	assert(etime, "etime missing")
+	assert(duration, "duration missing")
+	local first = list:first()
+	local stime = etime - duration
+	if not first then
+		return stime
+	end
+
+	local first_start = first.stime or first.timestamp
+	assert(first_start)
+	while stime > first_start do
+		stime = stime - duration
+	end
+	return stime
+end
+
+local function create_callback(obj, typ)
+	local type_name = type_names[typ]
+	return function(val)
+		obj:_db_write(type_name, val)
+	end
+end
+
 function base:initialize(name, type_mask, min, max)
 	assert(name, "Name missing")
 	self._type_mask = type_mask ~= nil and type_mask or mgr.static.TYPES.ALL
@@ -23,31 +50,40 @@ function base:initialize(name, type_mask, min, max)
 
 	self._start = os.time()
 	--- Sample data list for minutes calculation
-	self._sample_list = {}
+	self._sample_list = data_list:new('timestamp', function(val)
+		if self._db then
+			self._db:push_sample(val)
+		end
+	end)
 	--- Calculated
-	self._min_list = {}
-	self._hour_list = {}
-	self._day = nil
+	self._min_list = data_list:new('etime', create_callback(self, mgr.TYPES.MIN))
+	self._hour_list = data_list:new('etime', create_callback(self, mgr.TYPES.HOUR))
+	self._day_list = data_list:new('etime', create_callback(self, mgr.TYPES.DAY))
 end
 
 function base:set_callback(callback)
 	self._callback = callback
 end
 
+function base:_db_write(type_name, val)
+	if self._db then
+		assert(self._db:write(type_name, val))
+		return true
+	end
+	return true
+end
+
 function base:on_value(typ, val, now)
 	local name = type_names[typ]
 	assert(name, string.format('type is unknown %s', typ))
 
-	val.timestamp = val.timestamp or val.stime
+	val.timestamp = val.timestamp or val.etime
 	val.flag = val.flag or self:value_flag(val.avg or val.value)
-
-	if self._db then
-		assert(self._db:write(name, val))
-	end
 
 	if self._callback then
 		self._callback(name, val, now)
 	end
+	return val
 end
 
 function base:value_flag(value)
@@ -103,17 +139,18 @@ function base:load_from_db()
 	if self._db then
 		local day_start_time = self:day_start()
 		--print(os.date('%c', day_start_time))
-		self._hour_list = self._db:read('HOUR', day_start_time, self._start)
-		local hour_start_time = day_start_time
-		if #self._hour_list > 0 then
-			hour_start_time = self._hour_list[#self._hour_list].etime
-		end
-		self._min_list = self._db:read('MIN', hour_start_time, self._start)
-		local min_start_time = hour_start_time
-		if #self._min_list > 0 then
-			min_start_time = self._min_list[#self._min_list].etime
-		end
-		self._sample_list = self._db:read_samples(min_start_time, self._start)
+		local hour_list = self._db:read('HOUR', day_start_time, self._start)
+		self._hour_list:init(hour_list)
+
+		local last_hour_item = self._hour_list:last()
+		local hour_start_time = last_hour_item and last_hour_item.etime or day_start_time
+		local min_list = self._db:read('MIN', hour_start_time, self._start)
+		self._min_list:init(min_list)
+
+		local last_min_item = self._min_list:last()
+		local min_start_time = last_min_item and last_min_item.etime or hour_start_time
+		local sample_list = self._db:read_samples(min_start_time, self._start)
+		self._sample_list:init(sample_list)
 	end
 end
 
@@ -121,36 +158,38 @@ function base:push(value, timestamp)
 	assert(nil, "Not implemented")
 end
 
-function base:push_sample(data)
-	if self._db then
-		self._db:push_sample(data)
-	end
-end
-
 function base:sample_meta()
 	assert(nil, "Not implemented")
 end
 
 function base:query_min(etime)
-	for _, v in ipairs(self._min_list) do
-		if v.etime == etime then
-			return v
-		end
+	local v = self._min_list:find(etime)
+	if v then
+		return v
 	end
 	return nil, "No value end with "..etime
 end
 
 function base:query_hour(etime)
-	for _, v in ipairs(self._hour_list) do
-		if v.etime == etime then
-			return v
-		end
+	local v = self._hour_list:find(etime)
+	if v then
+		return v
+	end
+	return nil, "No value end with "..etime
+end
+
+function base:query_day(etime)
+	local v = self._day_list:find(etime)
+	if v then
+		return v
 	end
 	return nil, "No value end with "..etime
 end
 
 function base:push_rdata(timestamp, value, flag, now)
-	self:on_value(mgr.TYPES.RDATA, {timestamp=timestamp, value=value, flag=flag}, now)
+	local val = {timestamp=timestamp, value=value, flag=flag}
+	val = self:on_value(mgr.TYPES.RDATA, val, now)
+	return self:_db_write(type_names[mgr.TYPES.RDATA], val)
 end
 
 function base:on_trigger(typ, now, duration)
@@ -185,41 +224,33 @@ function base:on_trigger(typ, now, duration)
 	end
 end
 
-function base:get_current_data(list, start_time, end_time)
-	local data = {}
-	for i = #list, #list, -1 do
-		local v = list[i]
-		if v.stime >= start_time and v.stime <= end_time then
-			data[#data + 1] = v
-		end
-		if v.stime < start_time then
-			break
-		end
-	end
-	return data
-end
-
+--- Query data by etime
 function base:query_min_data(start_time, end_time)
-	if #self._min_list > 0 and self._min_list[1].stime < start_time then
-		return self:get_current_data(self._min_list, start_time, end_time)
+	local first = self._min_list:first()
+	if first and first.etime < start_time then
+		return self._min_list:query(start_time, end_time)
 	else
 		local name = type_names[mgr.TYPES.MIN]
 		return self._db:read(name, start_time, end_time)
 	end
 end
 
+--- Query data by etime
 function base:query_hour_data(start_time, end_time)
-	if #self._hour_list > 0 and self._hour_list[1].stime < start_time then
-		return self:get_current_data(self._hour_list, start_time, end_time)
+	local first = self._hour_list:first()
+	if first and first.etime <= start_time then
+		return self._min_list:query(start_time, end_time)
 	else
 		local name = type_names[mgr.TYPES.HOUR]
 		return self._db:read(name, start_time, end_time)
 	end
 end
 
+--- Query data by etime
 function base:query_day_data(start_time, end_time)
-	if end_time == start_time and end_time == self._day.stime then
-		return {self._day}
+	local first = self._day_list:first()
+	if first and first.etime <= start_time then
+		return self._day_list:query(start_time, end_time)
 	else
 		local name = type_names[mgr.TYPES.DAY]
 		return self._db:read(name, start_time, end_time)

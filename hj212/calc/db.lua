@@ -18,6 +18,7 @@ function base:save_samples()
 end
 
 --- Return list of data
+-- time by etime
 function base:read(cate, start_time, end_time)
 	assert(nil, "Not implemented")
 end

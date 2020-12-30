@@ -140,6 +140,10 @@ function tag:get_value()
 end
 
 function tag:query_rdata(now, save)
+	if not self._value then
+		return
+	end
+
 	if save and self._his_calc then
 		self._his_calc:push_rdata(self._timestamp, self._value, self._flag, now)
 	end

@@ -94,7 +94,10 @@ function station:rdata(now, save)
 	local data = {}
 	for _, tag in pairs(self._tag_list) do
 		if tag:upload() then
-			data[#data + 1] = tag:query_rdata(now, save)
+			local d = tag:query_rdata(now, save)
+			if d then
+				data[#data + 1] = d
+			end
 		end
 	end
 	return data

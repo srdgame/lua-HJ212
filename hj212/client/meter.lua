@@ -51,7 +51,10 @@ end
 function meter:rdata()
 	local data = {}
 	for _, tag in ipairs(self._tag_list) do
-		data[#data + 1] = tag:query_rdata()
+		local d = tag:query_rdata()
+		if d then
+			data[#data + 1] = d
+		end
 	end
 	return data
 end

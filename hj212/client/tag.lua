@@ -106,6 +106,10 @@ function tag:his_calc()
 	return self._his_calc
 end
 
+function tag:upload()
+	assert(nil, "Not implemented")
+end
+
 function tag:value_flag(value)
 	local flag = types.FLAG.Normal
 	if self._min and value < self._min then

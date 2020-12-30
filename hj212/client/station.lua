@@ -93,7 +93,7 @@ end
 function station:rdata(now, save)
 	local data = {}
 	for _, tag in pairs(self._tag_list) do
-		if not tag:upload() then
+		if tag:upload() then
 			data[#data + 1] = tag:query_rdata(now, save)
 		end
 	end
@@ -103,7 +103,7 @@ end
 function station:min_data(start_time, end_time)
 	local data = {}
 	for _, tag in pairs(self._tag_list) do
-		if not tag:upload() then
+		if tag:upload() then
 			local vals = tag:query_min_data(start_time, end_time)
 			table.move(vals, 1, #vals, #data + 1, data)
 		end
@@ -114,7 +114,7 @@ end
 function station:hour_data(start_time, end_time)
 	local data = {}
 	for _, tag in pairs(self._tag_list) do
-		if not tag:upload() then
+		if tag:upload() then
 			local vals = tag:query_hour_data(start_time, end_time)
 			table.move(vals, 1, #vals, #data + 1, data)
 		end
@@ -125,7 +125,7 @@ end
 function station:day_data(start_time, end_time)
 	local data = {}
 	for _, tag in pairs(self._tag_list) do
-		if not tag:upload() then
+		if tag:upload() then
 			local vals = tag:query_day_data(start_time, end_time)
 			table.move(vals, 1, #vals, #data + 1, data)
 		end

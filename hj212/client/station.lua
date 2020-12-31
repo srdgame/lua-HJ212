@@ -63,9 +63,12 @@ function station:tags()
 	return self._tag_list
 end
 
-function station:init(calc_mgr)
+function station:init(calc_mgr, err_cb)
 	utils_sort.for_each_sorted_key(self._tag_list, function(tag)
-		tag:init(calc_mgr)
+		local r, err = tag:init(calc_mgr)
+		if not r then
+			err_cb(err)
+		end
 	end)
 end
 

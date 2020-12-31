@@ -17,7 +17,7 @@ function simple:sample_meta()
 	return {
 		{ name = 'value', type = 'DOUBLE', not_null = true },
 		{ name = 'timestamp', type = 'DOUBLE', not_null = true },
-	}
+	}, 1 --version
 end
 
 local function calc_sample(list, start, now)

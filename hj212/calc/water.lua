@@ -65,7 +65,7 @@ function water:sample_meta()
 		{ name = 'cou', type = 'DOUBLE', not_null = true },
 		{ name = 'value', type = 'DOUBLE', not_null = true },
 		{ name = 'timestamp', type = 'DOUBLE', not_null = true },
-	}
+	}, 1 --version
 end
 
 function water:get_value(timestamp, val_calc)

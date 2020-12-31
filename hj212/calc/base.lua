@@ -189,7 +189,11 @@ end
 function base:push_rdata(timestamp, value, flag, now)
 	local val = {timestamp=timestamp, value=value, flag=flag}
 	val = self:on_value(mgr.TYPES.RDATA, val, now)
-	return self:_db_write(type_names[mgr.TYPES.RDATA], val)
+	if self._db then
+		return self:_db_write(type_names[mgr.TYPES.RDATA], val)
+	else
+		return true
+	end
 end
 
 function base:on_trigger(typ, now, duration)
@@ -229,9 +233,11 @@ function base:query_min_data(start_time, end_time)
 	local first = self._min_list:first()
 	if first and first.etime < start_time then
 		return self._min_list:query(start_time, end_time)
-	else
+	elseif self._db then
 		local name = type_names[mgr.TYPES.MIN]
 		return self._db:read(name, start_time, end_time)
+	else
+		return nil
 	end
 end
 
@@ -240,9 +246,11 @@ function base:query_hour_data(start_time, end_time)
 	local first = self._hour_list:first()
 	if first and first.etime <= start_time then
 		return self._min_list:query(start_time, end_time)
-	else
+	elseif self._db then
 		local name = type_names[mgr.TYPES.HOUR]
 		return self._db:read(name, start_time, end_time)
+	else
+		return nil
 	end
 end
 
@@ -251,9 +259,11 @@ function base:query_day_data(start_time, end_time)
 	local first = self._day_list:first()
 	if first and first.etime <= start_time then
 		return self._day_list:query(start_time, end_time)
-	else
+	elseif self._db then
 		local name = type_names[mgr.TYPES.DAY]
 		return self._db:read(name, start_time, end_time)
+	else
+		return nil
 	end
 end
 

@@ -108,7 +108,9 @@ function station:min_data(start_time, end_time)
 	for _, tag in pairs(self._tag_list) do
 		if tag:upload() then
 			local vals = tag:query_min_data(start_time, end_time)
-			table.move(vals, 1, #vals, #data + 1, data)
+			if vals then
+				table.move(vals, 1, #vals, #data + 1, data)
+			end
 		end
 	end
 	return data
@@ -119,7 +121,9 @@ function station:hour_data(start_time, end_time)
 	for _, tag in pairs(self._tag_list) do
 		if tag:upload() then
 			local vals = tag:query_hour_data(start_time, end_time)
-			table.move(vals, 1, #vals, #data + 1, data)
+			if vals then
+				table.move(vals, 1, #vals, #data + 1, data)
+			end
 		end
 	end
 	return data
@@ -130,7 +134,9 @@ function station:day_data(start_time, end_time)
 	for _, tag in pairs(self._tag_list) do
 		if tag:upload() then
 			local vals = tag:query_day_data(start_time, end_time)
-			table.move(vals, 1, #vals, #data + 1, data)
+			if vals then
+				table.move(vals, 1, #vals, #data + 1, data)
+			end
 		end
 	end
 	return data

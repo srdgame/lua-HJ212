@@ -68,7 +68,7 @@ function simple:on_min_trigger(now, duration)
 		else
 			self:log('debug', 'SIMPLE: calculate older sample value', start, etime)
 			local val = calc_sample(list, start, etime)
-			val = self:on_value(mgr.TYPES.MIN, val)
+			val = self:on_value(mgr.TYPES.MIN, val, etime)
 			self._min_list:append(val)
 		end
 
@@ -80,7 +80,7 @@ function simple:on_min_trigger(now, duration)
 	local list = sample_list:pop(now)
 
 	local val = calc_sample(list, start, now)
-	val = self:on_value(mgr.TYPES.MIN, val)
+	val = self:on_value(mgr.TYPES.MIN, val, now)
 	self._min_list:append(val)
 
 	return val
@@ -140,7 +140,7 @@ function simple:on_hour_trigger(now, duration)
 		else
 			self:log('debug', 'SIMPLE: calculate older min value', start, etime)
 			local val = calc_cou(list, start, etime)
-			val = self:on_value(mgr.TYPES.HOUR, val)
+			val = self:on_value(mgr.TYPES.HOUR, val, etime)
 			assert(self._hour_list:append(val))
 		end
 
@@ -152,7 +152,7 @@ function simple:on_hour_trigger(now, duration)
 	local list = sample_list:pop(now)
 
 	local val = calc_cou(list, start, now)
-	val = self:on_value(mgr.TYPES.HOUR, val)
+	val = self:on_value(mgr.TYPES.HOUR, val, now)
 	assert(self._hour_list:append(val))
 
 	return val
@@ -176,7 +176,7 @@ function simple:on_day_trigger(now, duration)
 		else
 			self:log('debug', 'SIMPLE: calculate older min value', start, etime)
 			local val = calc_cou(list, start, etime)
-			val = self:on_value(mgr.TYPES.DAY, val)
+			val = self:on_value(mgr.TYPES.DAY, val, etime)
 			assert(self._day_list:append(val))
 		end
 
@@ -188,7 +188,7 @@ function simple:on_day_trigger(now, duration)
 	local list = sample_list:pop(now)
 
 	local val = calc_cou(list, start, now)
-	val = self:on_value(mgr.TYPES.DAY, val)
+	val = self:on_value(mgr.TYPES.DAY, val, now)
 	assert(self._day_list:append(val))
 
 	return val

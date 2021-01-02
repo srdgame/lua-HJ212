@@ -73,7 +73,10 @@ function base:_db_write(type_name, val)
 	return true
 end
 
-function base:on_value(typ, val, now)
+function base:on_value(typ, val, timestamp)
+	assert(typ, 'type missing')
+	assert(val, 'value missing')
+	assert(timestamp, 'timestamp missing')
 	local name = type_names[typ]
 	assert(name, string.format('type is unknown %s', typ))
 
@@ -81,7 +84,7 @@ function base:on_value(typ, val, now)
 	val.flag = val.flag or self:value_flag(val.avg or val.value)
 
 	if self._callback then
-		self._callback(name, val, now)
+		self._callback(name, val, timestamp)
 	end
 	return val
 end

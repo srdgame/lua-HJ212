@@ -155,6 +155,10 @@ function water:on_min_trigger(now, duration)
 
 		if self._min_list:find(etime) then
 			self:log('error', "WATER: older sample value skipped")
+			local cjson = require 'cjson.safe'
+			for _, v in pairs(list) do
+				self:log('error', ' Skip: '..cjson.encode(v))
+			end
 		else
 			self:log('debug', 'WATER: calculate older sample value', start, etime)
 			local upper_val = nil

@@ -147,6 +147,12 @@ function base:load_from_db()
 		end
 
 		local last_hour_item = self._hour_list:last()
+		--[[
+		if last_hour_item then
+			print('last_hour_item', last_hour_item.etime)
+		end
+		]]--
+
 		local hour_start_time = last_hour_item and last_hour_item.etime or day_start_time
 		local min_list, err = self._db:read('MIN', hour_start_time, self._start)
 		if min_list then
@@ -156,6 +162,12 @@ function base:load_from_db()
 		end
 
 		local last_min_item = self._min_list:last()
+		--[[
+		if last_min_item then
+			print('last_min_item', last_min_item.etime)
+		end
+		]]--
+
 		local min_start_time = last_min_item and last_min_item.etime or hour_start_time
 		local sample_list, err = self._db:read_samples(min_start_time, self._start)
 		if sample_list then

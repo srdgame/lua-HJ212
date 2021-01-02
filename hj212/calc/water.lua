@@ -21,7 +21,6 @@ function water:initialize(name, mask, min, max, upper_tag)
 end
 
 function water:push(value, timestamp)
-	local timestamp = math.floor(timestamp)
 	assert(timestamp)
 	if self._upper then
 		return self._upper:get_value(timestamp, function(upper_value)

@@ -9,7 +9,7 @@ function simple:initialize(name, mask, min, max)
 end
 
 function simple:push(value, timestamp)
-	local val = {value = value, timestamp = math.floor(timestamp)}
+	local val = {value = value, timestamp = timestamp}
 	return self._sample_list:append(val)
 end
 
@@ -65,6 +65,10 @@ function simple:on_min_trigger(now, duration)
 
 		if self._min_list:find(etime) then
 			self:log('error', "SIMPLE: older sample value skipped")
+			local cjson = require 'cjson.safe'
+			for _, v in pairs(list) do
+				self:log('error', ' Skip: '..cjson.encode(v))
+			end
 		else
 			self:log('debug', 'SIMPLE: calculate older sample value', start, etime)
 			local val = calc_sample(list, start, etime)
@@ -137,6 +141,10 @@ function simple:on_hour_trigger(now, duration)
 
 		if self._hour_list:find(etime) then
 			self:log('error', "SIMPLE: older min value skipped")
+			local cjson = require 'cjson.safe'
+			for _, v in pairs(list) do
+				self:log('error', ' Skip: '..cjson.encode(v))
+			end
 		else
 			self:log('debug', 'SIMPLE: calculate older min value', start, etime)
 			local val = calc_cou(list, start, etime)
@@ -173,6 +181,10 @@ function simple:on_day_trigger(now, duration)
 
 		if self._day_list:find(etime) then
 			self:log('error', "SIMPLE: older hour value skipped")
+			local cjson = require 'cjson.safe'
+			for _, v in pairs(list) do
+				self:log('error', ' Skip: '..cjson.encode(v))
+			end
 		else
 			self:log('debug', 'SIMPLE: calculate older min value', start, etime)
 			local val = calc_cou(list, start, etime)

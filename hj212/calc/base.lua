@@ -67,8 +67,7 @@ end
 
 function base:_db_write(type_name, val)
 	if self._db then
-		assert(self._db:write(type_name, val))
-		return true
+		return self._db:write(type_name, val)
 	end
 	return true
 end

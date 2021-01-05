@@ -3,23 +3,15 @@ local packet = require 'hj212.packet'
 local types = require 'hj212.types'
 local pfinder = require 'hj212.utils.pfinder'
 
-local client = class('hj212.client.base')
+local client = class('hj212.server.client')
 
-function client:initialize(station, passwd, timeout, retry)
-	assert(station and passwd)
-	self._station = station
-	self._system = tonumber(station:system())
-	self._dev_id = station:id()
-	self._passwd = passwd
-	self._timeout = (tonumber(timeout) or 5) * 1000
-	self._retry = tonumber(retry) or 3
-
-	self._treatment = {}
+function client:initialize()
+	self._station = nil
 
 	self._process_buf = nil
 	self._handlers = {}
 	self._finders = {
-		pfinder(types.COMMAND, 'hj212.client.handler')
+		pfinder(types.COMMAND, 'hj212.server.handler')
 	}
 end
 
@@ -33,40 +25,12 @@ function client:log(level, ...)
 	end
 end
 
+function client:set_station(station)
+	self._station = station
+end
+
 function client:station()
 	return self._station
-end
-
-function client:system()
-	return self._system
-end
-
-function client:device_id()
-	return self._dev_id
-end
-
-function client:passwd()
-	return self._passwd
-end
-
-function client:set_passwd(passwd)
-	self._passwd = passwd
-end
-
-function client:timeout()
-	return self._timeout
-end
-
-function client:set_timeout(timeout)
-	self._timeout = timeout
-end
-
-function client:retry()
-	return self._retry
-end
-
-function client:set_retry(retry)
-	self._retry = retry
 end
 
 function client:find_tag_sn(tag_name)
@@ -172,6 +136,16 @@ function client:process(raw_data)
 		return nil, err or 'Not enough data'
 	end
 
+	if not self._station then
+		local station, reply_code = self:on_station_create(p:system(), p:device_id(), p:password())
+		if not station then
+			self:send_reply(p:session(), reply_code)
+
+			--- TODO: Sleep?
+			return self:close()
+		end
+	end
+
 	if p:system() == types.SYSTEM.REPLY then
 		self:log('debug', 'On reply', p:session(), p:command())
 		return p, true
@@ -182,10 +156,6 @@ function client:process(raw_data)
 		self:log('debug', 'On request', p:session(), p:command())
 		return p, false
 	end
-end
-
-function client:send(session, raw_data)
-	assert(nil, 'Not implemented')
 end
 
 function client:send_request(request)
@@ -227,15 +197,19 @@ function client:send_notice(session)
 	return self:send_request(resp)
 end
 
-function client:send_nowait(raw_data)
+function conn:send(session, raw_data)
 	assert(nil, 'Not implemented')
 end
 
-function client:connect()
+function conn:send_nowait(raw_data)
 	assert(nil, 'Not implemented')
 end
 
-function client:close()
+function conn:close()
+	assert(nil, 'Not implemented')
+end
+
+function conn:on_station_create()
 	assert(nil, 'Not implemented')
 end
 

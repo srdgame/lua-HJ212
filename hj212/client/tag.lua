@@ -8,7 +8,7 @@ local tag = class('hj212.client.tag')
 
 --- Calc name
 -- Has COU is nil will using auto detect
-function tag:initialize(station, name, min, max, calc_name, has_cou)
+function tag:initialize(station, name, min, max, calc_name, has_cou, fmt)
 	assert(name, "Tag name missing")
 	self._station = station
 	self._name = name
@@ -18,6 +18,7 @@ function tag:initialize(station, name, min, max, calc_name, has_cou)
 	self._flag = types.FLAG.Normal
 	self._calc_name = calc_name
 	self._has_cou = has_cou
+	self._fmt = fmt
 	self._his_calc = nil
 	self._inited = false
 end
@@ -153,7 +154,7 @@ function tag:query_rdata(now, save)
 		Flag = self._flag,
 		--- EFlag is optional
 		SampleTime = self._timestamp
-	}, now)
+	}, now, self._fmt)
 end
 
 function tag:convert_data(data)
@@ -166,14 +167,14 @@ function tag:convert_data(data)
 				Avg = v.avg,
 				Min = v.min,
 				Max = v.max,
-			}, v.stime)
+			}, v.stime, self._fmt)
 		else
 			rdata[#rdata + 1] = param_tag:new(self._name, {
 				Flag = v.flag,
 				Avg = v.avg,
 				Min = v.min,
 				Max = v.max,
-			}, v.stime)
+			}, v.stime, self._fmt)
 		end
 	end
 	return rdata

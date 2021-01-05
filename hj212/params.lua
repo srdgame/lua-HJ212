@@ -227,9 +227,9 @@ function params:decode(raw, index)
 		if PARAMS[key] then
 			self:set_from_raw(key, val)
 		else
-			if string.sub(name, 1, 2) == 'SB' then
+			if string.sub(key, 1, 2) == 'SB' then
 				local m = '^SB([^%-]+)%-(%w+)='
-				local dev_name, type_name = string.match(name, m)
+				local dev_name, type_name = string.match(key, m)
 				if dev_name and type_name then
 					if self._devs[tag_name] then
 						print('WARN: duplicated '..dev_name)
@@ -242,7 +242,7 @@ function params:decode(raw, index)
 				end
 			else
 				local m = '^([^%-]+)%-(%w+)='
-				local tag_name, type_name = string.match(name, m)
+				local tag_name, type_name = string.match(key, m)
 				if tag_name and type_name then
 					if tags[tag_name] then
 						print('WARN: duplicated '..tag_name)

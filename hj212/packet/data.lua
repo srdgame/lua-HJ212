@@ -28,12 +28,12 @@ function data:encode()
 	local function encode(data, count, cur)
 		-- Hack the session with plus ticks
 		local session = self._session
-		if cur then
+		if cur and self._need_ack then
 			session = session + cur	
 		end
 	
-		local time = self._session // 1000
-		local ticks = self._session % 1000
+		local time = session // 1000
+		local ticks = session % 1000
 		local pn = date(time):tolocal():fmt(date_fmt) .. string.format('%03d', ticks)
 
 		local raw = {}
@@ -89,16 +89,52 @@ function data:decode(raw, index)
 	--- Packet spilit not supported
 
 	if ((flag & 0x3) >> 1) == 1 then
-		assert(nil, "Packet spilit not support")
-		local total = string.match(raw, 'PNUM=(%d+)')
-		local cur = string.match(raw, 'PNO=(%d+)')
+		--assert(nil, "Packet spilit not support")
+		local total = tonumber(string.match(raw, 'PNUM=(%d+)') or '')
+		local cur = tonumber(string.match(raw, 'PNO=(%d+)') or '')
+		assert(total ~= nil and cur ~= nil, "PNUM or PNO missing")
+		self._total = total
+		self._sub = cur
+		self._params_data = params_data
+		self._sub_time = os.time()
+	else
+		if not self._params then
+			self._params = params:new()
+		end
+		self._params:decode(params_data)
 	end
+	return index
+end
 
+function data:total()
+	return self._total or 1
+end
+
+function data:cur_data()
+	return self._sub, self._params_data
+end
+
+function data:sub_time()
+	return self._sub_time
+end
+
+function data:sub_append(p)
+	assert(self._sub == 1)
+	local index, pdata = p:cur_data()
+	assert(pdata, "Param data missing")
+	self._last_append = self._last_append or 1
+	assert(self._last_append + 1 == index)
+	self._last_append = index
+
+	self._params_data = self._params_data..pdata
+end
+
+function data:sub_done()
 	if not self._params then
 		self._params = params:new()
 	end
-	self._params:decode(params_data)
-	return index
+	print(self._params_data)
+	self._params:decode(self._params_data)
 end
 
 function data:session()

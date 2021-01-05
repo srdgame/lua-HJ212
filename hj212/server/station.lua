@@ -91,6 +91,4 @@ function station:add_meter(meter)
 	end
 end
 
-function station:on_requ
-
 return station

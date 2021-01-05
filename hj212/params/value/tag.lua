@@ -4,8 +4,6 @@ local tag_info = require 'hj212.tags.info'
 
 local tv = base:subclass('hj212.params.value.tag')
 
-tv.static.DEFAULT_FMT = 'N32'
-
 local TAGS = tag_info
 local TAGS_FMT = {}
 
@@ -16,8 +14,9 @@ local function get_tag_format(name)
 	end
 
 	local tag = nil
-	for k, v in pairs(TAGS) do
-		if k == name then
+	for _, v in ipairs(TAGS) do
+		local v_name = v.name
+		if v_name == name then
 			tag = v
 			break
 		end
@@ -25,13 +24,13 @@ local function get_tag_format(name)
 			tag = v
 			break
 		end
-		if string.len(k) == string.len(name) then
+		if string.len(v_name) == string.len(name) then
 			local km = nil
-			if string.sub(k, -2) == 'xx' then
-				km = string.sub(k, 1, -3)..'(%d%d)'
+			if string.sub(v_name, -2) == 'xx' then
+				km = string.sub(v_name, 1, -3)..'(%d%d)'
 			else
-				if string.sub(k, -1) == 'x' then
-					km = string.sub(k, 1, -2)..'(%d)'
+				if string.sub(v_name, -1) == 'x' then
+					km = string.sub(v_name, 1, -2)..'(%d)'
 				end
 			end
 			if km then
@@ -43,15 +42,17 @@ local function get_tag_format(name)
 		end
 	end
 
-	fmt = (tag and tag.format) and tag.format or tv.DEFAULT_FMT
+	if tag then
+		-- Quicker founder
+		TAGS_FMT[name] = fmt
+		return tag.format
+	end
 
-	TAGS_FMT[name] = fmt
-
-	return fmt
+	return nil
 end
 
-function tv:initialize(name, value)
-	local fmt = get_tag_format(name)
+function tv:initialize(name, value, fmt)
+	local fmt = fmt or get_tag_format(name)
 	base.initialize(self, name, value, fmt)
 end
 

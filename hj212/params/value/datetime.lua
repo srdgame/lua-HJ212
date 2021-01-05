@@ -9,11 +9,10 @@ function param:encode()
 	return date(self._value):tolocal():fmt(date_fmt)
 end
 
-function param:decode(raw, index)
-	local index = index or 1
-	local time_raw = string.sub(raw, index, index + 14 - 1)
+function param:decode(raw)
+	local time_raw = string.sub(raw, 1, 14)
 	self._value = math.floor(date.diff(date(time_raw):toutc(), date(0)):spanseconds())
-	return index + 14
+	return 14
 end
 
 return param

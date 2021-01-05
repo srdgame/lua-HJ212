@@ -23,7 +23,7 @@ function base:encode()
 	assert(nil, "Not implemented")
 end
 
-function base:decode(raw, index)
+function base:decode(raw)
 	assert(nil, "Not implemented")
 end
 

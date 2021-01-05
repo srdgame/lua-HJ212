@@ -37,12 +37,12 @@ local PARAMS = {
 
 tag.static.PARAMS = PARAMS
 
-function tag:initialize(tag_name, obj, data_time)
+function tag:initialize(tag_name, obj, data_time, fmt)
 	self._name = tag_name
 	self._data_time = data_time
 	self._items = {}
 	for k, v in pairs(obj or {}) do
-		self:set(k, v)
+		self:set(k, v, fmt)
 	end
 end
 
@@ -69,9 +69,9 @@ function tag:set(name, value, fmt)
 	end
 
 	if PARAMS[name] then
-		p = PARAMS[name]:new(name, value)
+		p = PARAMS[name]:new(self._name, value, fmt)
 	else
-		p = simple:new(name, value, fmt or 'N32')
+		p = simple:new(name, value, fmt)
 	end
 	self._items[name] = p
 end
@@ -90,7 +90,7 @@ function tag:encode()
 	return table.concat(raw, ',')
 end
 
-function tag:decode(raw, index)
+function tag:decode(raw)
 	self._items = {}
 
 	for param in string.gmatch(raw, '([^;,]+),?') do

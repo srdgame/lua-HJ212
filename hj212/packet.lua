@@ -95,7 +95,7 @@ function pack:encode()
 		for i, v in ipairs(data) do
 			raw[#raw + 1] = self:encode_data(v)
 		end
-		return table.concat(raw)
+		return raw
 	end
 end
 

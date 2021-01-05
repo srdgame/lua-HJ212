@@ -74,7 +74,7 @@ function device:encode()
 	return table.concat(raw, ',')
 end
 
-function device:decode(raw, index)
+function device:decode(raw)
 	self._items = {}
 
 	for param in string.gmatch(raw, '([^,;]+),?') do

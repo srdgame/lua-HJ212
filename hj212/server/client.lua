@@ -7,8 +7,12 @@ local client = class('hj212.server.client')
 
 function client:initialize()
 	self._station = nil
+	self._system = nil
+	self._dev_id = nil
+	self._passwd = nil
 
 	self._process_buf = nil
+	self._packet_buf = {}
 	self._handlers = {}
 	self._finders = {
 		pfinder(types.COMMAND, 'hj212.server.handler')
@@ -27,6 +31,15 @@ end
 
 function client:set_station(station)
 	self._station = station
+	if station then
+		self._system = station:system()
+		self._passwd = station:passwd()
+		self._dev_id = station:id()
+	else
+		self._system = nil
+		self._passwd = nil
+		self._dev_id = nil
+	end
 end
 
 function client:station()
@@ -47,16 +60,6 @@ end
 function client:get_treatement(id)
 	assert(id ~= nil)
 	return self._treatments[id]
-end
-
-function client:request(request, response)
-	--print('client:request', request, response)
-	local resp, err = self:send_request(request)
-	if response then
-		return response(resp, err)
-	else
-		return resp, err
-	end
 end
 
 function client:add_handler(packet_path_base)
@@ -99,13 +102,9 @@ function client:on_request(request)
 
 	if not handler then
 		if request:need_ack() then
-			self:send_reply(session, types.REPLY.REJECT)
+			self:send_reply(p:session(), types.REPLY.ERR_UNKNOWN)
 		end
 		return
-	end
-
-	if request:need_ack() then
-		self:send_reply(session, types.REPLY.RUN)
 	end
 
 	local result, err = handler(request)
@@ -113,9 +112,9 @@ function client:on_request(request)
 		self:log('error', 'Process request failed', session, cmd, err)
 	else
 		self:log('info', 'Process request successfully', session, cmd)
-	end
-	if request:need_ack() then
-		self:send_result(session, result and types.RESULT.SUCCESS or types.RESULT.ERR_UNKNOWN)
+		if request:need_ack() then
+			self:send_ack(session)
+		end
 	end
 end
 
@@ -123,7 +122,7 @@ function client:process(raw_data)
 	local buf = self._process_buf and self._process_buf..raw_data or raw_data
 
 	local p, buf, err = packet.static.parse(buf, 1, function(bad_raw)
-		print('CRC Error Data Found')
+		self:log('error', 'CRC Error Data Found')
 	end)
 
 	if buf and string.len(buf) > 0 then
@@ -137,13 +136,54 @@ function client:process(raw_data)
 	end
 
 	if not self._station then
+		self._system = p:system()
+		self._passwd = p:password()
+		self._dev_id = p:device_id()
 		local station, reply_code = self:on_station_create(p:system(), p:device_id(), p:password())
 		if not station then
+			print('REPLY_CODE', reply_code)
 			self:send_reply(p:session(), reply_code)
-
-			--- TODO: Sleep?
-			return self:close()
+			return nil, 'Station create failed, code: '..reply_code
 		end
+		self._station = station
+	end
+
+	for k, buf in pairs(self._packet_buf) do
+		local now = os.time()
+		local timeout = true
+		for i, p in pairs(buf) do
+			if now - p:sub_time() < 360 then
+				timeout = false
+				break
+			end
+		end
+		if timeout then
+			-- Remove buffer
+			print('Multiple packet timeout', k)
+			self._packet_buf[k] = nil
+		end
+	end
+
+	-- Sub packets 
+	if p:total() > 1 then
+		-- disable sub compact for now
+		--[[
+		local session = p:session()
+		local cur, cur_data = p:cur_data()
+		local buf = self._packet_buf[session] and self._packet_buf[session] or {}
+		buf[cur] = p --- may overwrite the old received one
+		if #buf < p:total() then
+			print('Multiple packet found', p._total, cur)
+			--- TODO: self:data_ack(session)
+			return nil, "Mutiple packets found!!"
+		end
+		print('Multiple packet completed', p._total, cur)
+		p = buf[1]
+		for i = 2, p:total() do
+			p:sub_append(buf[i]:cur_data())
+		end
+		]]--
+		p:sub_done()
 	end
 
 	if p:system() == types.SYSTEM.REPLY then
@@ -152,64 +192,120 @@ function client:process(raw_data)
 	else
 		local ss = p:session()
 		ss = ss // 1000
-		print(os.date('%c', ss))
 		self:log('debug', 'On request', p:session(), p:command())
 		return p, false
 	end
 end
 
-function client:send_request(request)
-	local r, pack = pcall(request.encode, request, {
+function client:reply(reply)
+	local r, pack = pcall(reply.encode, reply, {
 		sys = self._system,
 		passwd = self._passwd,
 		devid = self._dev_id
 	})
 
 	if r then
-		if pack:need_ack() then
-			return self:send(pack:session(), pack:encode())
-		else
-			return self:send_nowait(pack:encode())
+		assert(pack:system() == types.SYSTEM.REPLY)
+		assert(not pack:need_ack())
+
+		local raw = pack:encode()
+		if type(raw) == 'table' then
+			raw = table.concat(raw)
 		end
+
+		local r, err = self:send_nowait(raw)
+		if not r then
+			self:log('error', err or 'EEEEEEEEEEEEEE2222')
+			return nil, err
+		end
+		return true
 	else
 		self:log('error', pack or 'EEEEEEEEEEEEEE')
+		return nil, pack
 	end
 end
 
+function client:request(request, response)
+	local r, pack = pcall(request.encode, request, {
+		sys = self._system,
+		passwd = self._passwd,
+		devid = self._dev_id
+	})
+
+	if not r then
+		self:log('error', pack or 'EEEEEEEEEEEEEE')
+		return nil, pack
+	end
+
+	assert(pack:system() ~= types.SYSTEM.REPLY)
+	local raw = pack:encode()
+	if not pack:need_ack() then
+		assert(not response)
+		if type(raw) == 'table' then
+			raw = table.concat(raw)
+		end
+		return self:send_nowait(raw)
+	else
+		local session = pack:session()
+		--- Single packet
+		if type(raw) == 'string' then
+			local r, err = self:send(session, raw)
+			if response and r then
+				r, err = response(r, err)
+			end
+			return r, err
+		end
+
+		--- Mutiple packets which need ack for each
+		for i, v in ipairs(raw) do
+			local r, err = self:send(session + i, v)
+			if response and r then
+				r, err = response(r, err)
+			end
+			if not r then
+				return nil, err
+			end
+		end
+		return true
+	end
+end
 function client:send_reply(session, reply_status)
+	assert(session, "session missing")
+	assert(reply_status, "Status missing")
+	print(reply_status)
 	local reply = require 'hj212.reply.reply'
 	local resp = reply:new(session, reply_status)
 	self:log('debug', "Sending reply", reply_status)
-	return self:send_request(resp)
+	return self:reply(resp)
 end
 
-function client:send_result(session, result_status)
-	local result = require 'hj212.reply.result'
-	local resp = result:new(session, result_status)
-	self:log('debug', "Sending result", result_status)
-	return self:send_request(resp)
+function client:send_ack(session)
+	local reply = require 'hj212.reply.data_ack'
+	local resp = reply:new(session)
+	self:log('debug', "Sending data ack")
+	return self:reply(resp)
 end
 
 function client:send_notice(session)
 	local notice = require 'hj212.reply.notice'
 	local resp = notice:new(session)
 	self:log('debug', "Sending notice")
-	return self:send_request(resp)
+	return self:reply(resp)
 end
 
-function conn:send(session, raw_data)
+function client:send(session, raw_data)
 	assert(nil, 'Not implemented')
 end
 
-function conn:send_nowait(raw_data)
+function client:send_nowait(raw_data)
 	assert(nil, 'Not implemented')
 end
 
-function conn:close()
+function client:close()
 	assert(nil, 'Not implemented')
 end
 
-function conn:on_station_create()
+function client:on_station_create()
 	assert(nil, 'Not implemented')
 end
 

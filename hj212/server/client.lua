@@ -1,4 +1,5 @@
 local class = require 'middleclass'
+local logger = require 'hj212.logger'
 local packet = require 'hj212.packet'
 local types = require 'hj212.types'
 local pfinder = require 'hj212.utils.pfinder'
@@ -19,14 +20,8 @@ function client:initialize()
 	}
 end
 
-function client:set_logger(log)
-	self._log = log
-end
-
 function client:log(level, ...)
-	if self._log then
-		self._log[level](self._log, ...)
-	end
+	logger.log(level, ...)
 end
 
 function client:set_station(station)

@@ -1,6 +1,6 @@
 local class = require 'middleclass'
 
-local handler = class('hj212.client.handler.set_rdata_interval')
+local handler = class('hj212.server.handler.base')
 
 function handler:initialize(client)
 	self._client = client
@@ -20,7 +20,11 @@ function handler:__call(...)
 end
 
 function handler:send_request(resp, response)
-	return self._client:send_request(resp, response)
+	return self._client:request(resp, response)
+end
+
+function handler:send_reply(resp)
+	return self._client:reply(resp)
 end
 
 return handler

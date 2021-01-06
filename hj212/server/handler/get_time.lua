@@ -1,8 +1,8 @@
-local base = require 'hj212.client.handler.base'
+local base = require 'hj212.server.handler.base'
 local command = require 'hj212.command.get_time'
 local request = require 'hj212.request.base'
 
-local handler = base:subclass('hj212.client.handler.get_time')
+local handler = base:subclass('hj212.server.handler.get_time')
 
 function handler:process(req)
 	local params = req:params()

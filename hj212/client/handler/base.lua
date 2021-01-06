@@ -22,4 +22,8 @@ function handler:send_request(resp, response)
 	return self._client:request(resp, response)
 end
 
+function handler:send_reply(resp)
+	return self._client:reply(resp)
+end
+
 return handler

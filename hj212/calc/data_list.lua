@@ -35,7 +35,10 @@ function list:_append(data, cb)
 
 	if #vals > 0 then
 		local last_time = vals[#vals][key]
-		assert(last_time < time, "Last time bigger than current. Last:"..last_time.."\tTime:"..time)
+		if last_time >= time then
+			logger.log('warning', "Last time bigger than current. Last:"..last_time.."\tTime:"..time)
+			return nil, "Time error"
+		end
 	end
 
 	keys[time] = data

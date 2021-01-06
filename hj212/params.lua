@@ -232,20 +232,20 @@ function params:decode(raw, index)
 				local dev_name, type_name = string.match(key, m)
 				if dev_name and type_name then
 					if self._devs[tag_name] then
-						print('WARN: duplicated '..dev_name)
+						logger.warning('duplicated '..dev_name)
 					end
 					dev = dev_param:new(tag_name)
 					dev:decode(param)
 					self._devs[tag_name] = dev
 				else
-					print('Error SB found')
+					logger.error('Error SB found')
 				end
 			else
 				local m = '^([^%-]+)%-(%w+)='
 				local tag_name, type_name = string.match(key, m)
 				if tag_name and type_name then
 					if tags[tag_name] then
-						print('WARN: duplicated '..tag_name)
+						logger.warning('duplicated '..tag_name)
 					end
 					tag = tag_param:new(tag_name)
 					tag:decode(param)

@@ -111,7 +111,7 @@ function base:log(level, fmt, ...)
 end
 
 function base:debug(fmt, ...)
-	logger.log(debug, '['..self._name..']'..fmt, ...)
+	logger.log('debug', '['..self._name..']'..fmt, ...)
 end
 
 function base:db()

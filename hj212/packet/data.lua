@@ -59,6 +59,10 @@ function data:encode()
 
 	if type(pdata) == 'table' then
 		local count = #pdata
+		if count == 1 then
+			return encode(pdata[1])
+		end
+
 		local t = {}
 		for i, v in ipairs(pdata) do
 			t[#t + 1] = encode(v, count, i)
@@ -89,13 +93,19 @@ function data:decode(raw, index)
 	--- Packet spilit not supported
 
 	if ((flag & 0x3) >> 1) == 1 then
-		--assert(nil, "Packet spilit not support")
+		--assert(nil, "Packet split not support")
+		self._params_data = params_data
+
 		local total = tonumber(string.match(raw, 'PNUM=(%d+)') or '')
+		if total == 1 or not total then
+			self:sub_done()
+			return index
+		end
+
 		local cur = tonumber(string.match(raw, 'PNO=(%d+)') or '')
 		assert(total ~= nil and cur ~= nil, "PNUM or PNO missing")
 		self._total = total
 		self._sub = cur
-		self._params_data = params_data
 		self._sub_time = os.time()
 	else
 		if not self._params then

@@ -1,3 +1,4 @@
+local logger = require 'hj212.logger'
 local class = require 'middleclass'
 local simple = require 'hj212.params.value.simple'
 
@@ -82,7 +83,7 @@ function device:decode(raw)
 		if name == self._name then
 			self:set(key, val)
 		else
-			print("Error found", name, key, val)
+			logger.error("Error found", name, key, val)
 		end
 	end
 end

@@ -109,14 +109,14 @@ local function calc_sample(upper, upper_val, list, start, etime)
 	local val_avg = 0
 	if not upper_val then
 		val_avg = val_cou / (etime - start)
-		--print('water.calc_list 1', val_cou, now - start, val_avg, val_min, val_max)
+		--self:debug('water.calc_list 1', val_cou, now - start, val_avg, val_min, val_max)
 	else
 		if upper_val.cou > 0 then
 			val_avg = (val_cou / upper_val.cou) * (10 ^ -3)
 		else
 			val_avg = 0
 		end
-		--print('water.calc_list 2', val_cou, upper_val.cou, val_avg, val_min, val_max)
+		--self:debug('water.calc_list 2', val_cou, upper_val.cou, val_avg, val_min, val_max)
 	end
 
 	return {

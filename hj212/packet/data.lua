@@ -133,7 +133,6 @@ function data:sub_done()
 	if not self._params then
 		self._params = params:new()
 	end
-	print(self._params_data)
 	self._params:decode(self._params_data)
 end
 

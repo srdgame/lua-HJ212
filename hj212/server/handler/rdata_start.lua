@@ -4,6 +4,10 @@ local handler = base:subclass('hj212.client.handler.rdata_start')
 
 function handler:process(request)
 	local params = request:params()
+	if not params then
+		return nil, "Params missing"
+	end
+
 	local interval, err = params:get('RtdInterval')
 	interval = tonumber(interval)
 	if interval == nil then

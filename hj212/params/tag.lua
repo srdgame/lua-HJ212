@@ -1,3 +1,4 @@
+local logger = require 'hj212.logger'
 local class = require 'middleclass'
 local datetime = require 'hj212.params.value.datetime'
 local simple = require 'hj212.params.value.simple'
@@ -98,7 +99,7 @@ function tag:decode(raw)
 		if name == self._name then
 			self:set(key, val)
 		else
-			print('Error tag attr', name, key, val)
+			logger.error('Error tag attr', name, key, val)
 		end
 	end
 end

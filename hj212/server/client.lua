@@ -93,26 +93,26 @@ function client:find_handler(cmd)
 	return h
 end
 
-function client:on_request(request)
-	local cmd = request:command()
-	local session = request:session()
+function client:on_request(req)
+	local cmd = req:command()
+	local session = req:session()
 	self:log('info', 'Process request', session, cmd)
 
 	local handler, err = self:find_handler(cmd)
 
 	if not handler then
-		if request:need_ack() then
-			self:send_reply(p:session(), types.REPLY.ERR_UNKNOWN)
+		if req:need_ack() then
+			self:send_reply(req:session(), types.REPLY.ERR_UNKNOWN)
 		end
 		return
 	end
 
-	local result, err = handler(request)
+	local result, err = handler(req)
 	if not result then
 		self:log('error', 'Process request failed', session, cmd, err)
 	else
 		self:log('info', 'Process request successfully', session, cmd)
-		if request:need_ack() then
+		if req:need_ack() then
 			self:send_ack(session)
 		end
 	end
@@ -141,7 +141,7 @@ function client:process(raw_data)
 		self._dev_id = p:device_id()
 		local station, reply_code = self:on_station_create(p:system(), p:device_id(), p:password())
 		if not station then
-			print('REPLY_CODE', reply_code)
+			self:log('error', 'REPLY_CODE', reply_code)
 			self:send_reply(p:session(), reply_code)
 			return nil, 'Station create failed, code: '..reply_code
 		end
@@ -159,7 +159,7 @@ function client:process(raw_data)
 		end
 		if timeout then
 			-- Remove buffer
-			print('Multiple packet timeout', k)
+			self:log('debug', 'Multiple packet timeout', k)
 			self._packet_buf[k] = nil
 		end
 	end
@@ -173,11 +173,11 @@ function client:process(raw_data)
 		local buf = self._packet_buf[session] and self._packet_buf[session] or {}
 		buf[cur] = p --- may overwrite the old received one
 		if #buf < p:total() then
-			print('Multiple packet found', p._total, cur)
+			self:log('debug', 'Multiple packet found', p._total, cur)
 			--- TODO: self:data_ack(session)
 			return nil, "Mutiple packets found!!"
 		end
-		print('Multiple packet completed', p._total, cur)
+		self:log('debug', 'Multiple packet completed', p._total, cur)
 		p = buf[1]
 		for i = 2, p:total() do
 			p:sub_append(buf[i]:cur_data())
@@ -225,8 +225,8 @@ function client:reply(reply)
 	end
 end
 
-function client:request(request, response)
-	local r, pack = pcall(request.encode, request, {
+function client:request(req, response)
+	local r, pack = pcall(req.encode, req, {
 		sys = self._system,
 		passwd = self._passwd,
 		devid = self._dev_id
@@ -272,7 +272,6 @@ end
 function client:send_reply(session, reply_status)
 	assert(session, "session missing")
 	assert(reply_status, "Status missing")
-	print(reply_status)
 	local reply = require 'hj212.reply.reply'
 	local resp = reply:new(session, reply_status)
 	self:log('debug', "Sending reply", reply_status)

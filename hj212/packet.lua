@@ -1,3 +1,4 @@
+local logger = require 'hj212.logger'
 local crc16 = require 'hj212.utils.crc'
 local base = require 'hj212.packet.data'
 
@@ -13,7 +14,7 @@ local function packet_crc(data_raw)
 end
 
 function pack.static.parse(raw, index, on_crc_err)
-	--print('begin', index, raw)
+	--logger.debug('begin', index, raw)
 	local index = string.find(raw, pack.static.HEADER, index or 1, true)
 	if not index then
 		if string.sub(raw, -1) == '#' then
@@ -26,7 +27,7 @@ function pack.static.parse(raw, index, on_crc_err)
 	local data_len = tonumber(string.sub(raw, index + 2, index + 5))
 	assert(data_len and data_len > 0 and data_len < 9999)
 	local raw_len = string.len(raw)
-	--print(data_len, raw_len, index)
+	--logger.debug(data_len, raw_len, index)
 	if data_len + 12 > raw_len - index + 1 then
 		if index ~= 1 then
 			return nil, string.sub(raw, index), 'Data not enougth. data_len'..data_len..' raw_len'..raw_len
@@ -53,10 +54,10 @@ function pack.static.parse(raw, index, on_crc_err)
 	local calc_crc = packet_crc(data_raw)
 	if calc_crc ~= crc then
 		if on_crc_err then
-			print(calc_crc, crc, data_raw)
+			logger.debug('CRC ERROR', calc_crc, crc, data_raw)
 			on_crc_err(data_raw)
 		else
-			print('CRC error') -- TODO:
+			logger.error('CRC error')
 		end
 		return nil, string.sub(raw, s_end + 2), 'CRC Error'
 	end

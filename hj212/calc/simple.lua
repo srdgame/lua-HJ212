@@ -37,7 +37,7 @@ local function calc_sample(list, start, now)
 		val_cou = val_cou + val
 	end
 
-	--print('simple.calc_sample', val_cou, #list)
+	--logger.debug('simple.calc_sample', val_cou, #list)
 	local val_avg = val_cou / #list
 
 	return {

@@ -32,4 +32,24 @@ logger.log = function(level, fmt, ...)
 	end
 end
 
+logger.error = function(...)
+	logger.log('error', ...)
+end
+
+logger.info = function(...)
+	logger.log('info', ...)
+end
+
+logger.notice = function(...)
+	logger.log('notice', ...)
+end
+
+logger.warning = function(...)
+	logger.log('warning', ...)
+end
+
+logger.debug = function(...)
+	logger.log('debug', ...)
+end
+
 return logger

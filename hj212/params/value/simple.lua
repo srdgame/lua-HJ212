@@ -83,7 +83,6 @@ function simple:format()
 end
 
 function simple:encode()
-	--print(self, self._format, self._value)
 	assert(self._value)
 	if not self._format then
 		return tostring(self._value)

@@ -1,3 +1,4 @@
+local logger = require 'hj212.logger'
 local class = require 'middleclass'
 
 local list = class('hj212.calc.data_list')
@@ -28,7 +29,7 @@ function list:_append(data, cb)
 	local vals = self._vals
 
 	if keys[time] ~= nil then
-		print('EEEEEEEEEEEEEE')
+		logger.debug('EEEEEEEEEEEEEE')
 		return nil, "Duplicated time found"
 	end
 

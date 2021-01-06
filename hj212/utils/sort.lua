@@ -20,15 +20,6 @@ function _M.for_each_sorted_key(tab, func)
 		keys[#keys + 1] = k
 	end
 	table.sort(keys, _M.string_compare)
-	--[[
-	table.sort(keys, function(a, b)
-		r = _M.string_compare(a, b)
-		print(a, b, r)
-		return r
-	end)
-	local cjson = require 'cjson'
-	print(cjson.encode(keys))
-	]]--
 
 	for _, key in ipairs(keys) do
 		func(tab[key])

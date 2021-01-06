@@ -77,6 +77,20 @@ function tag:set(name, value, fmt)
 	self._items[name] = p
 end
 
+function tag:_set_from_raw(name, value)
+	local p = self._items[name]
+	if p then
+		return p:decode(value)
+	end
+	if PARAMS[name] then
+		p = PARAMS[name]:new(self._name)
+	else
+		p = simple:new(name)
+	end
+	self._items[name] = p
+	return p:decode(value)
+end
+
 function tag:encode()
 	local raw = {}
 	local sort = {}
@@ -97,7 +111,7 @@ function tag:decode(raw)
 	for param in string.gmatch(raw, '([^;,]+),?') do
 		local name, key, val = string.match(param, '^([^%-]+)%-([^=]+)=(%w+)')
 		if name == self._name then
-			self:set(key, val)
+			self:_set_from_raw(key, val)
 		else
 			logger.error('Error tag attr', name, key, val)
 		end

@@ -56,6 +56,22 @@ function params:initialize(obj)
 	end
 end
 
+function params:has_tags()
+	return self._has_tags
+end
+
+function params:tags()
+	return self._tags
+end
+
+function params:has_devices()
+	return self._has_devs
+end
+
+function params:devices()
+	return self._devs
+end
+
 function params:get(name)
 	local p = self._params[name]
 	if p then
@@ -228,28 +244,22 @@ function params:decode(raw, index)
 			self:set_from_raw(key, val)
 		else
 			if string.sub(key, 1, 2) == 'SB' then
-				local m = '^SB([^%-]+)%-(%w+)='
+				local m = '^SB([^%-]+)%-(%w+)'
 				local dev_name, type_name = string.match(key, m)
 				if dev_name and type_name then
-					if self._devs[tag_name] then
-						logger.warning('duplicated '..dev_name)
-					end
 					dev = dev_param:new(tag_name)
 					dev:decode(param)
-					self._devs[tag_name] = dev
+					table.insert(devs, tag)
 				else
 					logger.error('Error SB found')
 				end
 			else
-				local m = '^([^%-]+)%-(%w+)='
+				local m = '^([^%-]+)%-(%w+)'
 				local tag_name, type_name = string.match(key, m)
 				if tag_name and type_name then
-					if tags[tag_name] then
-						logger.warning('duplicated '..tag_name)
-					end
 					tag = tag_param:new(tag_name)
 					tag:decode(param)
-					tags[tag_name] = tag
+					table.insert(tags, tag)
 				end
 			end
 		end

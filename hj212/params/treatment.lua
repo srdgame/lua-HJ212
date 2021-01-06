@@ -81,7 +81,7 @@ function device:decode(raw)
 	for param in string.gmatch(raw, '([^,;]+),?') do
 		local name, key, val = string.match(param, '^SB([^%-]+)%-([^=]+)=(%w+)')
 		if name == self._name then
-			self:set(key, val)
+			self:set_from_raw(key, val)
 		else
 			logger.error("Error found", name, key, val)
 		end

@@ -96,7 +96,8 @@ end
 
 function simple:decode(raw)
 	if not self._format then
-		return tonumber(raw) or raw
+		self._value = tonumber(raw) or raw
+		return string.len(raw)
 	end
 
 	local fmt = string.sub(self._format, 1, 1)

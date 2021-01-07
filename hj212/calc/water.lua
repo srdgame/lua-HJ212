@@ -130,7 +130,6 @@ local function calc_sample(upper, upper_val, list, start, etime)
 end
 
 function water:on_min_trigger(now, duration)
-	local now = math.floor(now)
 	local sample_list = self._sample_list
 	local last = self._min_list:find(now)
 	if last then
@@ -228,7 +227,6 @@ local function calc_cou(upper, upper_val, list, start, now)
 end
 
 function water:on_hour_trigger(now, duration)
-	local now = math.floor(now)
 	local sample_list = self._min_list
 	local last = self._hour_list:find(now)
 	if last then
@@ -283,7 +281,6 @@ function water:on_hour_trigger(now, duration)
 end
 
 function water:on_day_trigger(now, duration)
-	local now = math.floor(now)
 	local sample_list = self._hour_list
 	local last = self._day_list:find(now)
 	if last then

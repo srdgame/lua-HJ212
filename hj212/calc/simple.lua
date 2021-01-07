@@ -51,7 +51,6 @@ local function calc_sample(list, start, now)
 end
 
 function simple:on_min_trigger(now, duration)
-	local now = math.floor(now)
 	local sample_list = self._sample_list
 	local last = self._min_list:find(now)
 	if last then
@@ -127,7 +126,6 @@ local function calc_cou(list, start, now)
 end
 
 function simple:on_hour_trigger(now, duration)
-	local now = math.floor(now)
 	local sample_list = self._min_list
 	local last = self._hour_list:find(now)
 	if last then
@@ -167,7 +165,6 @@ function simple:on_hour_trigger(now, duration)
 end
 
 function simple:on_day_trigger(now, duration)
-	local now = math.floor(now)
 	local sample_list = self._hour_list
 	local last = self._day_list:find(now)
 	if last then

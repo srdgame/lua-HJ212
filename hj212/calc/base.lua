@@ -224,6 +224,7 @@ function base:push_rdata(timestamp, value, flag, now)
 end
 
 function base:on_trigger(typ, now, duration)
+	local now = math.floor(now)
 	if (self._type_mask & typ) == typ then
 		if typ == mgr.TYPES.MIN then
 			assert(self.on_min_trigger)

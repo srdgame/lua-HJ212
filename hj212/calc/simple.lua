@@ -59,7 +59,7 @@ function simple:on_min_trigger(now, duration)
 	end
 
 	local start = base.calc_list_stime(sample_list, now, duration)
-	while start < now - duration do
+	while start < (now - duration) do
 		local etime = start + duration
 		local list = sample_list:pop(etime)
 
@@ -70,7 +70,7 @@ function simple:on_min_trigger(now, duration)
 				self:log('error', ' Skip: '..cjson.encode(v))
 			end
 		else
-			self:log('debug', 'SIMPLE: calculate older sample value', start, etime)
+			self:log('debug', 'SIMPLE: calculate older sample value', start, etime, #list, list[1].timestamp)
 			local val = calc_sample(list, start, etime)
 			val = self:on_value(mgr.TYPES.MIN, val, etime)
 			self._min_list:append(val)
@@ -135,7 +135,7 @@ function simple:on_hour_trigger(now, duration)
 	end
 
 	local start = base.calc_list_stime(sample_list, now, duration)
-	while start < now - duration do
+	while start < (now - duration) do
 		local etime = start + duration
 		local list = sample_list:pop(etime)
 
@@ -146,7 +146,7 @@ function simple:on_hour_trigger(now, duration)
 				self:log('error', ' Skip: '..cjson.encode(v))
 			end
 		else
-			self:log('debug', 'SIMPLE: calculate older min value', start, etime)
+			self:log('debug', 'SIMPLE: calculate older min value', start, etime, #list, list[1].stime)
 			local val = calc_cou(list, start, etime)
 			val = self:on_value(mgr.TYPES.HOUR, val, etime)
 			assert(self._hour_list:append(val))
@@ -175,7 +175,7 @@ function simple:on_day_trigger(now, duration)
 	end
 
 	local start = base.calc_list_stime(sample_list, now, duration)
-	while start < now - duration do
+	while start < (now - duration) do
 		local etime = start + duration
 		local list = sample_list:pop(etime)
 
@@ -186,7 +186,7 @@ function simple:on_day_trigger(now, duration)
 				self:log('error', ' Skip: '..cjson.encode(v))
 			end
 		else
-			self:log('debug', 'SIMPLE: calculate older min value', start, etime)
+			self:log('debug', 'SIMPLE: calculate older hour value', start, etime, #list, list[1].stime)
 			local val = calc_cou(list, start, etime)
 			val = self:on_value(mgr.TYPES.DAY, val, etime)
 			assert(self._day_list:append(val))

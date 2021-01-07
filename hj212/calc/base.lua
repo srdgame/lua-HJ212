@@ -146,7 +146,7 @@ function base:load_from_db()
 		local day_start_time = self:day_start()
 		self:debug('load hour data since', os.date('%c', day_start_time))
 
-		local hour_list, err = self._db:read('HOUR', day_start_time, self._start)
+		local hour_list, err = self._db:read('HOUR', day_start_time + 1, self._start)
 		if hour_list then
 			self._hour_list:init(hour_list)
 		else
@@ -157,7 +157,7 @@ function base:load_from_db()
 		local hour_start_time = last_hour_item and last_hour_item.etime or day_start_time
 		self:debug('load min data since', os.date('%c', hour_start_time))
 
-		local min_list, err = self._db:read('MIN', hour_start_time, self._start)
+		local min_list, err = self._db:read('MIN', hour_start_time + 1, self._start)
 		if min_list then
 			self._min_list:init(min_list)
 		else
@@ -168,7 +168,7 @@ function base:load_from_db()
 		local min_start_time = last_min_item and last_min_item.etime or hour_start_time
 		self:debug('load sample data since', os.date('%c', min_start_time))
 
-		local sample_list, err = self._db:read_samples(min_start_time, self._start)
+		local sample_list, err = self._db:read_samples(min_start_time + 0.001, self._start)
 		if sample_list then
 			self._sample_list:init(sample_list)
 			local first_sample = self._sample_list:first()

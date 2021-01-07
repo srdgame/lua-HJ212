@@ -159,7 +159,7 @@ function water:on_min_trigger(now, duration)
 				self:log('error', ' Skip: '..cjson.encode(v))
 			end
 		else
-			self:log('debug', 'WATER: calculate older sample value', start, etime)
+			self:log('debug', 'WATER: calculate older sample value', start, etime, #list, list[1].timestamp)
 			local upper_val = nil
 			if self._upper then
 				upper_val = self._upper:query_min(etime)
@@ -257,7 +257,7 @@ function water:on_hour_trigger(now, duration)
 				self:log('error', ' Skip: '..cjson.encode(v))
 			end
 		else
-			self:log('debug', 'WATER: calculate older min value', start, etime)
+			self:log('debug', 'WATER: calculate older min value', start, etime, #list, list[1].stime)
 			local upper_val = nil
 			if self._upper then
 				upper_val = self._upper:query_hour(etime)
@@ -308,7 +308,7 @@ function water:on_day_trigger(now, duration)
 		if self._hour_list:find(etime) then
 			self:log('error', "WATER: older hour value skipped")
 		else
-			self:log('debug', 'WATER: calculate older hour value', start, etime)
+			self:log('debug', 'WATER: calculate older hour value', start, etime, #list, list[1].stime)
 			local upper_val = nil
 			if self._upper then
 				upper_val = self._upper:query_day(etime)

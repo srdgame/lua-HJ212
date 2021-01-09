@@ -19,7 +19,7 @@ function tag:initialize(station, name, min, max, calc_name, has_cou, fmt)
 	self._calc_name = calc_name
 	self._has_cou = has_cou
 	self._fmt = fmt
-	self._his_calc = nil
+	self._cou_calc = nil
 	self._inited = false
 end
 
@@ -75,16 +75,16 @@ function tag:init(calc_mgr)
 	logger.log('info', string.format('TAG [%06s] calc_type:%s\tcou:%s\tupper:%s',
 		tag_name, calc_name, has_cou, upper_tag ~= nil))
 
-	local cou_base = upper_tag and upper_tag:his_calc() or nil
+	local cou_base = upper_tag and upper_tag:cou_calc() or nil
 	local mask = calc_mgr_m.TYPES.ALL
 
-	self._his_calc = m:new(tag_name, mask, self._min, self._max, cou_base)
+	self._cou_calc = m:new(tag_name, mask, self._min, self._max, cou_base)
 
-	self._his_calc:set_callback(function(type_name, val, timestamp)
+	self._cou_calc:set_callback(function(type_name, val, timestamp)
 		self:on_calc_value(type_name, val, timestamp)
 	end)
 
-	calc_mgr:reg(self._his_calc)
+	calc_mgr:reg(self._cou_calc)
 
 	self._inited = true
 
@@ -103,8 +103,8 @@ function tag:tag_name()
 	return self._name
 end
 
-function tag:his_calc()
-	return self._his_calc
+function tag:cou_calc()
+	return self._cou_calc
 end
 
 function tag:upload()
@@ -130,8 +130,8 @@ function tag:set_value(value, timestamp)
 	self._value = value
 	self._timestamp = timestamp
 	self._flag = self:value_flag(value)
-	if self._his_calc then
-		return self._his_calc:push(value, timestamp)
+	if self._cou_calc then
+		return self._cou_calc:push(value, timestamp)
 	end
 	return true
 end
@@ -145,8 +145,8 @@ function tag:query_rdata(now, save)
 		return
 	end
 
-	if save and self._his_calc then
-		self._his_calc:push_rdata(self._timestamp, self._value, self._flag, now)
+	if save and self._cou_calc then
+		self._cou_calc:push_rdata(self._timestamp, self._value, self._flag, now)
 	end
 
 	return param_tag:new(self._name, {
@@ -181,17 +181,17 @@ function tag:convert_data(data)
 end
 
 function tag:query_min_data(start_time, end_time)
-	local data = self._his_calc:query_min_data(start_time, end_time)
+	local data = self._cou_calc:query_min_data(start_time, end_time)
 	return self:convert_data(data)
 end
 
 function tag:query_hour_data(start_time, end_time)
-	local data = self._his_calc:query_hour_data(start_time, end_time)
+	local data = self._cou_calc:query_hour_data(start_time, end_time)
 	return self:convert_data(data)
 end
 
 function tag:query_day_data(start_time, end_time)
-	local data = self._his_calc:query_day_data(start_time, end_time)
+	local data = self._cou_calc:query_day_data(start_time, end_time)
 	return self:convert_data(data)
 end
 

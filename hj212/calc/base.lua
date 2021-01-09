@@ -229,31 +229,20 @@ function base:on_trigger(typ, now, duration)
 		if typ == mgr.TYPES.MIN then
 			assert(self.on_min_trigger)
 			assert(duration % 60 == 0)
-			local val, err = self:on_min_trigger(now, duration)
-			if val then
-				self:on_value(mgr.TYPES.MIN, val, now)
-			end
+			return self:on_min_trigger(now, duration)
 		end
 		if typ == mgr.TYPES.HOUR then
 			assert(self.on_hour_trigger)
 			assert(duration % 3600 == 0)
-			local val = self:on_hour_trigger(now, duration)
-			if val then
-				self:on_value(mgr.TYPES.HOUR, val, now)
-			end
+			return self:on_hour_trigger(now, duration)
 		end
 		if typ == mgr.TYPES.DAY then
 			assert(self.on_day_trigger)
 			assert(duration % (3600 * 24) == 0)
-			local val = self:on_day_trigger(now, duration)
-			if val then
-				self:on_value(mgr.TYPES.DAY, val, now)
-			end
+			return self:on_day_trigger(now, duration)
 		end
-		return true
-	else
-		return nil, "Unexpected trigger type"..typ
 	end
+	return nil, "Unexpected trigger type"..typ
 end
 
 --- Query data by etime

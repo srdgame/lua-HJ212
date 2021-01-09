@@ -1,8 +1,13 @@
 local air = {}
 
-function air:initialize(base, cou_base)
-	self._base = base
+function air.initialize(self, cou_base)
 	self._cou_base = cou_base
+
+	for k, v in pairs(air) do
+		if k ~= 'initialize' then
+			self[k] = v
+		end
+	end
 end
 
 function air:on_value(typ, val, now)

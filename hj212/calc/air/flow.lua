@@ -1,8 +1,14 @@
 local air = {}
 
-function air:initialize(base)
-	self._base = base
+function air.initialize(self)
 	self._last_rdata_time = os.time() - 5 -- Default 5 seconds
+
+	-- replace methods
+	for k, v in pairs(air) do
+		if k ~= 'initialize' then
+			self[k] = v
+		end
+	end
 end
 
 function air:on_value(typ, val, now)
@@ -16,7 +22,7 @@ function air:on_value(typ, val, now)
 		--val.cou  = val.cou
 	end
 
-	return self._base.on_value(self, typ, val, now)
+	return self.class.on_value(self, typ, val, now)
 end
 
 return air

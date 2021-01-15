@@ -239,7 +239,9 @@ function params:decode(raw, index)
 	local tags = {}
 
 	for param in string.gmatch(raw, '([^;]+);?') do
-		local key, val = string.match(param, '^([^=]+)=(%w+)')
+		local key, val = string.match(param, '^([^=]+)=(.+)')
+		assert(key, "Key mising on "..param)
+		assert(val, "Val mising on "..param)
 		if PARAMS[key] then
 			self:set_from_raw(key, val)
 		else

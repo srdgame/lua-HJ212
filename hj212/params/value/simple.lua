@@ -32,6 +32,7 @@ local parsers = {
 			f = tonumber(f)
 			assert(i)
 			assert(val)
+			i = val < 0 and i + 1 or i
 			local raw = nil
 			raw = string.format('%d', math.floor(val + 0.1))
 			if string.len(raw) > i then

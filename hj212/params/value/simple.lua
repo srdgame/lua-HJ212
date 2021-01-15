@@ -32,16 +32,29 @@ local parsers = {
 			f = tonumber(f)
 			assert(i)
 			assert(val)
+			--[[
 			i = val < 0 and i + 1 or i
 			local raw = nil
-			raw = string.format('%d', math.floor(val + 0.1))
+			raw = tostring(math.floor(val))
 			if string.len(raw) > i then
-				raw = string.sub(raw, 0 - i)
+				print('length error', raw, i)
+				--raw = string.sub(raw, 0 - i)
 			end
 			if f and string.len(f) > 0 then
-				val = (val % 1) * (10 ^ f)
-				local fraw = string.format('%d', math.floor(val))
+				local fraw = tostring(math.floor((val % 1) * (10 ^ f)))
+				print(val, i, f, fmt, raw, fraw, (val % 1), 10 ^ f)
 				raw = raw..'.'..fraw
+			else
+				print(val, i, f, fmt, raw)
+			end
+			]]--
+			local raw = tostring(val)
+			if f then
+				local raw_len = string.len(raw)
+				local pi = string.find(raw, '.', 1, true)
+				if pi and raw_len > pi + f then
+					raw = string.sub(raw, 1, pi + f)
+				end
 			end
 			return raw
 		end,

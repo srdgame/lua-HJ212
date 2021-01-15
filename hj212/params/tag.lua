@@ -42,9 +42,20 @@ function tag:initialize(tag_name, obj, data_time, fmt)
 	self._name = tag_name
 	self._data_time = data_time
 	self._items = {}
+	self._cloned = nil
 	for k, v in pairs(obj or {}) do
 		self:set(k, v, fmt)
 	end
+end
+
+function tag:clone(new_tag_name)
+	local new_obj = tag:new(new_tag_name)
+	new_obj._cloned = true
+	new_obj._data_time = self._data_time
+	for k, v in pairs(self._items) do
+		new_obj._items[k] = v
+	end
+	return new_obj
 end
 
 function tag:tag_name()
@@ -64,6 +75,7 @@ function tag:get(name)
 end
 
 function tag:set(name, value, fmt)
+	assert(not self._cloned)
 	local p = self._items[name]
 	if p then
 		return p:set_value(value)
@@ -109,7 +121,7 @@ function tag:decode(raw)
 	self._items = {}
 
 	for param in string.gmatch(raw, '([^;,]+),?') do
-		local name, key, val = string.match(param, '^([^%-]+)%-([^=]+)=(%w+)')
+		local name, key, val = string.match(param, '^([^%-]+)%-([^=]+)=(.+)')
 		if name == self._name then
 			self:_set_from_raw(key, val)
 		else

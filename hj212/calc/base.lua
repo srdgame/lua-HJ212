@@ -222,7 +222,10 @@ function base:push_rdata(timestamp, value, now, save)
 	local val = {timestamp=timestamp, value=value}
 	val = self:on_value(mgr.TYPES.RDATA, val, now)
 	if save and self._db then
-		return self:_db_write(type_names[mgr.TYPES.RDATA], val)
+		local r, err = self:_db_write(type_names[mgr.TYPES.RDATA], val)
+		if not r then
+			self:log('error', "Failed save rdata error:"..err)
+		end
 	end
 	return val
 end

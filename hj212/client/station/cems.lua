@@ -59,7 +59,7 @@ function cems:initialize(station)
 				logger.warning(err)
 				return tag_v.default, os.time()
 			end
-			if rate then
+			if tag_v.rate then
 				return value * tag_v.rate, timestamp
 			else
 				return value, timestamp

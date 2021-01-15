@@ -12,11 +12,11 @@ function air:initialize(station, name, type_mask, min, max)
 			if air then
 				pullut(self, air:cou_calc())
 			else
-				flow(self)
+				--flow(self)
 			end
 		end)
 	else
-		flow(self)
+		--flow(self)
 	end
 end
 

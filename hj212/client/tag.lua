@@ -1,89 +1,89 @@
 local class = require 'middleclass'
+local cjson = require 'cjson.safe'
 local logger = require 'hj212.logger'
 local types = require 'hj212.types'
 local param_tag = require 'hj212.params.tag'
 local calc_mgr_m = require 'hj212.calc.manager'
+local Zs = require 'hj212.calc.Zs'
 
 local tag = class('hj212.client.tag')
 
 --- Calc name
 -- Has COU is nil will using auto detect
-function tag:initialize(station, name, min, max, calc_name, has_cou, fmt)
+function tag:initialize(station, name, options)
 	assert(name, "Tag name missing")
 	self._station = station
-	self._name = name
-	self._min = min
-	self._max = max
 	self._meter = nil
+
+	-- Options
+	self._name = name
+	self._min = options.min
+	self._max = options.max
+	self._cou = options.cou -- {calc='simple', cou=0, params = {...}}
+	self._fmt = options.fmt
+	self._zs_calc = options.zs_calc
+
+	-- Data current
+	self._value = nil
 	self._flag = types.FLAG.Normal
-	self._calc_name = calc_name
-	self._has_cou = has_cou
-	self._fmt = fmt
+	self._timestamp = nil
+
+	-- COU calculator
 	self._cou_calc = nil
 	self._inited = false
 end
 
-function tag:init(calc_mgr)
+--- Guess the proper calculator name
+local function guess_calc_name(tag_name)
+	if string.sub(tag_name, 1, 1) == 'w' then
+		return 'water'
+	elseif string.sub(tag_name, 1, 1) == 'a' then
+		return 'air'
+	else
+		-- Default is simple calculator
+		return 'simple'
+	end
+end
+
+function tag:init()
 	if self._inited then
 		return
 	end
+	local calc_mgr = self._station:calc_mgr()
 
 	local tag_name = self._name
-	local has_cou = self._has_cou
 	assert(tag and tag_name)
-	local calc_name = self._calc_name
-	if not calc_name then
-		if string.sub(tag_name, 1, 1) == 'w' then
-			calc_name = 'water'
-		elseif string.sub(tag_name, 1, 1) == 'a' then
-			calc_name = 'air'
-		else
-			calc_name = 'simple'
-		end
-	end
-	if not has_cou then
-		calc_name = 'simple'
-	end
+
+	local calc_name = self._cou.calc or guess_calc_name(tag_name)
 	assert(calc_name)
 
 	local m = assert(require('hj212.calc.'..calc_name))
 
-	local upper_tag = nil
-	if has_cou and calc_name == 'water' then
-		local w, err = self._station:water()
-		if not w then
-			logger.log('error', 'Fetch WATER flow failed. err:'..err)
-		end
-		upper_tag = w and w:tag() or nil
+	local msg = string.format('TAG [%06s] COU:%s ZS:%d', tag_name, calc_name, self._zs_calc and 1 or 0)
+	local params = self._cou.params or {}
+	if #params > 0 then
+		msg = msg .. ' with '..cjson.encode(params)
 	end
-	if has_cou and calc_name == 'air' then
-		local w, err = self._station:air()
-		if not w then
-			logger.log('error', 'Fetch AIR flow failed. err:'..err)
-		end
-		upper_tag = w and w:tag() or nil
-	end
-	--- w00000 a00000 has cou, but they are the COU Base
-	if upper_tag == self then
-		upper_tag = nil
-	end
-	if upper_tag then
-		-- Make sure upper is inited
-		upper_tag:init(calc_mgr)
-	end
-
-	logger.log('info', string.format('TAG [%06s] calc_type:%s\tcou:%s\tupper:%s',
-		tag_name, calc_name, has_cou, upper_tag ~= nil))
+	logger.log('info', msg)
 
 	local cou_base = upper_tag and upper_tag:cou_calc() or nil
 	local mask = calc_mgr_m.TYPES.ALL
 
-	self._cou_calc = m:new(tag_name, mask, self._min, self._max, cou_base)
+	local cou_calc = m:new(self._station, tag_name, mask, self._min, self._max, table.unpack(params))
 
-	self._cou_calc:set_callback(function(type_name, val, timestamp)
+	cou_calc:set_callback(function(type_name, val, timestamp)
+		if val.cou ~= nil and type(self._cou.cou) == 'number' then
+			val.cou = has_cou
+		end
+
 		self:on_calc_value(type_name, val, timestamp)
 	end)
 
+	if self._zs_calc then
+		cou_calc = Zs(cou_calc, self._zs_calc)
+	end
+
+	self._cou_calc = cou_calc
 	calc_mgr:reg(self._cou_calc)
 
 	self._inited = true
@@ -111,17 +111,6 @@ function tag:upload()
 	assert(nil, "Not implemented")
 end
 
-function tag:value_flag(value)
-	local flag = types.FLAG.Normal
-	if self._min and value < self._min then
-		flag = types.FLAG.Overproof
-	end
-	if self._max and value > self._max then
-		flag = types.FLAG.Overproof
-	end
-	return flag
-end
-
 function tag:on_calc_value(type_name, val, timestamp)
 	assert(nil, "Not implemented")
 end
@@ -129,11 +118,7 @@ end
 function tag:set_value(value, timestamp)
 	self._value = value
 	self._timestamp = timestamp
-	self._flag = self:value_flag(value)
-	if self._cou_calc then
-		return self._cou_calc:push(value, timestamp)
-	end
-	return true
+	return self._cou_calc:push(value, timestamp)
 end
 
 function tag:get_value()
@@ -145,35 +130,40 @@ function tag:query_rdata(now, save)
 		return
 	end
 
-	if save and self._cou_calc then
-		self._cou_calc:push_rdata(self._timestamp, self._value, self._flag, now)
-	end
+	local val = self._cou_calc:push_rdata(self._timestamp, self._value, now, save)
 
 	return param_tag:new(self._name, {
-		Rtd = self._value,
-		Flag = self._flag,
+		Rtd = val.value,
+		Flag = val.flag,
+		ZsRtd = val.value_z,
 		--- EFlag is optional
-		SampleTime = self._timestamp
+		SampleTime = val.timestamp
 	}, now, self._fmt)
 end
 
 function tag:convert_data(data)
 	local rdata = {}
+	local has_cou = self._cou.cou
 	for k, v in ipairs(data) do
-		if self._has_cou then
+		if has_cou ~= false then
 			rdata[#rdata + 1] = param_tag:new(self._name, {
 				Cou = v.cou,
-				Flag = v.flag,
 				Avg = v.avg,
 				Min = v.min,
 				Max = v.max,
+				ZsAvg = v.avg_z,
+				ZsMin = v.min_z,
+				ZsMax = v.max_z,
+				Flag = v.flag,
 			}, v.stime, self._fmt)
 		else
 			rdata[#rdata + 1] = param_tag:new(self._name, {
-				Flag = v.flag,
 				Avg = v.avg,
 				Min = v.min,
 				Max = v.max,
+				ZsAvg = v.avg_z,
+				ZsMin = v.min_z,
+				Flag = v.flag,
 			}, v.stime, self._fmt)
 		end
 	end

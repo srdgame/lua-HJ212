@@ -1,7 +1,6 @@
 local class = require 'middleclass'
 local utils_sort = require 'hj212.utils.sort'
 local cems = require 'hj212.client.station.cems'
-local waitable = require 'hj212.client.station.waitable'
 
 local station = class('hj212.client.station')
 
@@ -15,8 +14,9 @@ function station:initialize(system, id, sleep_func)
 	self._tag_list = {}
 	self._meters = {}
 	self._cems = cems:new(self)
-	self._water = waitable:new(self, 'w00000')
-	self._air = waitable:new(self, 'a00000')
+	self._water = nil
+	self._air = nil
+	self._calc_mgr = nil
 end
 
 function station:system()
@@ -39,12 +39,34 @@ function station:cems()
 	return self._cems
 end
 
-function station:water()
-	return self._water
+function station:water(func)
+	if self._water then
+		func(self._water)
+	else
+		self:wait_tag('w00000', function(tag)
+			self._water = tag
+			func(self._water)
+		end)
+	end
 end
 
-function station:air()
-	return self._air
+function station:air(func)
+	if self._air then
+		func(self._air)
+	else
+		self:wait_tag('a00000', function(tag)
+			self._air = tag
+			func(self._air)
+		end)
+	end
+end
+
+function station:wait_tag(name, func)
+	assert(self._tag_waits, "Cannot call this function out of initing")
+	table.insert(self._tag_waits, {
+		tag = name,
+		func = func
+	})
 end
 
 function station:find_tag(name)
@@ -63,13 +85,28 @@ function station:tags()
 	return self._tag_list
 end
 
+function station:calc_mgr()
+	return self._calc_mgr
+end
+
 function station:init(calc_mgr, err_cb)
+	assert(self._calc_mgr == nil)
+	self._calc_mgr = calc_mgr
+	self._tag_waits = {}
+
 	utils_sort.for_each_sorted_key(self._tag_list, function(tag)
-		local r, err = tag:init(calc_mgr)
+		local r, err = tag:init(self)
 		if not r then
 			err_cb(tag:tag_name(), err)
 		end
 	end)
+
+	local waits = self._tag_waits
+	self._tag_waits = nil
+	for _, v in ipairs(waits) do
+		local tag = self:find_tag(v.tag)
+		v.func(tag)
+	end
 end
 
 function station:add_meter(meter)

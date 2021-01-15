@@ -40,8 +40,10 @@ local function create_callback(obj, typ)
 	end
 end
 
-function base:initialize(name, type_mask, min, max)
+function base:initialize(station, name, type_mask, min, max)
+	assert(station, "Station missing")
 	assert(name, "Name missing")
+	self._station = station
 	self._type_mask = type_mask ~= nil and type_mask or mgr.static.TYPES.ALL
 	self._callback = callback
 	self._name = name
@@ -49,6 +51,7 @@ function base:initialize(name, type_mask, min, max)
 	self._max = max
 
 	self._start = os.time()
+	self._last_calc_time = 0
 	--- Sample data list for minutes calculation
 	self._sample_list = data_list:new('timestamp', function(val)
 		if self._db then
@@ -78,6 +81,8 @@ function base:on_value(typ, val, timestamp)
 	assert(timestamp, 'timestamp missing')
 	local name = type_names[typ]
 	assert(name, string.format('type is unknown %s', typ))
+
+	assert(val.avg or val.value, self._name..[['s value missing]])
 
 	val.timestamp = val.timestamp or val.etime
 	val.flag = val.flag or self:value_flag(val.avg or val.value)
@@ -213,14 +218,13 @@ function base:query_day(etime)
 	return nil, "No value end with "..etime
 end
 
-function base:push_rdata(timestamp, value, flag, now)
-	local val = {timestamp=timestamp, value=value, flag=flag}
+function base:push_rdata(timestamp, value, now, save)
+	local val = {timestamp=timestamp, value=value}
 	val = self:on_value(mgr.TYPES.RDATA, val, now)
-	if self._db then
+	if save and self._db then
 		return self:_db_write(type_names[mgr.TYPES.RDATA], val)
-	else
-		return true
 	end
+	return val
 end
 
 function base:on_trigger(typ, now, duration)
@@ -229,6 +233,8 @@ function base:on_trigger(typ, now, duration)
 		if typ == mgr.TYPES.MIN then
 			assert(self.on_min_trigger)
 			assert(duration % 60 == 0)
+			assert(self._last_calc_time <= now, 'now:'..now..'\tstart:'..self._last_calc_time)
+			self._last_calc_time = now
 			return self:on_min_trigger(now, duration)
 		end
 		if typ == mgr.TYPES.HOUR then

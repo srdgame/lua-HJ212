@@ -11,23 +11,24 @@ function waitable:tag()
 	return self._station:find_tag(self._tag_name)
 end
 
-function waitable:value(timestamp)
+function waitable:value(timeout)
+	local timeout = timeout or 10 --- default is ten seconds
 	local tag, err = self._station:find_tag(self._tag_name)
 	if not tag then
-		return nil, err
+		return nil, "Cannot found this tag"
 	end
 
 	local now = os.time()
 	-- Ten seconds
-	while os.time() - now < 10 do
+	while os.time() - now < timeout do
 		local val, timestamp = tag:get_value()
 		if val ~= nil then
-			return val
+			return val, timestamp
 		end
 
-		self._station:sleep(100) -- 100 ms
+		self._station:sleep(50) -- 50 ms
 	end
-	return nil, "Timeout to get value"
+	return nil, "Wait for value timeout"
 end
 
 return waitable

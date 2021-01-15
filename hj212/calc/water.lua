@@ -9,10 +9,17 @@ local MAX_TIMESTAMP_GAP = 5 -- tenseconds
 --- The upper tag, e.g. [w00000]
 -- If the upper tag not exists time will be used for caclue the (COU) value
 --
-function water:initialize(name, mask, min, max, upper_tag)
-	base.initialize(self, name, mask, min, max)
+function water:initialize(station, name, mask, min, max)
+	base.initialize(self, station, name, mask, min, max)
 
-	self._upper = upper_tag
+	local upper_calc = nil
+	if name ~= 'w00000' then
+		self._station:water(function(water)
+			if water then
+				self._upper = water:cou_calc()
+			end
+		end)
+	end
 
 	--- If we are waited by other tags
 	self._value = nil
@@ -34,6 +41,11 @@ function water:push(value, timestamp)
 end
 
 function water:_push(bvalue, value, timestamp)
+	if timestamp < self._last_calc_time then
+		local err = 'older value skipped ts:'..timestamp..' last:'..self._last_calc_time
+		self:log('error', err)
+		return nil, err
+	end
 	local val = bvalue * value * (10 ^ -3)
 
 	local sample = {cou=val, value=value, timestamp=timestamp}

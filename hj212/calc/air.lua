@@ -5,12 +5,18 @@ local flow = require 'hj212.calc.air.flow'
 
 local air = base:subclass('hj212.calc.air')
 
-function air:initialize(name, type_mask, min, max, pullut_base)
-	base.initialize(self, name, type_mask, min, max)
-	if pullut_base then
-		pullut.initialize(self, base, pullut_base)
+function air:initialize(station, name, type_mask, min, max)
+	base.initialize(self, station, name, type_mask, min, max)
+	if name ~= 'a00000' then
+		self._station:air(function(air)
+			if air then
+				pullut(self, air:cou_calc())
+			else
+				flow(self)
+			end
+		end)
 	else
-		flow.initialize(self, base)
+		flow(self)
 	end
 end
 

@@ -4,11 +4,14 @@ local types = require 'hj212.types'
 
 local simple = base:subclass('hj212.calc.simple')
 
-function simple:initialize(name, mask, min, max)
-	base.initialize(self, name, mask, min, max)
+function simple:initialize(station, name, mask, min, max)
+	base.initialize(self, station, name, mask, min, max)
 end
 
 function simple:push(value, timestamp)
+	if timestamp < self._last_calc_time then
+		return nil, 'older value skipped ts:'..timestamp..' last:'..self._last_calc_time
+	end
 	local val = {value = value, timestamp = timestamp}
 	return self._sample_list:append(val)
 end
@@ -37,7 +40,7 @@ local function calc_sample(list, start, now)
 		val_cou = val_cou + val
 	end
 
-	--logger.debug('simple.calc_sample', val_cou, #list)
+	--self:log('debug', 'simple.calc_sample', val_cou, #list)
 	local val_avg = val_cou / #list
 
 	return {
@@ -63,7 +66,7 @@ function simple:on_min_trigger(now, duration)
 		local list = sample_list:pop(etime)
 
 		if self._min_list:find(etime) then
-			self:log('error', "SIMPLE: older sample value skipped")
+			self:log('error', "SIMPLE: older sample value skipped", etime)
 			local cjson = require 'cjson.safe'
 			for _, v in pairs(list) do
 				self:log('error', ' Skip: '..cjson.encode(v))

@@ -41,7 +41,7 @@ local function create_callback(obj, typ)
 			obj:_db_write(type_name, val)
 			return val
 		end
-		ojb:log('error', 'calc.on_value error:'..err)
+		obj:log('error', string.format('calc.on_value[%s] error:%s', type_name, err))
 		return nil, err
 	end
 end
@@ -61,10 +61,14 @@ function base:initialize(station, name, type_mask, min, max)
 	--- Sample data list for minutes calculation
 	self._sample_list = data_list:new('timestamp', function(val)
 		local val, err = self:_on_value(mgr.TYPES.SAMPLE, val, val.timestamp)
-		if val and self._db then
+		if not val then
+			self:log('error', string.format('calc.on_value[%s] error:%s', 'SAMPLE', err))
+			return nil, err
+		end
+		if self._db then
 			self._db:push_sample(val)
 		end
-		return val, err
+		return val
 	end, 60 * 60)
 	--- Calculated
 	self._rdata_list = data_list:new('etime', create_callback(self, mgr.TYPES.RDATA), 60 * 6)

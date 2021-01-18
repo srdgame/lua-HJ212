@@ -30,18 +30,23 @@ local function calc_sample(list, start, etime, zs)
 	local val_min_z = zs and 0 or nil
 	local val_max_z = zs and 0 or nil
 
+	local last = start
 	for i, v in ipairs(list) do
+		assert(v.timestamp > last, string.format('Timestamp issue:%f\t%f', v.timestamp, last))
+		last = v.timestamp
 		local val = v.value
 		assert(type(val) == 'number')
 		val_min = val < val_min and val or val_min
 		val_max = val > val_max and val or val_max
 		val_cou = val_cou + val
 		
-		if sz then
+		if zs then
 			local val_z = v.value_z
-			val_min_z = val_z and val_z < val_min_z and val_z or val_min_z
-			val_max_z = val_z and val_z > val_max_z and val_z or val_max_z
-			val_cou_z = val_z and (val_cou_z + val_z) or val_cou_z
+			assert(val_z ~= nil)
+			--logger.log('debug', 'simple.calc_sample ZS', val_z, val_cou_z, val_min_z, val_max_z)
+			val_min_z = val_z < val_min_z and val_z or val_min_z
+			val_max_z = val_z > val_max_z and val_z or val_max_z
+			val_cou_z = val_cou_z + val_z
 		end
 	end
 
@@ -49,6 +54,11 @@ local function calc_sample(list, start, etime, zs)
 	local val_avg_z = zs and (#list > 0 and val_cou_z / #list or 0) or nil
 
 	--logger.log('debug', 'simple.calc_sample', #list, val_cou, val_avg, val_min, val_max)
+	--[[
+	if zs then
+		logger.log('debug', 'simple.calc_sample ZS', #list, val_cou_z, val_avg_z, val_min_z, val_max_z)
+	end
+	]]--
 
 	return {
 		cou = val_cou,
@@ -116,7 +126,7 @@ local function calc_cou(list, start, etime, zs)
 
 	for i, v in ipairs(list) do
 		assert(v.stime >= start, "Start time issue:"..v.stime..'\t'..start)
-		assert(v.etime >= etime, "Last time issue:"..v.etime..'\t'..etime)
+		assert(v.etime >= last, "Last time issue:"..v.etime..'\t'..last)
 		last = v.etime
 
 		val_min = v.min < val_min and v.min or val_min
@@ -125,8 +135,8 @@ local function calc_cou(list, start, etime, zs)
 		val_t_avg = val_t_avg + v.avg
 
 		if zs then
-			val_min_z = (v.min_z and v.min_z < val_min_z) and v.min_z or val_min_z
-			val_max_z = (v.max_z and v.max_z > val_max_z) and v.max_z or val_max_z
+			val_min_z = v.min_z < val_min_z and v.min_z or val_min_z
+			val_max_z = v.max_z > val_max_z and v.max_z or val_max_z
 			val_cou_z = val_cou_z + v.cou_z
 			val_t_avg_z = val_t_avg_z + v.avg_z
 		end

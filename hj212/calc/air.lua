@@ -17,9 +17,11 @@ function create_zs(calc)
 		if typ == mgr.TYPES.SAMPLE then
 			assert(val.value ~= nil, 'Value missing')
 			val.value_z = zs_calc(val.value, now, 'SAMPLE')
+			assert(val.value_z ~= nil)
 		elseif typ == mgr.TYPES.RDATA then
 			assert(val.value ~= nil, 'Value missing')
 			val.value_z = zs_calc(val.value, now, 'RDATA')
+			assert(val.value_z ~= nil)
 		else
 			--[[
 			assert(val.avg ~= nil, 'AVG missing')

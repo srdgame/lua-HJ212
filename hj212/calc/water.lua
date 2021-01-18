@@ -55,11 +55,12 @@ local function calc_sample(list, start, etime, zs)
 	local val_min_z = zs and 0 or nil
 	local val_max_z = zs and 0 or nil 
 
-	local last = os.time() - 5
+	local last = #list > 0 and (list[1].timestamp - 5) or nil
 	local last_avg = nil
 	local last_avg_z = nil
 
 	for i, v in ipairs(list) do
+		assert(v.timestamp > last, string.format('Timestamp issue:%f\t%f', v.timestamp, last))
 		local value = v.value
 		val_min = value < val_min and value or val_min
 		val_max = value > val_max and value or val_max
@@ -69,7 +70,8 @@ local function calc_sample(list, start, etime, zs)
 		val_cou = val_cou + cou
 
 		if zs then
-			local value_z = assert(v.value_z)
+			local value_z = v.value_z
+			assert(value_z ~= nil)
 			val_min_z = value_z < val_min_z and value_z or val_min_z
 			val_max_z = value_z > val_max_z and value_z or val_max_z
 
@@ -96,7 +98,7 @@ local function calc_sample(list, start, etime, zs)
 	end
 	]]--
 
-	logger.log('debug', 'water.calc_sample', val_cou, etime - start, val_avg, val_min, val_max)
+	--logger.log('debug', 'water.calc_sample', val_cou, etime - start, val_avg, val_min, val_max)
 
 	return {
 		cou = val_cou,
@@ -163,7 +165,7 @@ local function calc_cou(list, start, etime, zs)
 
 	for _, v in ipairs(list) do
 		assert(v.stime >= start, "Start time issue:"..v.stime..'\t'..start)
-		assert(v.etime >= etime, "Last time issue:"..v.etime..'\t'..etime)
+		assert(v.etime >= last, "Last time issue:"..v.etime..'\t'..last)
 		last = v.etime
 
 		val_min = v.min < val_min and v.min or val_min

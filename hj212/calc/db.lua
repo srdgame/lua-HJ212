@@ -5,6 +5,52 @@ local base = class('hj212.calc.db')
 function base:initialize()
 end
 
+function base:sample_meta()
+	return {
+		{ name = 'value', type = 'DOUBLE', not_null = true },
+		{ name = 'flag', type = 'INTEGER', not_null = true },
+		-- Time
+		{ name = 'timestamp', type = 'DOUBLE', not_null = true },
+		-- COU
+		{ name = 'cou', type = 'DOUBLE', not_null = false },
+		--- Zs
+		{ name = 'value_z', type = 'DOUBLE', not_null = false },
+		{ name = 'cou_z', type = 'DOUBLE', not_null = false },
+	}, 5 --version
+end
+
+function base:rdata_meta()
+	return {
+		{ name = 'value', type = 'DOUBLE', not_null = true },
+		{ name = 'flag', type = 'INTEGER', not_null = true },
+		-- Time
+		{ name = 'etime', type = 'INTEGER', not_null = true },
+		-- COU
+		{ name = 'cou', type = 'DOUBLE', not_null = false },
+		--- Zs
+		{ name = 'value_z', type = 'DOUBLE', not_null = false },
+		{ name = 'cou_z', type = 'DOUBLE', not_null = false },
+	}, 5 --version
+end
+
+function base:cou_meta()
+	return {
+		{ name = 'cou', type = 'DOUBLE', not_null = true },
+		{ name = 'avg', type = 'DOUBLE', not_null = true },
+		{ name = 'min', type = 'DOUBLE', not_null = true },
+		{ name = 'max', type = 'DOUBLE', not_null = true },
+		{ name = 'flag', type = 'INTEGER', not_null = true },
+		-- Time
+		{ name = 'stime', type = 'INTEGER', not_null = true },
+		{ name = 'etime', type = 'INTEGER', not_null = true },
+		--- Zs
+		{ name = 'cou_z', type = 'DOUBLE', not_null = false },
+		{ name = 'avg_z', type = 'DOUBLE', not_null = false },
+		{ name = 'min_z', type = 'DOUBLE', not_null = false },
+		{ name = 'max_z', type = 'DOUBLE', not_null = false },
+	}, 5
+end
+
 function base:push_sample(data)
 	assert(nil, "Not implemented")
 end

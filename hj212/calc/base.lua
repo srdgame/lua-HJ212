@@ -36,7 +36,13 @@ end
 local function create_callback(obj, typ)
 	local type_name = type_names[typ]
 	return function(val)
-		obj:_db_write(type_name, val)
+		local val, err = obj:_on_value(typ, val, val.etime)
+		if val then
+			obj:_db_write(type_name, val)
+			return val
+		end
+		ojb:log('error', 'calc.on_value error:'..err)
+		return nil, err
 	end
 end
 
@@ -54,14 +60,20 @@ function base:initialize(station, name, type_mask, min, max)
 	self._last_calc_time = 0
 	--- Sample data list for minutes calculation
 	self._sample_list = data_list:new('timestamp', function(val)
-		if self._db then
+		local val, err = self:_on_value(mgr.TYPES.SAMPLE, val, val.timestamp)
+		if val and self._db then
 			self._db:push_sample(val)
 		end
-	end)
+		return val, err
+	end, 60 * 60)
 	--- Calculated
+	self._rdata_list = data_list:new('etime', create_callback(self, mgr.TYPES.RDATA), 60 * 6)
 	self._min_list = data_list:new('etime', create_callback(self, mgr.TYPES.MIN))
 	self._hour_list = data_list:new('etime', create_callback(self, mgr.TYPES.HOUR))
 	self._day_list = data_list:new('etime', create_callback(self, mgr.TYPES.DAY))
+	self._value_calc = {}
+	self._pre_calc = {}
+	self._zs_calc = nil
 end
 
 function base:set_callback(callback)
@@ -70,26 +82,71 @@ end
 
 function base:_db_write(type_name, val)
 	if self._db then
-		return self._db:write(type_name, val)
+		local r, err = self._db:write(type_name, val)
+		if not r then
+			self:log('error', "DB write "..type_name.." error:"..err)
+		end
 	end
 	return true
 end
 
-function base:on_value(typ, val, timestamp)
+function base:push_value_calc(calc)
+	table.insert(self._value_calc, calc)
+end
+
+function base:push_pre_calc(pre)
+	table.insert(self._pre_calc, pre)
+end
+
+function base:set_zs_calc(calc)
+	self._zs_calc = calc
+end
+
+function base:has_zs()
+	return self._zs_calc ~= nil
+end
+
+function base:_on_value(typ, val, timestamp)
 	assert(typ, 'type missing')
 	assert(val, 'value missing')
 	assert(timestamp, 'timestamp missing')
+
 	local name = type_names[typ]
 	assert(name, string.format('type is unknown %s', typ))
 
+	-- Asserts on value missing
 	assert(val.avg or val.value, self._name..[['s value missing]])
 
+	--- Make sure timestamp is present which required for saving in DB
 	val.timestamp = val.timestamp or val.etime
+
+	--- Calculate the Value Flag by min/max
 	val.flag = val.flag or self:value_flag(val.avg or val.value)
 
-	if self._callback then
-		self._callback(name, val, timestamp)
+	--- Call the calculators
+	local err
+	for _, calc in ipairs(self._value_calc) do
+		--self:debug('_value_calc', _, name, typ, val, timestamp)
+		val, err = calc(typ, val, timestamp)
+		if not val then
+			return nil, err
+		end
 	end
+
+	if self._zs_calc then
+		val, err = self._zs_calc(typ, val, timestamp)
+		if not val then
+			return nil, err
+		end
+	end
+
+	if self._callback then
+		val, err = self._callback(name, val, timestamp)
+		if not val then
+			return nil, err
+		end
+	end
+
 	return val
 end
 
@@ -183,15 +240,52 @@ function base:load_from_db()
 		else
 			self:log('error', err)
 		end
+
+		self:debug('load rdata since', os.date('%c', min_start_time))
+		local rdata_list, err = self._db:read('RDATA', min_start_time + 0.001, self._start)
+		if rdata_list then
+			self._rdata_list:init(rdata_list)
+		else
+			self:log('error', err)
+		end
 	end
 end
 
 function base:push(value, timestamp)
-	assert(nil, "Not implemented")
+	--self:debug('pushing sample', value, timestamp)
+	local last = self._sample_list:last()
+	if last and last.timestamp == timestamp then
+		assert(last.value == value)
+		return nil, "Already has this data"
+	end
+
+	local val = {value = value, timestamp = timestamp}
+
+	return self._sample_list:append(val)
 end
 
-function base:sample_meta()
-	assert(nil, "Not implemented")
+function base:sample_last()
+	return self._sample_list:last()
+end
+
+function base:query_rdata(now, readonly)
+	local val = self._rdata_list:find(now)
+	if val then
+		return val
+	end
+	if readonly then
+		return nil, "No rdata for this time:"..now
+	end
+
+	val = self._sample_list:last()
+	if not val then
+		return nil, "No sample data for creating RDATA"
+	end
+	val.etime = now
+
+	assert(self._rdata_list:append(val))
+
+	return assert(self._rdata_list:find(now))
 end
 
 function base:query_min(etime)
@@ -218,20 +312,12 @@ function base:query_day(etime)
 	return nil, "No value end with "..etime
 end
 
-function base:push_rdata(timestamp, value, now, save)
-	local val = {timestamp=timestamp, value=value}
-	val = self:on_value(mgr.TYPES.RDATA, val, now)
-	if save and self._db then
-		local r, err = self:_db_write(type_names[mgr.TYPES.RDATA], val)
-		if not r then
-			self:log('error', "Failed save rdata error:"..err)
-		end
-	end
-	return val
-end
-
 function base:on_trigger(typ, now, duration)
 	local now = math.floor(now)
+	for _, v in ipairs(self._pre_calc) do
+		v:on_trigger(typ, now, duration)
+	end
+
 	if (self._type_mask & typ) == typ then
 		if typ == mgr.TYPES.MIN then
 			assert(self.on_min_trigger)

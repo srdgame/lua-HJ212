@@ -12,14 +12,14 @@ end
 function flow:__call(typ, val, now)
 	if typ == mgr.TYPES.SAMPLE then
 		assert(now ~= self._last_sample_time)
-		val.cou = val.value * (now - self._last_sample_time)
+		val.cou = val.value * (now - self._last_sample_time) * (10 ^ -3)
 		self._last_sample_time = now
 	elseif typ == mgr.TYPES.RDATA then
 		assert(now ~= self._last_rdata_time)
 		val.cou = val.value * (now - self._last_rdata_time)
 		self._last_rdata_time = now
 	else
-		val.cou = val.avg * (val.stime - val.etime)
+		-- Nothing to do
 	end
 
 	return val

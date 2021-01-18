@@ -1,62 +1,33 @@
+local class = require 'middleclass'
 local mgr = require 'hj212.calc.manager'
 local base = require 'hj212.calc.base'
 
-local air = {}
+local pullut = class('hj212.calc.helper.pullut')
 
-function air:on_value(typ, val, now)
-	if typ == mgr.TYPES.RDATA then
-		return self._wrap.on_value(self, typ, val, now)
+function pullut:initialize(pullut, pullut_flow)
+	self._pullut = pullut
+	self._flow = pullut_flow
+end
+
+function pullut:__call(typ, val, now)
+	assert(self._flow)
+	if typ == mgr.TYPES.RDATA or typ == mgr.TYPES.SAMPLE then
+		return val
 	end
 
-	local cou_base = self._wrap.cou_base
+	local flow = self._flow
 	local type_name = base.TYPE_NAMES[typ]
 	local fn = 'query_'..string.lower(type_name)
-	assert(cou_base[fn], 'Missing function:'..fn)
-	local cou_value = cou_base[fn](cou_base, val.etime)
+	assert(flow[fn], 'Missing function:'..fn)
+
+	local cou_value = flow[fn](flow, val.etime)
 	if cou_value then
 		val.cou = cou_value.cou * val.avg * (10 ^ -6)
 	else
-		self:log('debug', 'No COU base value')
+		self._pullut:log('debug', 'No COU base value')
 	end
 
-	return self._wrap.on_value(self, typ, val, now)
+	return val
 end
 
-function air:on_min_trigger(now, duration)
-	if self._wrap.cou_base then
-		self._wrap.cou_base:on_min_trigger(now, duration)
-	end
-	return self._wrap.on_min_trigger(self, now, duration)
-end
-
-function air:on_hour_trigger(now, duration)
-	if self._wrap.cou_base then
-		self._wrap.cou_base:on_hour_trigger(now, duration)
-	end
-	return self._wrap.on_hour_trigger(self, now, duration)
-end
-
-function air:on_day_trigger(now, duration)
-	if self._wrap.cou_base then
-		self._wrap.cou_base:on_day_trigger(now, duration)
-	end
-	return self._wrap.on_day_trigger(self, now, duration)
-end
-
-return function(obj, cou_base)
-	assert(obj._wrap == nil)
-	local wrap = {
-		base = self,
-		cou_base = assert(cou_base)
-	}
-
-	for k, v in pairs(air) do
-		if k ~= 'initialize' then
-			wrap[k] = obj[k]
-			obj[k] = v
-		end
-	end
-	obj._wrap = wrap
-
-	return obj
-end
+return pullut

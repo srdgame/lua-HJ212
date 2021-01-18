@@ -80,7 +80,7 @@ function tag:init(calc_mgr)
 	self._cou_calc = m:new(tag_name, mask, self._min, self._max, cou_base)
 
 	self._cou_calc:set_callback(function(type_name, val, timestamp)
-		self:on_calc_value(type_name, val, timestamp)
+		return self:on_calc_value(type_name, val, timestamp)
 	end)
 
 	calc_mgr:reg(self._cou_calc)
@@ -139,7 +139,8 @@ function tag:get_value()
 	return self._value, self._timestamp
 end
 
-function tag:query_rdata(now, save)
+function tag:query_rdata(timestamp, readonly)
+	assert(false)
 	if not self._value then
 		return
 	end

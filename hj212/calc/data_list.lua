@@ -3,11 +3,13 @@ local class = require 'middleclass'
 
 local list = class('hj212.calc.data_list')
 
-function list:initialize(time_key, insert_callback)
+function list:initialize(time_key, insert_callback, max_count, drop_callback)
 	self._key = time_key
 	self._keys = {}
 	self._vals = {}
 	self._insert_callback = insert_callback
+	self._max_count = max_count
+	self._drop_callback = drop_callback
 end
 
 function list:init(vals, cb)
@@ -41,12 +43,27 @@ function list:_append(data, cb)
 		end
 	end
 
+	local err
+	if cb then
+		data, err = cb(data)
+		if not data then
+			return nil, err
+		end
+	end
+
 	keys[time] = data
 	vals[#vals + 1] = data
 
-	if cb then
-		cb(data)
+	if self._max_count ~= nil then
+		if #vals > self._max_count then
+			local val = vals[1]
+			table.remove(vals, 1)
+			if self._drop_callback then
+				self._drop_callback(val)
+			end
+		end
 	end
+
 	return true
 end
 

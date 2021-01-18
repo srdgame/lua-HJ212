@@ -48,10 +48,10 @@ function meter:set_info_value(name, value, timestamp)
 	return nil, "No sub info:"..name
 end
 
-function meter:rdata()
+function meter:rdata(timestamp, readonly)
 	local data = {}
 	for _, tag in ipairs(self._tag_list) do
-		local d = tag:query_rdata()
+		local d = tag:query_rdata(timestamp, readonly)
 		if d then
 			data[#data + 1] = d
 		end

@@ -4,6 +4,7 @@ local logger = require 'hj212.logger'
 local mgr = class('hj212.calc.manager')
 
 mgr.static.TYPES = {
+	SAMPLE = -1, -- hack for sample calc
 	RDATA = 0, -- This not called by trigger only used for history saving
 	MIN = 1,
 	HOUR = 2,

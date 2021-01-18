@@ -130,11 +130,11 @@ function station:set_tag_value(name, value, timestamp)
 	return nil, "No such tag:"..name
 end
 
-function station:rdata(now, save)
+function station:rdata(timestamp, readonly)
 	local data = {}
 	for _, tag in pairs(self._tag_list) do
 		if tag:upload() then
-			local d = tag:query_rdata(now, save)
+			local d = tag:query_rdata(timestamp, readonly)
 			if d then
 				data[#data + 1] = d
 			end

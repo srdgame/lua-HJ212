@@ -4,7 +4,6 @@ local logger = require 'hj212.logger'
 local types = require 'hj212.types'
 local param_tag = require 'hj212.params.tag'
 local calc_mgr_m = require 'hj212.calc.manager'
-local Zs = require 'hj212.calc.Zs'
 
 local tag = class('hj212.client.tag')
 
@@ -69,19 +68,15 @@ function tag:init()
 	local cou_base = upper_tag and upper_tag:cou_calc() or nil
 	local mask = calc_mgr_m.TYPES.ALL
 
-	local cou_calc = m:new(self._station, tag_name, mask, self._min, self._max, table.unpack(params))
+	local cou_calc = m:new(self._station, tag_name, mask, self._min, self._max, self._zs_calc, table.unpack(params))
 
 	cou_calc:set_callback(function(type_name, val, timestamp)
 		if val.cou ~= nil and type(self._cou.cou) == 'number' then
 			val.cou = has_cou
 		end
 
-		self:on_calc_value(type_name, val, timestamp)
+		return self:on_calc_value(type_name, val, timestamp)
 	end)
-
-	if self._zs_calc then
-		cou_calc = Zs(cou_calc, self._zs_calc)
-	end
 
 	self._cou_calc = cou_calc
 	calc_mgr:reg(self._cou_calc)
@@ -125,12 +120,11 @@ function tag:get_value()
 	return self._value, self._timestamp
 end
 
-function tag:query_rdata(now, save)
-	if not self._value then
-		return
+function tag:query_rdata(timestamp, readonly)
+	local val, err = self._cou_calc:query_rdata(timestamp, readonly)
+	if not val then
+		return nil, err
 	end
-
-	local val = self._cou_calc:push_rdata(self._timestamp, self._value, now, save)
 
 	return param_tag:new(self._name, {
 		Rtd = val.value,
@@ -138,7 +132,7 @@ function tag:query_rdata(now, save)
 		ZsRtd = val.value_z,
 		--- EFlag is optional
 		SampleTime = val.timestamp
-	}, now, self._fmt)
+	}, timestamp, self._fmt)
 end
 
 function tag:convert_data(data)

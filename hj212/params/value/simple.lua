@@ -48,15 +48,17 @@ local parsers = {
 				print(val, i, f, fmt, raw)
 			end
 			]]--
-			local raw = tostring(val)
 			if f then
+				local raw = tostring(val)
 				local raw_len = string.len(raw)
 				local pi = string.find(raw, '.', 1, true)
 				if pi and raw_len > pi + f then
 					raw = string.sub(raw, 1, pi + f)
 				end
+				return raw
+			else
+				return tostring(math.floor(val))
 			end
-			return raw
 		end,
 		decode = function(fmt, raw)
 			--[[

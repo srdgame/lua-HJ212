@@ -25,6 +25,7 @@ local PARAMS = {
 	Max = tag_val,
 	ZsRtd = tag_val,
 	ZsMin = tag_val,
+	ZsMax = tag_val,
 	ZsAvg = tag_val,
 	Flag = ES('C1'),
 	EFlag = ES('C4'),

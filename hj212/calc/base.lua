@@ -347,7 +347,7 @@ end
 --- Query data by etime
 function base:query_min_data(start_time, end_time)
 	local first = self._min_list:first()
-	if first and first.etime < start_time then
+	if first and first.etime <= start_time then
 		return self._min_list:query(start_time, end_time)
 	elseif self._db then
 		local name = type_names[mgr.TYPES.MIN]

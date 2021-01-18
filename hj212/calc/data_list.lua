@@ -64,7 +64,7 @@ function list:_append(data, cb)
 		end
 	end
 
-	return true
+	return data
 end
 
 function list:find(key)

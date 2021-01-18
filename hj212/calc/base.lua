@@ -78,6 +78,7 @@ function base:initialize(station, name, type_mask, min, max)
 	self._value_calc = {}
 	self._pre_calc = {}
 	self._zs_calc = nil
+	self._last_sample = nil
 end
 
 function base:set_callback(callback)
@@ -263,9 +264,12 @@ function base:push(value, timestamp)
 		return nil, "Already has this data"
 	end
 
-	local val = {value = value, timestamp = timestamp}
-
-	return self._sample_list:append(val)
+	local val, err = self._sample_list:append({value = value, timestamp = timestamp})
+	if val then
+		self._last_sample = val
+		return true
+	end
+	return nil, err
 end
 
 function base:sample_last()
@@ -277,13 +281,12 @@ function base:query_rdata(now, readonly)
 	if val then
 		return val
 	end
-	if readonly then
+	if readonly or not self._last_sample then
 		return nil, "No rdata for this time:"..now
 	end
-
-	val = self._sample_list:last()
-	if not val then
-		return nil, "No sample data for creating RDATA"
+	val = {}
+	for k, v in pairs(self._last_sample) do
+		val[k] = v
 	end
 	val.etime = now
 

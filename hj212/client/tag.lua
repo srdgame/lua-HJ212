@@ -123,6 +123,7 @@ end
 function tag:query_rdata(timestamp, readonly)
 	local val, err = self._cou_calc:query_rdata(timestamp, readonly)
 	if not val then
+		logger.log('warning', self._name..' rdata missing', err)
 		return nil, err
 	end
 

@@ -30,7 +30,7 @@ local function calc_sample(list, start, etime, zs)
 	local val_min_z = zs and 0 or nil
 	local val_max_z = zs and 0 or nil
 
-	local last = start
+	local last = start - 0.0001 -- make sure the asserts work properly
 	for i, v in ipairs(list) do
 		assert(v.timestamp > last, string.format('Timestamp issue:%f\t%f', v.timestamp, last))
 		last = v.timestamp
@@ -114,7 +114,7 @@ end
 
 local function calc_cou(list, start, etime, zs)
 	local flag = #list == 0 and types.FLAG.Connection or nil
-	local last = start
+	local last = start - 0.0001 -- make sure etime assets works properly
 	local val_cou = 0
 	local val_t_avg = 0
 	local val_min = 0

@@ -7,8 +7,9 @@ local data = class('hj212.data')
 
 local date_fmt = '%Y%m%d%H%M%S'
 
-function data:initialize(sys, cmd, passwd, devid, need_ack, params)
+function data:initialize(ver, sys, cmd, passwd, devid, need_ack, params)
 	self._session = math.floor(time.now())
+	self._ver = ver
 	self._sys = sys
 	self._cmd = cmd
 	self._passwd = passwd
@@ -23,7 +24,7 @@ function data:encode()
 	assert(string.len(self._devid) > 0) -- == 24) -- The standard is 24 char len, but we need to support exceptions :-(
 	assert(self._sys >= 0 and self._sys <= 99)
 
-	local flag = (1 << 2 ) + (self._need_ack and 1 or 0)
+	local flag = (self._ver << 2 ) + (self._need_ack and 1 or 0)
 
 	local function encode(data, count, cur)
 		-- Hack the session with plus ticks
@@ -34,10 +35,10 @@ function data:encode()
 	
 		local time = session // 1000
 		local ticks = session % 1000
-		local pn = date(time):tolocal():fmt(date_fmt) .. string.format('%03d', ticks)
+		local qn = date(time):tolocal():fmt(date_fmt) .. string.format('%03d', ticks)
 
 		local raw = {}
-		raw[#raw + 1] = string.format('QN=%s', pn)
+		raw[#raw + 1] = string.format('QN=%s', qn)
 		raw[#raw + 1] = string.format('ST=%02d', self._sys)
 		raw[#raw + 1] = string.format('CN=%04d', self._cmd)
 		raw[#raw + 1] = string.format('PW=%s', self._passwd)
@@ -79,15 +80,20 @@ function data:decode(raw, index)
 		return nil, "Invalid packet data"
 	end
 
-	local pn = string.match(raw, 'QN=([^;]+)')
-	pn = string.sub(pn, 1, -4)..'.'..string.sub(pn, -3)
-	self._session = math.floor(date.diff(date(pn):toutc(), date(0)):spanseconds() * 1000)
+	local qn = string.match(raw, 'QN=([^;]+)')
+	if qn then
+		qn = string.sub(qn, 1, -4)..'.'..string.sub(qn, -3)
+		self._session = math.floor(date.diff(date(qn):toutc(), date(0)):spanseconds() * 1000)
+	else
+		self._session = os.time() * 1000 + math.random(0, 999)
+	end
 
 	self._sys = tonumber(string.match(raw, 'ST=(%d+)'))
 	self._cmd = tonumber(string.match(raw, 'CN=(%d+)'))
 	self._passwd = string.match(raw, 'PW=([^;]+)')
 	self._devid = string.match(raw, 'MN=([^;]+)')
-	local flag = tonumber(string.match(raw, 'Flag=(%d+)'))
+	local flag = tonumber(string.match(raw, 'Flag=(%d+)')) or 0 --- For invalid Flag found in protocol
+	self._ver = flag >> 2
 	self._need_ack = ((flag & 1) == 1)
 
 	--- Packet spilit not supported
@@ -168,6 +174,10 @@ end
 
 function data:device_id()
 	return self._devid
+end
+
+function data:version()
+	return self._ver
 end
 
 function data:need_ack()

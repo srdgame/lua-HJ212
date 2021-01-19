@@ -15,15 +15,13 @@ function client:initialize(station, passwd, timeout, retry, pfuncs)
 	self._timeout = (tonumber(timeout) or 5) * 1000
 	self._retry = tonumber(retry) or 3
 
-	if pfuncs then
-		self._packet_create = assert(pfuncs.create)
-		self._packet_parse = assert(pfuncs.parse)
-	else
-		self._packet_create = function(...)
-			return packet:new(...)
-		end
-		self._packet_parse = packet.static.parse
+	local pfuncs = pfuncs or {}
+	self._packet_create = pfuncs.create or function(...)
+		return packet:new(...)
 	end
+	self._packet_parse = assert(pfuncs.parse or packet.static.parse)
+	self._packet_crc = pfuncs.crc
+	self._packet_ver = assert(protocal_ver or types.PROTOCOL.V2017)
 
 	self._treatment = {}
 
@@ -75,11 +73,11 @@ function client:set_retry(retry)
 end
 
 function client:req_creator(cmd, need_ack, params)
-	return self._packet_create(self._system, cmd, self._passwd, self._dev_id, need_ack, params)
+	return self._packet_create(self._packet_ver, self._system, cmd, self._passwd, self._dev_id, need_ack, params)
 end
 
 function client:resp_creator(cmd, need_ack, params)
-	return self._packet_create(types.SYSTEM.REPLY, cmd, self._passwd, self._dev_id, need_ack, params)
+	return self._packet_create(self._packet_ver, types.SYSTEM.REPLY, cmd, self._passwd, self._dev_id, need_ack, params)
 end
 
 function client:find_tag_sn(tag_name)
@@ -160,7 +158,7 @@ function client:process(raw_data)
 
 	local p, buf, err = self._packet_parse(buf, 1, function(bad_raw)
 		self:log('error', 'CRC Error Data Found')
-	end)
+	end, self._packet_crc)
 
 	if buf and string.len(buf) > 0 then
 		self._process_buf = buf

@@ -8,12 +8,12 @@ pack.static.HEADER	= '##' -- Packet Header fixed string
 pack.static.TAIL	= '\r\n'
 pack.static.MFMT = '##(%w+)\r\n()'
 
-local function packet_crc(data_raw)
-	local sum = crc16(data_raw)
-	return string.format('%04X', sum)
+local function packet_crc(data_raw, crc_func)
+	local f = crc_func or crc16
+	return string.format('%04X', f(data_raw))
 end
 
-function pack.static.parse(raw, index, on_crc_err)
+function pack.static.parse(raw, index, on_crc_err, crc_func)
 	--logger.debug('begin', index, raw)
 	local index = string.find(raw, pack.static.HEADER, index or 1, true)
 	if not index then
@@ -34,10 +34,11 @@ function pack.static.parse(raw, index, on_crc_err)
 	local raw_len = string.len(raw)
 	--logger.debug(data_len, raw_len, index)
 	if data_len + 12 > raw_len - index + 1 then
+		local err = 'Data not enougth. data_len:'..data_len..' raw_len:'..raw_len..' index:'..index
 		if index ~= 1 then
-			return nil, string.sub(raw, index), 'Data not enougth. data_len'..data_len..' raw_len'..raw_len
+			return nil, string.sub(raw, index), err
 		end
-		return nil, raw, 'Data not enough'
+		return nil, raw, err
 	end
 
 	--- Check TAIL
@@ -56,7 +57,7 @@ function pack.static.parse(raw, index, on_crc_err)
 	local s_crc = index + 6 + data_len
 	local crc = string.sub(raw, s_crc, s_crc + 3)
 
-	local calc_crc = packet_crc(data_raw)
+	local calc_crc = packet_crc(data_raw, crc_func)
 	if calc_crc ~= crc then
 		if on_crc_err then
 			logger.debug('CRC ERROR', calc_crc, crc, data_raw)

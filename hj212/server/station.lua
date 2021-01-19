@@ -50,6 +50,10 @@ function station:retry()
 	return self._conf.retry
 end
 
+function station:version()
+	return self._conf.version
+end
+
 function station:rdata_interval()
 	return self._conf.rdata_interval
 end

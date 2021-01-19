@@ -12,15 +12,13 @@ function client:initialize(pfuncs)
 	self._dev_id = nil
 	self._passwd = nil
 
-	if pfuncs then
-		self._packet_create = assert(pfuncs.create)
-		self._packet_parse = assert(pfuncs.parse)
-	else
-		self._packet_create = function(...)
-			return packet:new(...)
-		end
-		self._packet_parse = packet.static.parse
+	local pfuncs = pfuncs or {}
+	self._packet_create = pfuncs.create or function(...)
+		return packet:new(...)
 	end
+	self._packet_parse = assert(pfuncs.parse or packet.static.parse)
+	self._packet_crc = pfuncs.crc
+	self._packet_ver = assert(pfuncs.ver or types.PROTOCOL.V2017)
 
 	self._process_buf = nil
 	self._packet_buf = {}
@@ -40,6 +38,7 @@ function client:set_station(station)
 		self._system = station:system()
 		self._passwd = station:passwd()
 		self._dev_id = station:id()
+		--self._packet_ver = station:version()
 	else
 		self._system = nil
 		self._passwd = nil
@@ -52,11 +51,11 @@ function client:station()
 end
 
 function client:req_creator(cmd, need_ack, params)
-	return self._packet_create(self._system, cmd, self._passwd, self._dev_id, need_ack, params)
+	return self._packet_create(self._packet_ver, self._system, cmd, self._passwd, self._dev_id, need_ack, params)
 end
 
 function client:resp_creator(cmd, need_ack, params)
-	return self._packet_create(types.SYSTEM.REPLY, cmd, self._passwd, self._dev_id, need_ack, params)
+	return self._packet_create(self._packet_ver, types.SYSTEM.REPLY, cmd, self._passwd, self._dev_id, need_ack, params)
 end
 
 function client:find_tag_sn(tag_name)
@@ -136,7 +135,7 @@ function client:process(raw_data)
 
 	local p, buf, err = self._packet_parse(buf, 1, function(bad_raw)
 		self:log('error', 'CRC Error Data Found')
-	end)
+	end, self._packet_crc)
 
 	if buf and string.len(buf) > 0 then
 		self._process_buf = buf
@@ -152,7 +151,8 @@ function client:process(raw_data)
 		self._system = p:system()
 		self._passwd = p:password()
 		self._dev_id = p:device_id()
-		local station, reply_code = self:on_station_create(p:system(), p:device_id(), p:password())
+		self._packet_ver = p:version()
+		local station, reply_code = self:on_station_create(p:system(), p:device_id(), p:password(), p:version())
 		if not station then
 			self:log('error', 'REPLY_CODE', reply_code)
 			self:send_reply(p:session(), reply_code)
@@ -313,7 +313,7 @@ function client:close()
 	assert(nil, 'Not implemented')
 end
 
-function client:on_station_create()
+function client:on_station_create(system, dev_id, passwd, packet_ver)
 	assert(nil, 'Not implemented')
 end
 

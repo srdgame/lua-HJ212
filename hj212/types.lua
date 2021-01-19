@@ -2,6 +2,11 @@
 --
 local _M = {}
 
+_M.PROTOCOL = {
+	V2005 = 0,
+	V2017 = 1,
+}
+
 _M.SYSTEM = {
 	Q_SURFACE_WATER		= 21,
 	Q_AIR				= 22,

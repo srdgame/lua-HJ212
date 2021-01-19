@@ -23,8 +23,13 @@ function pack.static.parse(raw, index, on_crc_err)
 		return nil, '', 'Header(##) missing'
 	end
 
+	local data_len = nil
+	if string.len(raw) - index + 1 < 12 then
+		data_len = 1
+	end
+
 	-- Read the data_len XXXX
-	local data_len = tonumber(string.sub(raw, index + 2, index + 5))
+	data_len = data_len or tonumber(string.sub(raw, index + 2, index + 5))
 	assert(data_len and data_len > 0 and data_len < 9999)
 	local raw_len = string.len(raw)
 	--logger.debug(data_len, raw_len, index)

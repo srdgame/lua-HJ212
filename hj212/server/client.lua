@@ -1,16 +1,26 @@
 local class = require 'middleclass'
 local logger = require 'hj212.logger'
-local packet = require 'hj212.packet'
 local types = require 'hj212.types'
+local packet = require 'hj212.packet'
 local pfinder = require 'hj212.utils.pfinder'
 
 local client = class('hj212.server.client')
 
-function client:initialize()
+function client:initialize(pfuncs)
 	self._station = nil
 	self._system = nil
 	self._dev_id = nil
 	self._passwd = nil
+
+	if pfuncs then
+		self._packet_create = assert(pfuncs.create)
+		self._packet_parse = assert(pfuncs.parse)
+	else
+		self._packet_create = function(...)
+			return packet:new(...)
+		end
+		self._packet_parse = packet.static.parse
+	end
 
 	self._process_buf = nil
 	self._packet_buf = {}
@@ -39,6 +49,14 @@ end
 
 function client:station()
 	return self._station
+end
+
+function client:req_creator(cmd, need_ack, params)
+	return self._packet_create(self._system, cmd, self._passwd, self._dev_id, need_ack, params)
+end
+
+function client:resp_creator(cmd, need_ack, params)
+	return self._packet_create(types.SYSTEM.REPLY, cmd, self._passwd, self._dev_id, need_ack, params)
 end
 
 function client:find_tag_sn(tag_name)
@@ -116,7 +134,7 @@ end
 function client:process(raw_data)
 	local buf = self._process_buf and self._process_buf..raw_data or raw_data
 
-	local p, buf, err = packet.static.parse(buf, 1, function(bad_raw)
+	local p, buf, err = self._packet_parse(buf, 1, function(bad_raw)
 		self:log('error', 'CRC Error Data Found')
 	end)
 
@@ -193,11 +211,9 @@ function client:process(raw_data)
 end
 
 function client:reply(reply)
-	local r, pack = pcall(reply.encode, reply, {
-		sys = self._system,
-		passwd = self._passwd,
-		devid = self._dev_id
-	})
+	local r, pack = pcall(reply.encode, reply, function(...)
+		return self:resp_creator(...)
+	end)
 
 	if r then
 		assert(pack:system() == types.SYSTEM.REPLY)
@@ -221,11 +237,9 @@ function client:reply(reply)
 end
 
 function client:request(req, response)
-	local r, pack = pcall(req.encode, req, {
-		sys = self._system,
-		passwd = self._passwd,
-		devid = self._dev_id
-	})
+	local r, pack = pcall(req.encode, req, function(...)
+		return self:req_creator(...)
+	end)
 
 	if not r then
 		self:log('error', pack or 'EEEEEEEEEEEEEE')

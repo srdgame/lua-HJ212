@@ -1,6 +1,5 @@
 local class = require 'middleclass'
 local logger = require 'hj212.logger'
-local packet = require 'hj212.packet'
 local types = require 'hj212.types'
 local pfinder = require 'hj212.utils.pfinder'
 

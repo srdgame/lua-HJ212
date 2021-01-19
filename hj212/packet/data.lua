@@ -20,7 +20,7 @@ end
 -- TODO: Packet spilit
 function data:encode()
 	assert(string.len(self._passwd) == 6)
-	assert(string.len(self._devid) == 24)
+	assert(string.len(self._devid) > 0) -- == 24) -- The standard is 24 char len, but we need to support exceptions :-(
 	assert(self._sys >= 0 and self._sys <= 99)
 
 	local flag = (1 << 2 ) + (self._need_ack and 1 or 0)

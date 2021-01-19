@@ -1,5 +1,4 @@
 local class = require 'middleclass'
-local packet = require 'hj212.packet'
 local types = require 'hj212.types'
 local pfinder = require 'hj212.utils.pfinder'
 
@@ -29,15 +28,16 @@ function req:set_session(session)
 	self._session = session
 end
 
-function req:encode(client)
-	assert(client.sys, "System code missing")
-	assert(client.passwd, "Password missing")
-	assert(client.devid, 'Device ID missing')
+--- Creator: function(command, need_ack, params)
+function req:encode(creator)
+	assert(creator, "Creator missing")
+	assert(type(creator) == 'function', "Creator must be function")
 
 	local cmd = self._command:command()
 	local params = self._command:encode()
 
-	local p = packet:new(client.sys, cmd, client.passwd, client.devid, self._need_ack, params)
+	--local p = packet:new(client.sys, cmd, client.passwd, client.devid, self._need_ack, params)
+	local p = assert(creator(cmd, self._need_ack, params))
 	if self._session then
 		p:set_session(self._session)
 	end

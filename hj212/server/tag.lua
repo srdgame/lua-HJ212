@@ -125,12 +125,13 @@ function tag:on_calc_value(type_name, val, timestamp)
 	assert(nil, "Not implemented")
 end
 
-function tag:set_value(value, timestamp)
+function tag:set_value(value, timestamp, value_z)
 	self._value = value
+	self._value_z = value_z
 	self._timestamp = timestamp
 	self._flag = self:value_flag(value)
 	if self._cou_calc then
-		return self._cou_calc:push(value, timestamp)
+		return self._cou_calc:push(value, timestamp, value_z)
 	end
 	return true
 end

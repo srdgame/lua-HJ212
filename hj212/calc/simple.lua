@@ -10,15 +10,15 @@ local simple = base:subclass('hj212.calc.simple')
 -- The AVG is COU / sample count
 --]]
 
-function simple:initialize(station, name, mask, min, max)
-	base.initialize(self, station, name, mask, min, max)
+function simple:initialize(station, name, mask, min, max, zs_calc)
+	base.initialize(self, station, name, mask, min, max, zs_calc)
 end
 
-function simple:push(value, timestamp)
+function simple:push(value, timestamp, value_z)
 	if timestamp < self._last_calc_time then
 		return nil, 'older value skipped ts:'..timestamp..' last:'..self._last_calc_time
 	end
-	return base.push(self, value, timestamp)
+	return base.push(self, value, timestamp, value_z)
 end
 
 local function calc_sample(list, start, etime, zs)
@@ -41,8 +41,7 @@ local function calc_sample(list, start, etime, zs)
 		val_cou = val_cou + val
 		
 		if zs then
-			local val_z = v.value_z
-			assert(val_z ~= nil)
+			local val_z = v.value_z or 0
 			--logger.log('debug', 'simple.calc_sample ZS', val_z, val_cou_z, val_min_z, val_max_z)
 			val_min_z = val_z < val_min_z and val_z or val_min_z
 			val_max_z = val_z > val_max_z and val_z or val_max_z
@@ -135,10 +134,10 @@ local function calc_cou(list, start, etime, zs)
 		val_t_avg = val_t_avg + v.avg
 
 		if zs then
-			val_min_z = v.min_z < val_min_z and v.min_z or val_min_z
-			val_max_z = v.max_z > val_max_z and v.max_z or val_max_z
-			val_cou_z = val_cou_z + v.cou_z
-			val_t_avg_z = val_t_avg_z + v.avg_z
+			val_min_z = (v.min_z or 0) < val_min_z and v.min_z or val_min_z
+			val_max_z = (v.max_z or 0) > val_max_z and v.max_z or val_max_z
+			val_cou_z = val_cou_z + (v.cou_z or 0)
+			val_t_avg_z = val_t_avg_z + (v.avg_z or 0)
 		end
 	end
 

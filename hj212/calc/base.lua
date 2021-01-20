@@ -46,7 +46,36 @@ local function create_callback(obj, typ)
 	end
 end
 
-function base:initialize(station, name, type_mask, min, max)
+local function create_zs(calc)
+	assert(calc)
+	local zs_calc = calc
+	return function (typ, val, now)
+		assert(typ, 'Type missing')
+		assert(val, 'Value missing')
+		assert(now, 'Now missing')
+		if typ == mgr.TYPES.SAMPLE then
+			assert(val.value ~= nil, 'Value missing')
+			val.value_z = zs_calc(val.value, now, 'SAMPLE')
+			assert(val.value_z ~= nil)
+		elseif typ == mgr.TYPES.RDATA then
+			assert(val.value ~= nil, 'Value missing')
+			val.value_z = zs_calc(val.value, now, 'RDATA')
+			assert(val.value_z ~= nil)
+		else
+			--[[
+			assert(val.avg ~= nil, 'AVG missing')
+			assert(val.min ~= nil, 'MIN missing')
+			assert(val.max ~= nil, 'MAX missing')
+			val.avg_z = zs_calc(val.avg, now, 'AVG')
+			val.min_z = zs_calc(val.min, now, 'MIN')
+			val.max_z = zs_calc(val.max, now, 'MAX')
+			]]--
+		end
+		return val
+	end
+end
+
+function base:initialize(station, name, type_mask, min, max, zs_calc)
 	assert(station, "Station missing")
 	assert(name, "Name missing")
 	self._station = station
@@ -79,6 +108,10 @@ function base:initialize(station, name, type_mask, min, max)
 	self._pre_calc = {}
 	self._zs_calc = nil
 	self._last_sample = nil
+
+	if zs_calc then
+		self:_set_zs_calc(zs_calc)
+	end
 end
 
 function base:set_callback(callback)
@@ -103,8 +136,18 @@ function base:push_pre_calc(pre)
 	table.insert(self._pre_calc, pre)
 end
 
-function base:set_zs_calc(calc)
-	self._zs_calc = calc
+function base:_set_zs_calc(calc)
+	if type(calc) == 'boolean' then
+		if calc then
+			self._zs_calc = function(typ, val, now)
+				return val
+			end
+		else
+			self._zs_calc = nil
+		end
+	else
+		self._zs_calc = create_zs(calc)
+	end
 end
 
 function base:has_zs()
@@ -256,15 +299,17 @@ function base:load_from_db()
 	end
 end
 
-function base:push(value, timestamp)
-	--self:debug('pushing sample', value, timestamp)
+function base:push(value, timestamp, value_z)
+	-- self:debug('pushing sample', value, timestamp, value_z)
 	local last = self._sample_list:last()
 	if last and last.timestamp == timestamp then
 		assert(last.value == value)
+		assert(not value_z or value_z == last.value_z)
+		assert(not last.value_z or last.value_z == value_z)
 		return nil, "Already has this data"
 	end
 
-	local val, err = self._sample_list:append({value = value, timestamp = timestamp})
+	local val, err = self._sample_list:append({value = value, timestamp = timestamp, value_z = value_z})
 	if val then
 		self._last_sample = val
 		return true

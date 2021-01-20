@@ -16,8 +16,8 @@ local water = base:subclass('hj212.calc.water')
 --- The upper tag, e.g. [w00000]
 -- If the upper tag not exists time will be used for caclue the (COU) value
 --
-function water:initialize(station, name, mask, min, max)
-	base.initialize(self, station, name, mask, min, max)
+function water:initialize(station, name, mask, min, max, zs_calc)
+	base.initialize(self, station, name, mask, min, max, zs_calc)
 
 	local upper_calc = nil
 	if name ~= 'w00000' then
@@ -36,14 +36,14 @@ function water:initialize(station, name, mask, min, max)
 	end
 end
 
-function water:push(value, timestamp)
+function water:push(value, timestamp, value_z)
 	assert(timestamp)
 	if timestamp < self._last_calc_time then
 		local err = 'older value skipped ts:'..timestamp..' last:'..self._last_calc_time
 		self:log('error', err)
 		return nil, err
 	end
-	return base.push(self, value, timestamp)
+	return base.push(self, value, timestamp, value_z)
 end
 
 local function calc_sample(list, start, etime, zs)
@@ -70,8 +70,7 @@ local function calc_sample(list, start, etime, zs)
 		val_cou = val_cou + cou
 
 		if zs then
-			local value_z = v.value_z
-			assert(value_z ~= nil)
+			local value_z = v.value_z or 0
 			val_min_z = value_z < val_min_z and value_z or val_min_z
 			val_max_z = value_z > val_max_z and value_z or val_max_z
 
@@ -173,9 +172,9 @@ local function calc_cou(list, start, etime, zs)
 		val_cou = val_cou + v.cou
 
 		if zs then
-			val_min_z = v.min_z < val_min_z and v.min_z or val_min_z
-			val_max_z = v.max_z > val_max_z and v.max_z or val_max_z
-			val_cou_z = val_cou + v.cou_z
+			val_min_z = (v.min_z or 0) < val_min_z and v.min_z or val_min_z
+			val_max_z = (v.max_z or 0) > val_max_z and v.max_z or val_max_z
+			val_cou_z = val_cou + (v.cou_z or 0)
 		end
 	end
 

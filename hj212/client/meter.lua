@@ -31,10 +31,10 @@ function meter:info_list()
 end
 
 --- Tags value
-function meter:set_tag_value(name, value, timestamp)
+function meter:set_tag_value(name, value, timestamp, value_z)
 	local tag = self._tag_list[name]
 	if tag then
-		return tag:set_value(value, timestamp)
+		return tag:set_value(value, timestamp, value_z)
 	end
 	return nil, "No such tag:"..name
 end

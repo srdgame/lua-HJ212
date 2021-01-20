@@ -119,13 +119,13 @@ function station:add_meter(meter)
 end
 
 --- Tags value
-function station:set_tag_value(name, value, timestamp)
+function station:set_tag_value(name, value, timestamp, value_z)
 	assert(name ~= nil)
 	assert(value ~= nil)
 	assert(timestamp ~= nil)
 	local tag = self._tag_list[name]
 	if tag then
-		return tag:set_value(value, timestamp)
+		return tag:set_value(value, timestamp, value_z)
 	end
 	return nil, "No such tag:"..name
 end

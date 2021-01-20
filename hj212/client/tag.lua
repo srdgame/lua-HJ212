@@ -110,14 +110,15 @@ function tag:on_calc_value(type_name, val, timestamp)
 	assert(nil, "Not implemented")
 end
 
-function tag:set_value(value, timestamp)
+function tag:set_value(value, timestamp, value_z)
 	self._value = value
+	self._value_z = value_z
 	self._timestamp = timestamp
-	return self._cou_calc:push(value, timestamp)
+	return self._cou_calc:push(value, timestamp, value_z)
 end
 
 function tag:get_value()
-	return self._value, self._timestamp
+	return self._value, self._timestamp, self._value_z
 end
 
 function tag:query_rdata(timestamp, readonly)

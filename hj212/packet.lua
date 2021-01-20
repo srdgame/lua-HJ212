@@ -13,7 +13,8 @@ local function packet_crc(data_raw, crc_func)
 	return string.format('%04X', f(data_raw))
 end
 
-function pack.static.parse(raw, index, on_crc_err, crc_func)
+function pack.static.parse(raw, index, on_err, crc_func)
+	local on_err = on_err or logger.error
 	--logger.debug('begin', index, raw)
 	local index = string.find(raw, pack.static.HEADER, index or 1, true)
 	if not index then
@@ -44,11 +45,16 @@ function pack.static.parse(raw, index, on_crc_err, crc_func)
 	--- Check TAIL
 	local s_end = index + data_len + 2 + 4 + 4
 	if string.sub(raw, s_end, s_end + 1) ~= pack.static.TAIL then 
+		local err = 'Tailer<CR><LF> missing'
+		on_err(err)
+		return pack.static.parse(raw, index + 2, on_err, crc_func)
+		--[[
 		local index = string.find(raw, pack.static.HEADER, index + 2,  true)
 		if index then
 			return nil, string.sub(raw, index), 'Tailer missing'
 		end
 		return nil, nil, 'Tailer missing'
+		]]--
 	end
 
 	local s_data = index + 6
@@ -59,13 +65,10 @@ function pack.static.parse(raw, index, on_crc_err, crc_func)
 
 	local calc_crc = packet_crc(data_raw, crc_func)
 	if calc_crc ~= crc then
-		if on_crc_err then
-			logger.debug('CRC ERROR', calc_crc, crc, data_raw)
-			on_crc_err(data_raw)
-		else
-			logger.error('CRC error')
-		end
-		return nil, string.sub(raw, s_end + 2), 'CRC Error'
+		local err = string.format('CRC Error, calc:%s recv:%s', calc_crc, crc)
+		on_err(err)
+		return pack.static.parse(raw, s_end + 2, on_err, crc_func)
+		--return nil, string.sub(raw, s_end + 2), 'CRC Error'
 	end
 
 	local obj = pack:new()

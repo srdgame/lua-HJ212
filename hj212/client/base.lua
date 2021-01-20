@@ -156,8 +156,8 @@ end
 function client:process(raw_data)
 	local buf = self._process_buf and self._process_buf..raw_data or raw_data
 
-	local p, buf, err = self._packet_parse(buf, 1, function(bad_raw)
-		self:log('error', 'CRC Error Data Found')
+	local p, buf, err = self._packet_parse(buf, 1, function(err)
+		self:log('error', err)
 	end, self._packet_crc)
 
 	if buf and string.len(buf) > 0 then

@@ -100,7 +100,7 @@ function base:initialize(station, name, type_mask, min, max, zs_calc)
 		return val
 	end, 60 * 60)
 	--- Calculated
-	self._rdata_list = data_list:new('etime', create_callback(self, mgr.TYPES.RDATA), 60 * 6)
+	self._rdata_list = data_list:new('timestamp', create_callback(self, mgr.TYPES.RDATA), 60 * 6)
 	self._min_list = data_list:new('etime', create_callback(self, mgr.TYPES.MIN))
 	self._hour_list = data_list:new('etime', create_callback(self, mgr.TYPES.HOUR))
 	self._day_list = data_list:new('etime', create_callback(self, mgr.TYPES.DAY))

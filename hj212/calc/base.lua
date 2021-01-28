@@ -166,7 +166,7 @@ function base:_on_value(typ, val, timestamp)
 	assert(val.avg or val.value, self._name..[['s value missing]])
 
 	--- Make sure timestamp is present which required for saving in DB
-	val.timestamp = val.timestamp or val.etime
+	val.timestamp = assert(val.timestamp or val.etime)
 
 	--- Calculate the Value Flag by min/max
 	val.flag = val.flag or self:value_flag(val.avg or val.value)
@@ -329,11 +329,15 @@ function base:query_rdata(now, readonly)
 	if readonly or not self._last_sample then
 		return nil, "No rdata for this time:"..now
 	end
-	-- Clean the last sample as we expect the new sample arrived before next query_rdata called
+
+	--- Genereate RDATA
 	val = self._last_sample
-	self._last_sample = nil
 	val.src_time = val.timestamp
 	val.timestamp = now
+	val.etime = now --- For callback usage
+
+	-- Clean the last sample as we expect the new sample arrived before next query_rdata called
+	self._last_sample = nil
 
 	assert(self._rdata_list:append(val))
 

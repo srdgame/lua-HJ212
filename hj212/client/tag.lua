@@ -133,7 +133,7 @@ function tag:query_rdata(timestamp, readonly)
 		Flag = val.flag,
 		ZsRtd = val.value_z,
 		--- EFlag is optional
-		SampleTime = val.timestamp
+		SampleTime = val.src_time or val.timestamp,
 	}, timestamp, self._fmt)
 end
 

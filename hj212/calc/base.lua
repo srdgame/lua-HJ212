@@ -329,10 +329,9 @@ function base:query_rdata(now, readonly)
 	if readonly or not self._last_sample then
 		return nil, "No rdata for this time:"..now
 	end
-	val = {}
-	for k, v in pairs(self._last_sample) do
-		val[k] = v
-	end
+	-- Clean the last sample as we expect the new sample arrived before next query_rdata called
+	val = self._last_sample
+	self._last_sample = nil
 	val.src_time = val.timestamp
 	val.timestamp = now
 

@@ -333,7 +333,8 @@ function base:query_rdata(now, readonly)
 	for k, v in pairs(self._last_sample) do
 		val[k] = v
 	end
-	val.etime = now
+	val.src_time = val.timestamp
+	val.timestamp = now
 
 	assert(self._rdata_list:append(val))
 

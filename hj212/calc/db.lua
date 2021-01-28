@@ -2,44 +2,50 @@ local class = require 'middleclass'
 
 local base = class('hj212.calc.db')
 
+local DB_VER = 7 --version
+
 function base:initialize()
 end
 
 function base:sample_meta()
 	return {
-		{ name = 'value', type = 'DOUBLE', not_null = true },
-		{ name = 'flag', type = 'INTEGER', not_null = true },
-		-- Time
 		{ name = 'timestamp', type = 'DOUBLE', not_null = true },
+		-- Values
+		{ name = 'value', type = 'DOUBLE', not_null = true },
+		{ name = 'flag', type = 'CHAR(1)', not_null = true },
 		-- COU
 		{ name = 'cou', type = 'DOUBLE', not_null = false },
 		--- Zs
 		{ name = 'value_z', type = 'DOUBLE', not_null = false },
 		{ name = 'cou_z', type = 'DOUBLE', not_null = false },
-	}, 5 --version
+	}, DB_VER
 end
 
 function base:rdata_meta()
 	return {
+		{ name = 'timestamp', type = 'DOUBLE', not_null = true },
+		-- Values
 		{ name = 'value', type = 'DOUBLE', not_null = true },
-		{ name = 'flag', type = 'INTEGER', not_null = true },
+		{ name = 'flag', type = 'CHAR(1)', not_null = true },
 		-- Time
-		{ name = 'etime', type = 'INTEGER', not_null = true },
+		{ name = 'src_time', type = 'DOUBLE', not_null = true },
 		-- COU
 		{ name = 'cou', type = 'DOUBLE', not_null = false },
 		--- Zs
 		{ name = 'value_z', type = 'DOUBLE', not_null = false },
 		{ name = 'cou_z', type = 'DOUBLE', not_null = false },
-	}, 5 --version
+	}, DB_VER
 end
 
 function base:cou_meta()
 	return {
+		{ name = 'timestamp', type = 'DOUBLE', not_null = true },
+		-- Values
 		{ name = 'cou', type = 'DOUBLE', not_null = true },
 		{ name = 'avg', type = 'DOUBLE', not_null = true },
 		{ name = 'min', type = 'DOUBLE', not_null = true },
 		{ name = 'max', type = 'DOUBLE', not_null = true },
-		{ name = 'flag', type = 'INTEGER', not_null = true },
+		{ name = 'flag', type = 'CHAR(1)', not_null = true },
 		-- Time
 		{ name = 'stime', type = 'INTEGER', not_null = true },
 		{ name = 'etime', type = 'INTEGER', not_null = true },
@@ -48,7 +54,7 @@ function base:cou_meta()
 		{ name = 'avg_z', type = 'DOUBLE', not_null = false },
 		{ name = 'min_z', type = 'DOUBLE', not_null = false },
 		{ name = 'max_z', type = 'DOUBLE', not_null = false },
-	}, 5
+	}, DB_VER
 end
 
 function base:push_sample(data)

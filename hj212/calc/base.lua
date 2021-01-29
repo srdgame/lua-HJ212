@@ -416,7 +416,7 @@ end
 function base:query_hour_data(start_time, end_time)
 	local first = self._hour_list:first()
 	if first and first.etime <= start_time then
-		return self._min_list:query(start_time, end_time)
+		return self._hour_list:query(start_time, end_time)
 	elseif self._db then
 		local name = type_names[mgr.TYPES.HOUR]
 		return self._db:read(name, start_time, end_time)

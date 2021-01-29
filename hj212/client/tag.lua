@@ -151,7 +151,7 @@ function tag:convert_data(data)
 				ZsMin = v.min_z,
 				ZsMax = v.max_z,
 				Flag = v.flag,
-			}, v.stime, self._fmt)
+			}, v.etime, self._fmt)
 		else
 			rdata[#rdata + 1] = param_tag:new(self._name, {
 				Avg = v.avg,
@@ -160,7 +160,7 @@ function tag:convert_data(data)
 				ZsAvg = v.avg_z,
 				ZsMin = v.min_z,
 				Flag = v.flag,
-			}, v.stime, self._fmt)
+			}, v.etime, self._fmt)
 		end
 	end
 	return rdata

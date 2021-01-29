@@ -38,14 +38,16 @@ local function calc_sample(list, start, etime, zs)
 		assert(type(val) == 'number')
 		val_min = val < val_min and val or val_min
 		val_max = val > val_max and val or val_max
-		val_cou = val_cou + val
+		val_cou = val_cou + (v.cou or val)
 		
+		--logger.log('debug', 'simple.calc_sample', val_cou, v.cou or val, val_min, val_max)
+
 		if zs then
 			local val_z = v.value_z or 0
 			--logger.log('debug', 'simple.calc_sample ZS', val_z, val_cou_z, val_min_z, val_max_z)
 			val_min_z = val_z < val_min_z and val_z or val_min_z
 			val_max_z = val_z > val_max_z and val_z or val_max_z
-			val_cou_z = val_cou_z + val_z
+			val_cou_z = val_cou_z + (v.cou_z or val_z)
 		end
 	end
 

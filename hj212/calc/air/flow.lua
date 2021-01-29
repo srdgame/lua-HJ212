@@ -19,7 +19,7 @@ function flow:__call(typ, val, now)
 		val.cou = val.value * (now - self._last_rdata_time)
 		self._last_rdata_time = now
 	else
-		val.cou = val.avg * (val.stime - val.etime)
+		--val.cou = val.avg * (val.etime - val.stime)
 	end
 
 	return val

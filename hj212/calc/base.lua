@@ -331,7 +331,10 @@ function base:query_rdata(now, readonly)
 	end
 
 	--- Genereate RDATA
-	val = self._last_sample
+	local val = {}
+	for k, v in pairs(self._last_sample) do
+		val[k] = v
+	end
 	val.src_time = val.timestamp
 	val.timestamp = now
 	val.etime = now --- For callback usage

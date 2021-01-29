@@ -39,13 +39,14 @@ local PARAMS = {
 
 tag.static.PARAMS = PARAMS
 
-function tag:initialize(tag_name, obj, data_time, fmt)
+function tag:initialize(tag_name, obj, data_time, default_fmt)
 	self._name = tag_name
 	self._data_time = data_time
+	self._default_fmt = default_fmt
 	self._items = {}
 	self._cloned = nil
 	for k, v in pairs(obj or {}) do
-		self:set(k, v, fmt)
+		self:set(k, v, default_fmt)
 	end
 end
 
@@ -59,12 +60,29 @@ function tag:clone(new_tag_name)
 	return new_obj
 end
 
+function tag:tranform(f)
+	assert(f)
+	local new_obj = tag:new(self._name)
+	new_obj._data_time = self._data_time
+	new_obj._items = {}
+	new_obj._default_fmt = self._default_fmt
+	for k, v in pairs(self._items) do
+		local new_val = f(k, v:value())
+		new_obj:set(k, new_val, self._default_fmt)
+	end
+	return new_obj
+end
+
 function tag:tag_name()
 	return self._name
 end
 
 function tag:data_time()
 	return self._data_time
+end
+
+function tag:default_format()
+	return self._default_fmt
 end
 
 function tag:get(name)
@@ -75,17 +93,18 @@ function tag:get(name)
 	return nil, "Not exists!"
 end
 
-function tag:set(name, value, fmt)
+function tag:set(name, value, def_fmt)
 	assert(not self._cloned)
+	local def_fmt = def_fmt or self._default_fmt
 	local p = self._items[name]
 	if p then
 		return p:set_value(value)
 	end
 
 	if PARAMS[name] then
-		p = PARAMS[name]:new(self._name, value, fmt)
+		p = PARAMS[name]:new(self._name, value, def_fmt)
 	else
-		p = simple:new(name, value, fmt)
+		p = simple:new(name, value, def_fmt)
 	end
 	self._items[name] = p
 end

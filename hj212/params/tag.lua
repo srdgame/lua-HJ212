@@ -60,15 +60,15 @@ function tag:clone(new_tag_name)
 	return new_obj
 end
 
-function tag:tranform(f)
-	assert(f)
+function tag:transform(func)
+	assert(func)
 	local new_obj = tag:new(self._name)
 	new_obj._data_time = self._data_time
 	new_obj._items = {}
 	new_obj._default_fmt = self._default_fmt
 	for k, v in pairs(self._items) do
-		local new_val = f(k, v:value())
-		new_obj:set(k, new_val, self._default_fmt)
+		local key, val = func(k, v:value())
+		new_obj:set(key, val, self._default_fmt)
 	end
 	return new_obj
 end

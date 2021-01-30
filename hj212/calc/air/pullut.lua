@@ -23,6 +23,9 @@ function pullut:__call(typ, val, now)
 	local cou_value = flow[fn](flow, val.etime)
 	if cou_value then
 		val.cou = cou_value.cou * val.avg * (10 ^ -6)
+		if val.avg_z then
+			val.cou_z = cou_value.cou * val.avg_z * (10 ^ -6)
+		end
 	else
 		self._pullut:log('debug', 'No COU base value')
 	end

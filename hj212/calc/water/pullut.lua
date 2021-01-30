@@ -19,10 +19,14 @@ function pullut:__call(typ, val, now)
 			val.cou = 0
 		else
 			val.cou = cou_val.cou * val.value * (10 ^ -3)
+			if val.value_z then
+				val.cou_z = cou_val.cou * val.value_z * (10 ^ -3)
+			end
 		end
 		return val
 	end
 	if typ == mgr.TYPES.RDATA then
+		--- Not calc for cou and cou_z as RDATA is not using for COU calculation
 		return val
 	end
 
@@ -34,8 +38,14 @@ function pullut:__call(typ, val, now)
 	if fval then
 		if fval.cou == 0 then
 			val.avg = 0
+			if val.avg_z then
+				val.avg_z = 0
+			end
 		else
 			val.avg = (val.cou / fval.cou) * (10 ^ -3)
+			if val.cou_z then
+				val.avg_z = (val.cou_z / fval.cou) * (10 ^ -3)
+			end
 		end
 	end
 

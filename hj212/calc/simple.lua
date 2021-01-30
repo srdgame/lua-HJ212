@@ -26,9 +26,11 @@ local function calc_sample(list, start, etime, zs)
 	local val_cou = 0
 	local val_min = 0
 	local val_max = 0
+	local val_t = 0
 	local val_cou_z = zs and 0 or nil
 	local val_min_z = zs and 0 or nil
 	local val_max_z = zs and 0 or nil
+	local val_t_z = zs and 0 or nil
 
 	local last = start - 0.0001 -- make sure the asserts work properly
 	for i, v in ipairs(list) do
@@ -39,6 +41,7 @@ local function calc_sample(list, start, etime, zs)
 		val_min = val < val_min and val or val_min
 		val_max = val > val_max and val or val_max
 		val_cou = val_cou + (v.cou or val)
+		val_t = val_t + val
 		
 		--logger.log('debug', 'simple.calc_sample', val_cou, v.cou or val, val_min, val_max)
 
@@ -48,11 +51,12 @@ local function calc_sample(list, start, etime, zs)
 			val_min_z = val_z < val_min_z and val_z or val_min_z
 			val_max_z = val_z > val_max_z and val_z or val_max_z
 			val_cou_z = val_cou_z + (v.cou_z or val_z)
+			val_t_z = val_t_z + val_z
 		end
 	end
 
-	local val_avg = #list > 0 and val_cou / #list or 0
-	local val_avg_z = zs and (#list > 0 and val_cou_z / #list or 0) or nil
+	local val_avg = #list > 0 and val_t / #list or 0
+	local val_avg_z = zs and (#list > 0 and val_t_z / #list or 0) or nil
 
 	--logger.log('debug', 'simple.calc_sample', #list, val_cou, val_avg, val_min, val_max)
 	--[[

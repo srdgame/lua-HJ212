@@ -2,16 +2,16 @@ local class = require 'middleclass'
 local mgr = require 'hj212.calc.manager'
 local base = require 'hj212.calc.base'
 
-local pullut = class('hj212.calc.helper.pullut')
+local pollut = class('hj212.calc.helper.pollut')
 
-function pullut:initialize(pullut, flow)
-	assert(pullut)
+function pollut:initialize(pollut, flow)
+	assert(pollut)
 	assert(flow)
-	self._pullut = pullut
+	self._pollut = pollut
 	self._flow = flow
 end
 
-function pullut:__call(typ, val, now)
+function pollut:__call(typ, val, now)
 	local flow = self._flow
 	if typ == mgr.TYPES.SAMPLE then
 		local cou_val = flow:sample_last()
@@ -52,4 +52,4 @@ function pullut:__call(typ, val, now)
 	return val
 end
 
-return pullut
+return pollut

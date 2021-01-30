@@ -3,7 +3,7 @@ local base = require 'hj212.calc.base'
 local mgr = require 'hj212.calc.manager'
 local types = require 'hj212.types'
 local flow = require 'hj212.calc.water.flow'
-local pullut = require 'hj212.calc.water.pullut'
+local pollut = require 'hj212.calc.water.pollut'
 
 local water = base:subclass('hj212.calc.water')
 
@@ -26,7 +26,7 @@ function water:initialize(station, name, mask, min, max, zs_calc)
 				self._upper = water
 				local water_calc = water:cou_calc()
 				self:push_pre_calc(water_calc)
-				self:push_value_calc(pullut:new(self, water_calc))
+				self:push_value_calc(pollut:new(self, water_calc))
 			else
 				self:push_value_calc(flow:new(self))
 			end

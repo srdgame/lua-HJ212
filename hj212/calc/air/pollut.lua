@@ -2,14 +2,14 @@ local class = require 'middleclass'
 local mgr = require 'hj212.calc.manager'
 local base = require 'hj212.calc.base'
 
-local pullut = class('hj212.calc.helper.pullut')
+local pollut = class('hj212.calc.helper.pollut')
 
-function pullut:initialize(pullut, pullut_flow)
-	self._pullut = pullut
-	self._flow = pullut_flow
+function pollut:initialize(pollut, pollut_flow)
+	self._pollut = pollut
+	self._flow = pollut_flow
 end
 
-function pullut:__call(typ, val, now)
+function pollut:__call(typ, val, now)
 	assert(self._flow)
 	if typ == mgr.TYPES.RDATA or typ == mgr.TYPES.SAMPLE then
 		return val
@@ -27,10 +27,10 @@ function pullut:__call(typ, val, now)
 			val.cou_z = cou_value.cou * val.avg_z * (10 ^ -6)
 		end
 	else
-		self._pullut:log('debug', 'No COU base value')
+		self._pollut:log('debug', 'No COU value of flow tag')
 	end
 
 	return val
 end
 
-return pullut
+return pollut

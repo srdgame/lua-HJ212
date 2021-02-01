@@ -20,6 +20,10 @@ function pollut:__call(typ, val, now)
 	local fn = 'query_'..string.lower(type_name)
 	assert(flow[fn], 'Missing function:'..fn)
 
+	if val.etime ~= now then
+		print(type_name, now, val.etime, val.timestamp)
+	end
+
 	local cou_value = flow[fn](flow, val.etime)
 	if cou_value then
 		val.cou = cou_value.cou * val.avg * (10 ^ -6)
@@ -27,7 +31,7 @@ function pollut:__call(typ, val, now)
 			val.cou_z = cou_value.cou * val.avg_z * (10 ^ -6)
 		end
 	else
-		self._pollut:log('debug', 'No COU value of flow tag')
+		self._pollut:log('debug', 'No COU value of flow tag', type_name, val.etime)
 	end
 
 	return val

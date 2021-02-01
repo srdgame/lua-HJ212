@@ -11,12 +11,17 @@ function station:initialize(system, id, sleep_func)
 	self._system = tonumber(system)
 	self._id = id
 	self._sleep_func = sleep_func
+	self._handlers = {}
 	self._tag_list = {}
 	self._meters = {}
 	self._cems = cems:new(self)
 	self._water = nil
 	self._air = nil
 	self._calc_mgr = nil
+end
+
+function station:set_handlers(handlers)
+	self._handlers = handlers or {}
 end
 
 function station:system()
@@ -192,6 +197,44 @@ function station:info_data()
 		}
 	end
 	return data
+end
+
+function station:update_rdata_interval(interval)
+	self._rdata_interval = interval
+	if self._handlers.rdata_interval then
+		local r, rr, err = pcall(self._handlers.rdata_interval, interval)
+		if r then
+			return rr, err
+		end
+		return nil, "Program failure!!"
+	end
+end
+
+function station:update_min_interval(interval)
+	self._min_interval = interval
+	if self._handlers.min_interval then
+		local r, rr, err = pcall(self._handlers.min_interval, interval)
+		if r then
+			return rr, err
+		end
+		return nil, "Program failure!!"
+	end
+end
+
+function station:set_rdata_interval(interval)
+	self._rdata_interval = interval
+end
+
+function station:rdata_interval()
+	return self._rdata_interval
+end
+
+function station:set_min_interval(interval)
+	self._min_interval = interval
+end
+
+function station:min_interval()
+	return self._min_interval
 end
 
 return station

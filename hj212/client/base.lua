@@ -12,6 +12,7 @@ function client:initialize(station, passwd, timeout, retry, pfuncs)
 	self._system = tonumber(station:system())
 	self._dev_id = station:id()
 	self._passwd = passwd
+	self._rdata_enable = true
 	self._timeout = (tonumber(timeout) or 5) * 1000
 	self._retry = tonumber(retry) or 3
 
@@ -70,6 +71,14 @@ end
 
 function client:set_retry(retry)
 	self._retry = retry
+end
+
+function client:rdata_enable()
+	return self._rdata_enable
+end
+
+function client:set_rdata_enable(enable)
+	self._rdata_enable = enable
 end
 
 function client:req_creator(cmd, need_ack, params)
@@ -283,6 +292,10 @@ end
 
 function client:close()
 	assert(nil, 'Not implemented')
+end
+
+function client:handle(cmd, ...)
+	return false, 'Not implemented'
 end
 
 return client

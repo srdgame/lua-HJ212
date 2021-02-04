@@ -45,7 +45,7 @@ function pack.static.parse(raw, index, on_err, crc_func)
 	--- Check TAIL
 	local s_end = index + data_len + 2 + 4 + 4
 	if string.sub(raw, s_end, s_end + 1) ~= pack.static.TAIL then 
-		local err = 'Tailer<CR><LF> missing'
+		local err = 'Tailer<CR><LF> missing, received:'..string.sub(raw, s_end, s_end + 1)
 		on_err(err)
 		return pack.static.parse(raw, index + 2, on_err, crc_func)
 		--[[

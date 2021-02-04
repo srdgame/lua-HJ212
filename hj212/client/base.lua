@@ -295,6 +295,17 @@ function client:close()
 end
 
 function client:handle(cmd, ...)
+	if self.on_command then
+		return self.on_command(cmd, ...)
+	end
+	for k, v in pairs(types.COMMAND) do
+		if v == cmd then
+			local fn = 'on_command_'..string.lower(k)
+			if self[fn] then
+				return self[fn](self, ...)
+			end
+		end
+	end
 	return false, 'Not implemented'
 end
 

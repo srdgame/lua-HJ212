@@ -21,7 +21,7 @@ function handler:process(request)
 	stime = stime + (min_interval * 60) -- for ending time not start
 	etime = etime + (min_interval * 60)
 
-	return self:client:handle(types.COMMAND.MIN_DATA, stime, etime)
+	return self._client:handle(types.COMMAND.MIN_DATA, stime, etime)
 end
 
 return handler

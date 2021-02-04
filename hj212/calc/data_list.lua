@@ -26,6 +26,10 @@ end
 
 function list:_append(data, cb)
 	local key = self._key
+	if not data[self._key] then
+		logger.debug('EEEEEEEEEEEEeeee')
+		return
+	end
 	local time = data[self._key]
 	local keys = self._keys
 	local vals = self._vals

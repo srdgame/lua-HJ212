@@ -108,7 +108,7 @@ end
 function client:on_request(req)
 	local cmd = req:command()
 	local session = req:session()
-	self:log('info', 'Process request', session, cmd)
+	self:log('info', 'Received request', session, cmd)
 
 	local handler, err = self:find_handler(cmd)
 
@@ -123,7 +123,7 @@ function client:on_request(req)
 	if not result then
 		self:log('error', 'Process request failed', session, cmd, err)
 	else
-		self:log('info', 'Process request successfully', session, cmd)
+		self:log('debug', 'Process request successfully', session, cmd)
 		if req:need_ack() then
 			self:send_ack(session)
 		end

@@ -139,7 +139,7 @@ end
 function client:on_request(request)
 	local cmd = request:command()
 	local session = request:session()
-	self:log('info', 'Process request', session, cmd)
+	self:log('info', 'Received request', session, cmd)
 
 	local handler, err = self:find_handler(cmd)
 
@@ -156,7 +156,7 @@ function client:on_request(request)
 	if not result then
 		self:log('error', 'Process request failed', session, cmd, err)
 	else
-		self:log('info', 'Process request successfully', session, cmd)
+		self:log('debug', 'Process request successfully', session, cmd)
 	end
 
 	self:send_result(session, result and types.RESULT.SUCCESS or types.RESULT.ERR_UNKNOWN)

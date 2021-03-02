@@ -21,6 +21,16 @@ function simple:push(value, timestamp, value_z)
 	return base.push(self, value, timestamp, value_z)
 end
 
+local function flag_can_calc(flag)
+	if flag == nil then
+		return true
+	end
+	if flag == types.Flag.Normal or flag == types.Flag.Overproof then
+		return true
+	end
+	return false
+end
+
 local function calc_sample(list, start, etime, zs)
 	local flag = #list == 0 and types.FLAG.Connection or nil
 	local val_cou = 0
@@ -34,24 +44,26 @@ local function calc_sample(list, start, etime, zs)
 
 	local last = start - 0.0001 -- make sure the asserts work properly
 	for i, v in ipairs(list) do
-		assert(v.timestamp > last, string.format('Timestamp issue:%f\t%f', v.timestamp, last))
-		last = v.timestamp
-		local val = v.value
-		assert(type(val) == 'number')
-		val_min = val < val_min and val or val_min
-		val_max = val > val_max and val or val_max
-		val_cou = val_cou + (v.cou or val)
-		val_t = val_t + val
-		
-		--logger.log('debug', 'simple.calc_sample', val_cou, v.cou or val, val_min, val_max)
+		if flag_can_calc(v.flag) then
+			assert(v.timestamp > last, string.format('Timestamp issue:%f\t%f', v.timestamp, last))
+			last = v.timestamp
+			local val = v.value
+			assert(type(val) == 'number')
+			val_min = val < val_min and val or val_min
+			val_max = val > val_max and val or val_max
+			val_cou = val_cou + (v.cou or val)
+			val_t = val_t + val
 
-		if zs then
-			local val_z = v.value_z or 0
-			--logger.log('debug', 'simple.calc_sample ZS', val_z, val_cou_z, val_min_z, val_max_z)
-			val_min_z = val_z < val_min_z and val_z or val_min_z
-			val_max_z = val_z > val_max_z and val_z or val_max_z
-			val_cou_z = val_cou_z + (v.cou_z or val_z)
-			val_t_z = val_t_z + val_z
+			--logger.log('debug', 'simple.calc_sample', val_cou, v.cou or val, val_min, val_max)
+
+			if zs then
+				local val_z = v.value_z or 0
+				--logger.log('debug', 'simple.calc_sample ZS', val_z, val_cou_z, val_min_z, val_max_z)
+				val_min_z = val_z < val_min_z and val_z or val_min_z
+				val_max_z = val_z > val_max_z and val_z or val_max_z
+				val_cou_z = val_cou_z + (v.cou_z or val_z)
+				val_t_z = val_t_z + val_z
+			end
 		end
 	end
 

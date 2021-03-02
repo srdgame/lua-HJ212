@@ -46,6 +46,16 @@ function water:push(value, timestamp, value_z)
 	return base.push(self, value, timestamp, value_z)
 end
 
+local function flag_can_calc(flag)
+	if flag == nil then
+		return true
+	end
+	if flag == types.Flag.Normal or flag == types.Flag.Overproof then
+		return true
+	end
+	return false
+end
+
 local function calc_sample(list, start, etime, zs)
 	local flag = #list == 0 and types.FLAG.CONNECTION or nil
 	local val_cou = 0
@@ -60,26 +70,28 @@ local function calc_sample(list, start, etime, zs)
 	local last_avg_z = nil
 
 	for i, v in ipairs(list) do
-		assert(v.timestamp > last, string.format('Timestamp issue:%f\t%f', v.timestamp, last))
-		local value = v.value
-		val_min = value < val_min and value or val_min
-		val_max = value > val_max and value or val_max
+		if flag_can_calc(v.flag) then
+			assert(v.timestamp > last, string.format('Timestamp issue:%f\t%f', v.timestamp, last))
+			local value = v.value
+			val_min = value < val_min and value or val_min
+			val_max = value > val_max and value or val_max
 
-		local cou = v.cou
-		last_avg = cou / (v.timestamp - last)
-		val_cou = val_cou + cou
+			local cou = v.cou
+			last_avg = cou / (v.timestamp - last)
+			val_cou = val_cou + cou
 
-		if zs then
-			local value_z = v.value_z or 0
-			val_min_z = value_z < val_min_z and value_z or val_min_z
-			val_max_z = value_z > val_max_z and value_z or val_max_z
+			if zs then
+				local value_z = v.value_z or 0
+				val_min_z = value_z < val_min_z and value_z or val_min_z
+				val_max_z = value_z > val_max_z and value_z or val_max_z
 
-			local cou_z = v.cou_z
-			last_avg_z = cou_z / (v.timestamp - last)
-			val_cou_z = val_cou_z + cou_z
+				local cou_z = v.cou_z
+				last_avg_z = cou_z / (v.timestamp - last)
+				val_cou_z = val_cou_z + cou_z
+			end
+
+			last = v.timestamp
 		end
-
-		last = v.timestamp
 	end
 
 	if #list > 0 and last < etime then

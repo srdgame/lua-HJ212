@@ -36,7 +36,7 @@ end
 local function create_callback(obj, typ)
 	local type_name = type_names[typ]
 	return function(val)
-		local val, err = obj:_on_value(typ, val, val.etime)
+		local val, err = obj:_on_value(typ, val, val.etime, val.quality)
 		if val then
 			obj:_db_write(type_name, val)
 			return val
@@ -89,7 +89,7 @@ function base:initialize(station, name, type_mask, min, max, zs_calc)
 	self._last_calc_time = 0
 	--- Sample data list for minutes calculation
 	self._sample_list = data_list:new('timestamp', function(val)
-		local val, err = self:_on_value(mgr.TYPES.SAMPLE, val, val.timestamp)
+		local val, err = self:_on_value(mgr.TYPES.SAMPLE, val, val.timestamp, val.quality)
 		if not val then
 			self:log('error', string.format('calc.on_value[%s] error:%s', 'SAMPLE', err))
 			return nil, err
@@ -154,7 +154,7 @@ function base:has_zs()
 	return self._zs_calc ~= nil
 end
 
-function base:_on_value(typ, val, timestamp)
+function base:_on_value(typ, val, timestamp, quality)
 	assert(typ, 'type missing')
 	assert(val, 'value missing')
 	assert(timestamp, 'timestamp missing')
@@ -189,7 +189,7 @@ function base:_on_value(typ, val, timestamp)
 	end
 
 	if self._callback then
-		val, err = self._callback(name, val, timestamp)
+		val, err = self._callback(name, val, timestamp, quality)
 		if not val then
 			return nil, err
 		end
@@ -299,8 +299,8 @@ function base:load_from_db()
 	end
 end
 
-function base:push(value, timestamp, value_z)
-	-- self:debug('pushing sample', value, timestamp, value_z)
+function base:push(value, timestamp, value_z, flag, quality)
+	-- self:debug('pushing sample', value, timestamp, value_z, flag, quality)
 	local last = self._sample_list:last()
 	if last and last.timestamp == timestamp then
 		assert(last.value == value)
@@ -309,7 +309,7 @@ function base:push(value, timestamp, value_z)
 		return nil, "Already has this data"
 	end
 
-	local val, err = self._sample_list:append({value = value, timestamp = timestamp, value_z = value_z})
+	local val, err = self._sample_list:append({value = value, timestamp = timestamp, value_z = value_z, flag = flag, quality = quality})
 	if val then
 		self._last_sample = val
 		return true

@@ -10,6 +10,7 @@ local tag = class('hj212.client.tag')
 --- Calc name
 -- Has COU is nil will using auto detect
 function tag:initialize(station, name, options)
+	assert(station)
 	assert(name, "Tag name missing")
 	self._station = station
 	self._meter = nil
@@ -26,6 +27,8 @@ function tag:initialize(station, name, options)
 	self._value = nil
 	self._flag = types.FLAG.Normal
 	self._timestamp = nil
+	self._quality = nil
+	self._flag = nil
 
 	-- COU calculator
 	self._cou_calc = nil
@@ -70,12 +73,12 @@ function tag:init()
 
 	local cou_calc = m:new(self._station, tag_name, mask, self._min, self._max, self._zs_calc, table.unpack(params))
 
-	cou_calc:set_callback(function(type_name, val, timestamp)
+	cou_calc:set_callback(function(type_name, val, timestamp, quality)
 		if val.cou ~= nil and type(self._cou.cou) == 'number' then
 			val.cou = has_cou
 		end
 
-		return self:on_calc_value(type_name, val, timestamp)
+		return self:on_calc_value(type_name, val, timestamp, quality)
 	end)
 
 	self._cou_calc = cou_calc
@@ -110,15 +113,18 @@ function tag:on_calc_value(type_name, val, timestamp)
 	assert(nil, "Not implemented")
 end
 
-function tag:set_value(value, timestamp, value_z)
+function tag:set_value(value, timestamp, value_z, flag, quality)
+	local flag = flag == nil and self._meter:get_flag() or nil
 	self._value = value
 	self._value_z = value_z
 	self._timestamp = timestamp
-	return self._cou_calc:push(value, timestamp, value_z)
+	self._flag = flag
+	self._quality = quality
+	return self._cou_calc:push(value, timestamp, value_z, flag, quality)
 end
 
 function tag:get_value()
-	return self._value, self._timestamp, self._value_z
+	return self._value, self._timestamp, self._value_z, self._flag, self._quality
 end
 
 function tag:query_rdata(timestamp, readonly)

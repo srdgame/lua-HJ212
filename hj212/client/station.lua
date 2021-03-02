@@ -13,6 +13,7 @@ function station:initialize(system, id, sleep_func)
 	self._sleep_func = sleep_func
 	self._handlers = {}
 	self._tag_list = {}
+	self._info_list = {}
 	self._meters = {}
 	self._cems = cems:new(self)
 	self._water = nil
@@ -99,6 +100,10 @@ function station:init(calc_mgr, err_cb)
 	self._calc_mgr = calc_mgr
 	self._tag_waits = {}
 
+	for _, v in ipairs(self._meters) do
+		v:init(err_cb)
+	end
+
 	utils_sort.for_each_sorted_key(self._tag_list, function(tag)
 		local r, err = tag:init(self)
 		if not r then
@@ -121,18 +126,33 @@ function station:add_meter(meter)
 		assert(self._tag_list[name] == nil)
 		self._tag_list[name] = tag
 	end
+	for name, info in pairs(meter:info_list()) do
+		assert(self._info_list[name] == nil)
+		self._info_list[name] = info
+	end
 end
 
 --- Tags value
-function station:set_tag_value(name, value, timestamp, value_z)
+function station:set_tag_value(name, value, timestamp, value_z, flag, quality)
 	assert(name ~= nil)
 	assert(value ~= nil)
 	assert(timestamp ~= nil)
 	local tag = self._tag_list[name]
 	if tag then
-		return tag:set_value(value, timestamp, value_z)
+		return tag:set_value(value, timestamp, value_z, flag, quality)
 	end
 	return nil, "No such tag:"..name
+end
+
+function station:set_info_value(name, value, timestamp, quality)
+	assert(name ~= nil)
+	assert(value ~= nil)
+	assert(timestamp ~= nil)
+	local info = self._info_list[name]
+	if info then
+		return info:set_value(value, timestamp, quality)
+	end
+	return nil, "No such info:"..name
 end
 
 function station:rdata(timestamp, readonly)
@@ -190,11 +210,7 @@ end
 function station:info_data()
 	local data = {}
 	for _, info in pairs(self._info_list) do
-		local value, timestamp = info:get_value()
-		data[#data + 1] = {
-			value = value,
-			timestamp = timestamp,
-		}
+		data[#data + 1] = info:data()
 	end
 	return data
 end

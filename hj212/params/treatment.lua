@@ -61,6 +61,20 @@ function device:set(name, value)
 	self._items[name] = p
 end
 
+function tag:_set_from_raw(name, value)
+	local p = self._items[name]
+	if p then
+		return p:decode(value)
+	end
+	if PARAMS[name] then
+		p = PARAMS[name]:new(self._name)
+	else
+		p = simple:new(name)
+	end
+	self._items[name] = p
+	return p:decode(value)
+end
+
 function device:encode()
 	local raw = {}
 	local sort = {}
@@ -81,7 +95,7 @@ function device:decode(raw)
 	for param in string.gmatch(raw, '([^,;]+),?') do
 		local name, key, val = string.match(param, '^SB([^%-]+)%-([^=]+)=(%w+)')
 		if name == self._name then
-			self:set_from_raw(key, val)
+			self:_set_from_raw(key, val)
 		else
 			logger.error("Error found", name, key, val)
 		end

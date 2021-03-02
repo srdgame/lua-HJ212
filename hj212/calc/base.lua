@@ -169,7 +169,10 @@ function base:_on_value(typ, val, timestamp, quality)
 	val.timestamp = assert(val.timestamp or val.etime)
 
 	--- Calculate the Value Flag by min/max
-	val.flag = val.flag or self:value_flag(val.avg or val.value)
+	--val.flag = val.flag or self:value_flag(val.avg or val.value)
+	if not val.flag or val.flag == types.FLAG.Normal then
+		val.flag = self:value_flag(val.avg or val.value)
+	end
 
 	--- Call the calculators
 	local err

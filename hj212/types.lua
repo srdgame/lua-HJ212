@@ -64,6 +64,15 @@ _M.FLAG = {
 	Connection	= 'B',
 }
 
+_M.RS = {
+	Stoped = 0,
+	Normal = 1,
+	Calibration = 2,
+	Maintain = 3,
+	Alarm = 4,
+	Clean = 5,
+}
+
 _M.COMMAND = {
 	-- Setup
 	SET_TIMEOUT_RETRY	= 1000,

@@ -24,8 +24,6 @@ function client:initialize(station, passwd, timeout, retry, pfuncs)
 	self._packet_crc = pfuncs.crc
 	self._packet_ver = assert(protocal_ver or types.PROTOCOL.V2017)
 
-	self._treatment = {}
-
 	self._process_buf = nil
 	self._handlers = {}
 	self._finders = {
@@ -94,15 +92,6 @@ function client:find_tag_sn(tag_name)
 	if meter then
 		return meter:sn()
 	end
-end
-
-function client:add_treatment(treatment)
-	self._treatments[treatment:id()] = treatment
-end
-
-function client:get_treatement(id)
-	assert(id ~= nil)
-	return self._treatments[id]
 end
 
 function client:add_handler(packet_path_base)

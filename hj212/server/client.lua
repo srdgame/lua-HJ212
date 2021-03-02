@@ -65,15 +65,6 @@ function client:find_tag_sn(tag_name)
 	end
 end
 
-function client:add_treatment(treatment)
-	self._treatments[treatment:id()] = treatment
-end
-
-function client:get_treatement(id)
-	assert(id ~= nil)
-	return self._treatments[id]
-end
-
 function client:add_handler(packet_path_base)
 	table.insert(self._finders, 1, pfinder(types.COMMAND, packet_path_base))
 end

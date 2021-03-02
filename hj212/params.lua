@@ -3,7 +3,7 @@ local copy = require 'hj212.utils.copy'
 local dtime  require 'hj212.params.value.time'
 local datetime = require 'hj212.params.value.datetime'
 local simple = require 'hj212.params.value.simple'
-local dev_param = require 'hj212.params.treatment'
+local sts_param = require 'hj212.params.states'
 local tag_param = require 'hj212.params.tag'
 local settings = require 'hj212.settings'
 
@@ -46,8 +46,8 @@ local PARAMS = {
 params.static.PARAMS = PARAMS
 
 function params:initialize(obj)
-	self._has_devs = false
-	self._devs = {}
+	self._has_states = false
+	self._states = {}
 	self._has_tags = false
 	self._tags = {}
 	self._params = {}
@@ -64,12 +64,12 @@ function params:tags()
 	return self._tags
 end
 
-function params:has_devices()
-	return self._has_devs
+function params:has_states()
+	return self._has_states
 end
 
-function params:devices()
-	return self._devs
+function params:statess()
+	return self._states
 end
 
 function params:get(name)
@@ -121,12 +121,12 @@ function params:set_from_raw(name, raw_value)
 	return p:decode(raw_value)
 end
 
-function params:add_device(data_time, dev)
+function params:add_states(data_time, sts)
 	assert(data_time)
-	self._has_devs = true
-	local t = self._devs[data_time] or {}
-	table.insert(t, dev)
-	self._devs[data_time] = t
+	self._has_states = true
+	local t = self._states[data_time] or {}
+	table.insert(t, sts)
+	self._states[data_time] = t
 end
 
 function params:add_tag(data_time, tag)
@@ -137,9 +137,9 @@ function params:add_tag(data_time, tag)
 	self._tags[data_time] = t
 end
 
-function params:encode_devices(base)
+function params:encode_states(base)
 	local data = {}
-	for data_time, devs in pairs(self._devs) do
+	for data_time, stss in pairs(self._states) do
 		local function create_data_sub()
 			local data_sub = copy.deep(base)
 			table.insert(data_sub, string.format('DataTime=%s', datetime:new('DataTime', data_time):encode()))
@@ -148,16 +148,16 @@ function params:encode_devices(base)
 		end
 		local data_sub, len = create_data_sub()
 
-		for i, dev in ipairs(devs) do
-			local dev_data = dev:encode()
-			len = len + string.len(dev_data) + 1
+		for i, sts in ipairs(stss) do
+			local sts_data = sts:encode()
+			len = len + string.len(sts_data) + 1
 
 			if len > max_packet_len then
 				table.insert(data, table.concat(data_sub, ';'))
 				data_sub, len = create_data_sub()
-				len = len + string.len(dev_data) + 1
+				len = len + string.len(sts_data) + 1
 			end
-			table.insert(data_sub, dev_data)
+			table.insert(data_sub, sts_data)
 		end
 		-- Insert data_sub to data
 		table.insert(data, table.concat(data_sub, ';'))
@@ -199,8 +199,8 @@ function params:encode_tags(base)
 end
 
 function params:encode()
-	-- Remove the DataTime if has devs or tags
-	if self._has_tags or self._has_devs then
+	-- Remove the DataTime if has states or tags
+	if self._has_tags or self._has_states then
 		self._params['DataTime'] = nil
 	end
 
@@ -217,13 +217,13 @@ function params:encode()
 		raw[#raw + 1] = string.format('%s=%s', v, val:encode())
 	end
 
-	local devs = self:encode_devices(raw)
+	local stss = self:encode_states(raw)
 	local tags = self:encode_tags(raw)
-	if #devs == 0 and #tags == 0 then
+	if #stss == 0 and #tags == 0 then
 		return table.concat(raw, ';')
 	else
 		local data = {}
-		for _, v in ipairs(devs) do
+		for _, v in ipairs(stss) do
 			table.insert(data, v)
 		end
 		for _, v in ipairs(tags) do
@@ -235,7 +235,7 @@ end
 
 function params:decode(raw, index)
 	self._params = {}
-	local devs = {}
+	local stss = {}
 	local tags = {}
 
 	for param in string.gmatch(raw, '([^;]+);?') do
@@ -249,9 +249,9 @@ function params:decode(raw, index)
 				local m = '^SB([^%-]+)%-(%w+)'
 				local dev_name, type_name = string.match(key, m)
 				if dev_name and type_name then
-					dev = dev_param:new(tag_name)
-					dev:decode(param)
-					table.insert(devs, tag)
+					sts = sts_param:new(dev_name)
+					sts:decode(param)
+					table.insert(stss, tag)
 				else
 					logger.error('Error SB found')
 				end
@@ -272,9 +272,9 @@ function params:decode(raw, index)
 		self._tags[data_time] = tags
 		self._has_tags = true
 	end
-	if #devs > 0 then
-		self._devs[data_time] = devs
-		self._has_devs = true
+	if #stss > 0 then
+		self._states[data_time] = stss
+		self._has_states = true
 	end
 end
 

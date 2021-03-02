@@ -1,12 +1,12 @@
-local logger = require 'hj212.logger'
 local class = require 'middleclass'
+local logger = require 'hj212.logger'
 local simple = require 'hj212.params.value.simple'
 
-local device = class('hj212.params.treatment')
+local state = class('hj212.params.state')
 
 local fmts = {}
 local function ES(fmt)
-	local pn = 'hj212.device.ES_'..fmt
+	local pn = 'hj212.state.ES_'..fmt
 
 	if not fmts[fmt] then
 		fmts[fmt] = simple.EASY(pn, fmt)
@@ -15,23 +15,14 @@ local function ES(fmt)
 	return fmts[fmt]
 end
 
-device.static.STATUS = {
-	ClOSED = 0,
-	RUNNING = 1,
-	CALIBRATION = 2,
-	MAINTAIN = 3,
-	WARNING = 4,
-	ACTION = 5,
-}
-
 local PARAMS = {
 	RS = ES('N1'),
 	RT = ES('N2.2'),
 }
 
-device.static.PARAMS = PARAMS
+state.static.PARAMS = PARAMS
 
-function device:initialize(dev_name, obj)
+function state:initialize(dev_name, obj)
 	self._name = dev_name
 	self._items = {}
 	for k, v in pairs(obj or {}) do
@@ -39,7 +30,7 @@ function device:initialize(dev_name, obj)
 	end
 end
 
-function device:get(name)
+function state:get(name)
 	local p = self._items[name]
 	if p then
 		return p:value()
@@ -47,7 +38,7 @@ function device:get(name)
 	return nil, "Not exists!"
 end
 
-function device:set(name, value)
+function state:set(name, value)
 	local p = self._items[name]
 	if p then
 		return p:set_value(value)
@@ -61,7 +52,7 @@ function device:set(name, value)
 	self._items[name] = p
 end
 
-function tag:_set_from_raw(name, value)
+function state:_set_from_raw(name, value)
 	local p = self._items[name]
 	if p then
 		return p:decode(value)
@@ -75,7 +66,7 @@ function tag:_set_from_raw(name, value)
 	return p:decode(value)
 end
 
-function device:encode()
+function state:encode()
 	local raw = {}
 	local sort = {}
 	for k, v in pairs(self._items) do
@@ -89,7 +80,7 @@ function device:encode()
 	return table.concat(raw, ',')
 end
 
-function device:decode(raw)
+function state:decode(raw)
 	self._items = {}
 
 	for param in string.gmatch(raw, '([^,;]+),?') do
@@ -102,4 +93,4 @@ function device:decode(raw)
 	end
 end
 
-return device
+return state

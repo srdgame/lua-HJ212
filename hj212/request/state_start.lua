@@ -1,8 +1,8 @@
 local types = require 'hj212.types'
-local command = require 'hj212.command.treatment_start'
+local command = require 'hj212.command.state_start'
 local base = require 'hj212.request.base'
 
-local req = base:subclass('hj212.request.treatment_start')
+local req = base:subclass('hj212.request.state_start')
 
 function req:initialize(status, need_ack)
 	local cmd = command:new()

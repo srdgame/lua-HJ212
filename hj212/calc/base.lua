@@ -303,7 +303,7 @@ function base:load_from_db()
 end
 
 function base:push(value, timestamp, value_z, flag, quality)
-	-- self:debug('pushing sample', value, timestamp, value_z, flag, quality)
+	--self:debug('pushing sample', value, timestamp, value_z, flag, quality)
 	local last = self._sample_list:last()
 	if last and last.timestamp == timestamp then
 		assert(last.value == value)

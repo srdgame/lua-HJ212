@@ -105,7 +105,7 @@ function client:on_request(req)
 
 	if not handler then
 		if req:need_ack() then
-			self:send_reply(req:session(), types.REPLY.ERR_UNKNOWN)
+			self:send_reply(req:session(), types.REPLY.ERR_REJECT)
 		end
 		return
 	end
@@ -113,6 +113,9 @@ function client:on_request(req)
 	local result, err = handler(req)
 	if not result then
 		self:log('error', 'Process request failed', session, cmd, err)
+		if req:need_ack() then
+			self:send_reply(req:session(), types.REPLY.ERR_UNKNOWN)
+		end
 	else
 		self:log('debug', 'Process request successfully', session, cmd)
 		if req:need_ack() then

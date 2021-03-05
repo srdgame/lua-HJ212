@@ -50,7 +50,7 @@ local function flag_can_calc(flag)
 	if flag == nil then
 		return true
 	end
-	if flag == types.Flag.Normal or flag == types.Flag.Overproof then
+	if flag == types.FLAG.Normal or flag == types.FLAG.Overproof then
 		return true
 	end
 	return false

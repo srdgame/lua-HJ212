@@ -47,8 +47,8 @@ local function calc_sample(list, start, etime, zs)
 		if flag_can_calc(v.flag) then
 			assert(v.timestamp > last, string.format('Timestamp issue:%f\t%f', v.timestamp, last))
 			last = v.timestamp
-			local val = v.value
-			assert(type(val) == 'number')
+			local val = v.value or 0
+			assert(type(val) == 'number', 'Type is not number but '..type(val))
 			val_min = val < val_min and val or val_min
 			val_max = val > val_max and val or val_max
 			val_cou = val_cou + (v.cou or val)

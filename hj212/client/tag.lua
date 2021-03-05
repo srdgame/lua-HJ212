@@ -89,6 +89,10 @@ function tag:init()
 	return true
 end
 
+function tag:inited()
+	return self._inited
+end
+
 function tag:set_meter(mater)
 	self._meter = mater
 end

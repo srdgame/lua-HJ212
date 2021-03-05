@@ -81,6 +81,10 @@ function tag:data_time()
 	return self._data_time
 end
 
+function tag:set_data_time(time)
+	self._data_time = time
+end
+
 function tag:default_format()
 	return self._default_fmt
 end
@@ -142,6 +146,9 @@ function tag:decode(raw)
 
 	for param in string.gmatch(raw, '([^;,]+),?') do
 		local name, key, val = string.match(param, '^([^%-]+)%-([^=]+)=(.+)')
+		if self._name == nil then
+			self._name = name
+		end
 		if name == self._name then
 			self:_set_from_raw(key, val)
 		else

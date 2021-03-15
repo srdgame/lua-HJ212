@@ -24,21 +24,30 @@ function pack.static.parse(raw, index, on_err, crc_func)
 		return nil, '', 'Header(##) missing'
 	end
 
-	local data_len = nil
-	if string.len(raw) - index + 1 < 12 then
-		data_len = 1
+	local raw_len = string.len(raw)
+
+	-- If stream is short than ##dddd
+	if raw_len - index + 1 < 6 then
+		if index > 1 then
+			raw = string.sub(raw, index)
+		end
+		return nil, raw, 'Need more'
 	end
 
-	-- Read the data_len XXXX
-	data_len = data_len or tonumber(string.sub(raw, index + 2, index + 5))
-	assert(data_len and data_len > 0 and data_len < 9999)
-	local raw_len = string.len(raw)
-	--logger.debug(data_len, raw_len, index)
+	-- Read the data_len dddd
+	local data_len = tonumber(string.sub(raw, index + 2, index + 5))
+	if not data_len or data_len < 0 then
+		local err = 'Data length error. got'..string.sub(raw, index + 2, index + 5)
+		on_err(err)
+		return pack.static.parse(raw, index + 1, on_err, crc_func)
+	end
+
+	-- ##dddd....XXXX\r\n
 	if data_len + 12 > raw_len - index + 1 then
-		local err = 'Data not enougth. data_len:'..data_len..' raw_len:'..raw_len..' index:'..index
-		if index ~= 1 then
-			return nil, string.sub(raw, index), err
+		if index > 1 then
+			raw = string.sub(raw, index)
 		end
+		local err = 'Data not enougth. data_len:'..data_len..' raw_len:'..raw_len..' index:'..index
 		return nil, raw, err
 	end
 
@@ -48,19 +57,14 @@ function pack.static.parse(raw, index, on_err, crc_func)
 		local err = 'Tailer<CR><LF> missing, received:'..string.sub(raw, s_end, s_end + 1)
 		on_err(err)
 		return pack.static.parse(raw, index + 2, on_err, crc_func)
-		--[[
-		local index = string.find(raw, pack.static.HEADER, index + 2,  true)
-		if index then
-			return nil, string.sub(raw, index), 'Tailer missing'
-		end
-		return nil, nil, 'Tailer missing'
-		]]--
 	end
 
+	--- Get the packet data
 	local s_data = index + 6
 	local data_raw = string.sub(raw, s_data, s_data + data_len - 1)
 
-	local s_crc = index + 6 + data_len
+	--- Get the crc
+	local s_crc = s_data + data_len
 	local crc = string.sub(raw, s_crc, s_crc + 3)
 
 	local calc_crc = packet_crc(data_raw, crc_func)
@@ -68,9 +72,9 @@ function pack.static.parse(raw, index, on_err, crc_func)
 		local err = string.format('CRC Error, calc:%s recv:%s', calc_crc, crc)
 		on_err(err)
 		return pack.static.parse(raw, s_end + 2, on_err, crc_func)
-		--return nil, string.sub(raw, s_end + 2), 'CRC Error'
 	end
 
+	--- Decode packet
 	local obj = pack:new()
 	obj:decode(data_raw)
 

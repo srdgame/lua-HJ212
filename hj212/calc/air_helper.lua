@@ -42,7 +42,10 @@ end
 
 -- 27
 function _M._Cz_A(Cvo2_dry)
-	assert(Cvo2_dry ~= 0.21)
+	--assert(Cvo2_dry ~= 0.21)
+	if math.abs(Cvo2_dry - 0.21) < 0.1 then
+		Cvo2_dry = 0.20
+	end
 	return 0.21 / (0.21 - Cvo2_dry)
 end
 
@@ -53,7 +56,10 @@ end
 
 -- 28
 function _M.Cz2(Csn_dry, Cvo2_dry, Co2s)
-	assert(Cvo2_dry ~= 0.21)
+	--assert(Cvo2_dry ~= 0.21)
+	if math.abs(Cvo2_dry - 0.21) < 0.1 then
+		Cvo2_dry = 0.20
+	end
 	logger.log('trace', 'Cz2:', 'Csn_dry', Csn_dry, 'Cvo2_dry', Cvo2_dry, 'Co2s', Co2s)
 	return Csn_dry * (0.21 - Co2s) / (0.21 - Cvo2_dry)
 end

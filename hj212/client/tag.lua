@@ -4,6 +4,7 @@ local logger = require 'hj212.logger'
 local types = require 'hj212.types'
 local param_tag = require 'hj212.params.tag'
 local calc_mgr_m = require 'hj212.calc.manager'
+local tag_info = require 'hj212.client.info'
 
 local tag = class('hj212.client.tag')
 
@@ -33,6 +34,9 @@ function tag:initialize(station, name, options)
 	-- COU calculator
 	self._cou_calc = nil
 	self._inited = false
+
+	-- Info list
+	self._info_list = {}
 end
 
 --- Guess the proper calculator name
@@ -189,6 +193,35 @@ end
 function tag:query_day_data(start_time, end_time)
 	local data = self._cou_calc:query_day_data(start_time, end_time)
 	return self:convert_data(data)
+end
+
+function tag:add_info(name, options)
+	self._info_list[name] = tag_info:new(self, name, options)
+end
+
+function tag:find_info(name)
+	local info = self._info_list[name]
+	if not info then
+		return nil, "Tag has no such info: "..name
+	end
+	return info
+end
+
+function tag:set_info_value(info_list)
+	for k, v in pairs(info_list) do
+		local info = self._info_list[k]
+		if info then
+			info:set_value(v)
+		end
+	end
+end
+
+function tag:info_data()
+	local data = {}
+	for k, v in pairs(self._info_list) do
+		table.insert(v:data())
+	end
+	return data
 end
 
 return tag

@@ -2,16 +2,10 @@ local class = require 'middleclass'
 
 local meter = class('hj212.client.meter')
 
-function meter:initialize(sn, info_list, tag_list)
+function meter:initialize(sn, tag_list)
 	assert(sn, 'Device SN missing')
 	assert(tag_list, 'Device tags missing')
-	assert(info_list, 'Device info missing')
 	self._sn = sn
-
-	for k, v in pairs(info_list) do
-		v:set_meter(self)
-	end
-	self._info_list = info_list
 
 	for k, v in pairs(tag_list) do
 		v:set_meter(self)
@@ -30,14 +24,6 @@ end
 
 function meter:tag_list()
 	return self._tag_list
-end
-
-function meter:find_info(name)
-	return self._info_list[name]
-end
-
-function meter:info_list()
-	return self._info_list
 end
 
 function meter:set_flag(flag)
@@ -67,13 +53,14 @@ function meter:set_tag_value(name, value, timestamp, value_z, flag, quality)
 	return nil, "No such tag:"..name
 end
 
---- XXXXX-Info value
-function meter:set_info_value(name, value, timestamp, quality)
-	local info = self._info_list[name]
-	if info then
-		return info:set_value(value, timestamp, quality)
+--- Tags info value
+function meter:set_info_value(name, info_list)
+	local tag = self._tag_list[name]
+	if not tag then
+		return nil, "No such tag:"..name
 	end
-	return nil, "No sub info:"..name
+
+	return tag:set_info(info_list)
 end
 
 function meter:rdata(timestamp, readonly)

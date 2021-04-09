@@ -6,8 +6,8 @@ local cems = class('hj212.client.station.cems')
 local CEMS_TM = {
 	-- CEMS 安装地点的环境大气压值，Pa
 	Ba = {
-		--name = 'a01006',
-		name = 'i23001',
+		name = 'a01006',
+		--name = 'i23001',
 		default = 101.325,
 		rate = 1000
 	},
@@ -45,10 +45,14 @@ local CEMS_TM = {
 		name = 'Kv',
 		default = 1
 	},
-	-- CEMS 设置速度场系数
+	-- CEMS 排放标准中规定的该行业标准过量空气系数
 	As = {
 		name = 'As',
 		default = 1.7 --
+	},
+	Co2s = {
+		name = 'Co2s',
+		default = 0.1 -- ????
 	},
 	-- Mno 一氧化氮摩尔质量
 	Mno = {

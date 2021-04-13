@@ -29,8 +29,8 @@ function base:add_tag(...)
 	return self._params:add_tag(...)
 end
 
-function base:add_device(...)
-	return self._params:add_device(...)
+function base:add_state(...)
+	return self._params:add_state(...)
 end
 
 function base:encode()

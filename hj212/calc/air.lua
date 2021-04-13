@@ -5,9 +5,9 @@ local pollut = require 'hj212.calc.air.pollut'
 
 local air = base:subclass('hj212.calc.air')
 
-function air:initialize(station, name, type_mask, min, max, zs_calc)
-	base.initialize(self, station, name, type_mask, min, max, zs_calc)
-	if name ~= 'a00000' then
+function air:initialize(station, id, type_mask, min, max, zs_calc)
+	base.initialize(self, station, id, type_mask, min, max, zs_calc)
+	if id ~= 'a00000' then
 		self._station:air(function(air)
 			if air then
 				local air_calc = air:cou_calc()

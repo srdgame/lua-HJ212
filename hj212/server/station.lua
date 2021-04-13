@@ -14,7 +14,7 @@ function station:initialize(conf, sleep_func)
 	self._sleep_func = sleep_func
 
 	self._client = nil
-	self._tag_list = {}
+	self._poll_list = {}
 	self._meters = {}
 end
 
@@ -70,28 +70,28 @@ function station:meters()
 	return self._meters
 end
 
-function station:find_tag(name)
-	return self._tag_list[name]
+function station:find_poll(id)
+	return self._poll_list[id]
 end
 
-function station:find_tag_meter(name)
-	local tag = self._tag_list[name]
-	if tag then
-		return tag:meter()
+function station:find_poll_meter(id)
+	local poll = self._poll_list[id]
+	if poll then
+		return poll:meter()
 	end
 	return nil, "Not found"
 end
 
-function station:tags()
-	return self._tag_list
+function station:polls()
+	return self._poll_list
 end
 
 function station:add_meter(meter)
 	assert(meter)
 	table.insert(self._meters, meter)
-	for name, tag in pairs(meter:tag_list()) do
-		assert(self._tag_list[name] == nil)
-		self._tag_list[name] = tag
+	for id, poll in pairs(meter:poll_list()) do
+		assert(self._poll_list[id] == nil)
+		self._poll_list[id] = poll
 	end
 end
 

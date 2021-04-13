@@ -11,9 +11,9 @@ local tags = {}
 for i, v in ipairs(t) do
 	if i ~= 1 then
 		tags[#tags + 1] = {
-			name = v[1],
+			id = v[1],
 			desc = v[2],
-			org_name = string.len(v[3]) > 0 and v[3] or nil,
+			org_id = string.len(v[3]) > 0 and v[3] or nil,
 			unit = string.len(v[4]) > 0 and v[4] or nil,
 			cou_unit = string.len(v[5]) > 0 and v[5] or nil,
 			format = string.len(v[6]) > 0 and v[6] or nil,

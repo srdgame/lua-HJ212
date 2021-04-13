@@ -13,14 +13,14 @@ local water = base:subclass('hj212.calc.water')
 -- AVG: COU / (T.start -  T.last)
 --]]
 
---- The upper tag, e.g. [w00000]
--- If the upper tag not exists time will be used for caclue the (COU) value
+--- The upper pollut id, e.g. [w00000]
+-- If the upper pollut not exists time will be used for caclue the (COU) value
 --
-function water:initialize(station, name, mask, min, max, zs_calc)
-	base.initialize(self, station, name, mask, min, max, zs_calc)
+function water:initialize(station, id, mask, min, max, zs_calc)
+	base.initialize(self, station, id, mask, min, max, zs_calc)
 
 	local upper_calc = nil
-	if name ~= 'w00000' then
+	if id ~= 'w00000' then
 		self._station:water(function(water)
 			if water then
 				self._upper = water

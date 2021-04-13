@@ -75,13 +75,13 @@ local function create_zs(calc)
 	end
 end
 
-function base:initialize(station, name, type_mask, min, max, zs_calc)
+function base:initialize(station, id, type_mask, min, max, zs_calc)
 	assert(station, "Station missing")
-	assert(name, "Name missing")
+	assert(id, "Pullut Id missing")
 	self._station = station
 	self._type_mask = type_mask ~= nil and type_mask or mgr.static.TYPES.ALL
 	self._callback = callback
-	self._name = name
+	self._id = id
 	self._min = min
 	self._max = max
 
@@ -163,7 +163,7 @@ function base:_on_value(typ, val, timestamp, quality)
 	assert(name, string.format('type is unknown %s', typ))
 
 	-- Asserts on value missing
-	assert(val.avg or val.value, self._name..[['s value missing]])
+	assert(val.avg or val.value, self._id..[['s value missing]])
 
 	--- Make sure timestamp is present which required for saving in DB
 	val.timestamp = assert(val.timestamp or val.etime)
@@ -220,11 +220,11 @@ function base:set_db(db)
 end
 
 function base:log(level, fmt, ...)
-	logger.log(level, '['..self._name..']'..fmt, ...)
+	logger.log(level, '['..self._id..']'..fmt, ...)
 end
 
 function base:debug(fmt, ...)
-	logger.log('debug', '['..self._name..']'..fmt, ...)
+	logger.log('debug', '['..self._id..']'..fmt, ...)
 end
 
 function base:db()
@@ -308,6 +308,7 @@ function base:push(value, timestamp, value_z, flag, quality)
 	if last and last.timestamp == timestamp then
 		assert(last.value == value)
 		assert(not value_z or value_z == last.value_z)
+		print(last.value_z, value_z)
 		assert(not last.value_z or last.value_z == value_z)
 		return nil, "Already has this data"
 	end

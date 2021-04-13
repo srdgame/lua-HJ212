@@ -87,8 +87,8 @@ function client:resp_creator(cmd, need_ack, params)
 	return self._packet_create(self._packet_ver, types.SYSTEM.REPLY, cmd, self._passwd, self._dev_id, need_ack, params)
 end
 
-function client:find_tag_sn(tag_name)
-	local meter = self._station:find_tag_meter(tag_name)
+function client:find_poll_sn(poll_id)
+	local meter = self._station:find_poll_meter(poll_id)
 	if meter then
 		return meter:sn()
 	end

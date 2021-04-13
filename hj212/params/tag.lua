@@ -39,8 +39,8 @@ local PARAMS = {
 
 tag.static.PARAMS = PARAMS
 
-function tag:initialize(tag_name, obj, data_time, default_fmt)
-	self._name = tag_name
+function tag:initialize(tag_id, obj, data_time, default_fmt)
+	self._id = tag_id
 	self._data_time = data_time
 	self._default_fmt = default_fmt
 	self._items = {}
@@ -50,8 +50,8 @@ function tag:initialize(tag_name, obj, data_time, default_fmt)
 	end
 end
 
-function tag:clone(new_tag_name)
-	local new_obj = tag:new(new_tag_name)
+function tag:clone(new_tag_id)
+	local new_obj = tag:new(new_tag_id)
 	new_obj._cloned = true
 	new_obj._data_time = self._data_time
 	for k, v in pairs(self._items) do
@@ -62,7 +62,7 @@ end
 
 function tag:transform(func)
 	assert(func)
-	local new_obj = tag:new(self._name)
+	local new_obj = tag:new(self._id)
 	new_obj._data_time = self._data_time
 	new_obj._items = {}
 	new_obj._default_fmt = self._default_fmt
@@ -73,8 +73,8 @@ function tag:transform(func)
 	return new_obj
 end
 
-function tag:tag_name()
-	return self._name
+function tag:id()
+	return self._id
 end
 
 function tag:data_time()
@@ -89,41 +89,41 @@ function tag:default_format()
 	return self._default_fmt
 end
 
-function tag:get(name)
-	local p = self._items[name]
+function tag:get(key)
+	local p = self._items[key]
 	if p then
 		return p:value()
 	end
 	return nil, "Not exists!"
 end
 
-function tag:set(name, value, def_fmt)
+function tag:set(key, value, def_fmt)
 	assert(not self._cloned)
 	local def_fmt = def_fmt or self._default_fmt
-	local p = self._items[name]
+	local p = self._items[key]
 	if p then
 		return p:set_value(value)
 	end
 
-	if PARAMS[name] then
-		p = PARAMS[name]:new(self._name, value, def_fmt)
+	if PARAMS[key] then
+		p = PARAMS[key]:new(self._id, value, def_fmt)
 	else
-		p = simple:new(name, value, def_fmt)
+		p = simple:new(key, value, def_fmt)
 	end
-	self._items[name] = p
+	self._items[key] = p
 end
 
-function tag:_set_from_raw(name, value)
-	local p = self._items[name]
+function tag:_set_from_raw(key, value)
+	local p = self._items[key]
 	if p then
 		return p:decode(value)
 	end
-	if PARAMS[name] then
-		p = PARAMS[name]:new(self._name)
+	if PARAMS[key] then
+		p = PARAMS[key]:new(self._id)
 	else
-		p = simple:new(name)
+		p = simple:new(key)
 	end
-	self._items[name] = p
+	self._items[key] = p
 	return p:decode(value)
 end
 
@@ -136,7 +136,7 @@ function tag:encode()
 	table.sort(sort)
 	for _, v in ipairs(sort) do
 		local val = self._items[v]
-		raw[#raw + 1] = string.format('%s-%s=%s', self._name, v, val:encode())
+		raw[#raw + 1] = string.format('%s-%s=%s', self._id, v, val:encode())
 	end
 	return table.concat(raw, ',')
 end
@@ -145,14 +145,14 @@ function tag:decode(raw)
 	self._items = {}
 
 	for param in string.gmatch(raw, '([^;,]+),?') do
-		local name, key, val = string.match(param, '^([^%-]+)%-([^=]+)=(.+)')
-		if self._name == nil then
-			self._name = name
+		local id, key, val = string.match(param, '^([^%-]+)%-([^=]+)=(.+)')
+		if self._id == nil then
+			self._id = id
 		end
-		if name == self._name then
+		if id == self._id then
 			self:_set_from_raw(key, val)
 		else
-			logger.error('Error tag attr', name, key, val)
+			logger.error('Error tag attr', id, key, val)
 		end
 	end
 end

@@ -170,7 +170,7 @@ function params:encode_tags(base)
 	local data = {}
 	for data_time, tags in pairs(self._tags) do
 		table.sort(tags, function(a, b)
-			return a:tag_name() < b:tag_name()
+			return a:id() < b:id()
 		end)
 		local function create_data_sub()
 			local data_sub = copy.deep(base)
@@ -247,8 +247,8 @@ function params:decode(raw, index)
 		else
 			if string.sub(key, 1, 2) == 'SB' then
 				local m = '^SB([^%-]+)%-(%w+)'
-				local dev_name, type_name = string.match(key, m)
-				if dev_name and type_name then
+				local dev_name, dev_no = string.match(key, m)
+				if dev_name and dev_no then
 					sts = sts_param:new(dev_name)
 					sts:decode(param)
 					table.insert(stss, tag)
@@ -257,9 +257,9 @@ function params:decode(raw, index)
 				end
 			else
 				local m = '^([^%-]+)%-(%w+)'
-				local tag_name, type_name = string.match(key, m)
-				if tag_name and type_name then
-					tag = tag_param:new(tag_name)
+				local tag_id, type_key = string.match(key, m)
+				if tag_id and type_key then
+					tag = tag_param:new(tag_id)
 					tag:decode(param)
 					table.insert(tags, tag)
 				end

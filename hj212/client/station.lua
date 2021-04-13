@@ -12,7 +12,7 @@ function station:initialize(system, id, sleep_func)
 	self._id = id
 	self._sleep_func = sleep_func
 	self._handlers = {}
-	self._tag_list = {}
+	self._poll_list = {}
 	self._meters = {}
 	self._cems = cems:new(self)
 	self._water = nil
@@ -48,8 +48,8 @@ function station:water(func)
 	if self._water then
 		func(self._water)
 	else
-		self:wait_tag('w00000', function(tag)
-			self._water = tag
+		self:wait_poll('w00000', function(poll)
+			self._water = poll
 			func(self._water)
 		end)
 	end
@@ -59,35 +59,35 @@ function station:air(func)
 	if self._air then
 		func(self._air)
 	else
-		self:wait_tag('a00000', function(tag)
-			self._air = tag
+		self:wait_poll('a00000', function(poll)
+			self._air = poll
 			func(self._air)
 		end)
 	end
 end
 
-function station:wait_tag(name, func)
-	assert(self._tag_waits, "Cannot call this function out of initing")
-	table.insert(self._tag_waits, {
-		tag = name,
+function station:wait_poll(name, func)
+	assert(self._poll_waits, "Cannot call this function out of initing")
+	table.insert(self._poll_waits, {
+		poll = name,
 		func = func
 	})
 end
 
-function station:find_tag(name)
-	return self._tag_list[name]
+function station:find_poll(name)
+	return self._poll_list[name]
 end
 
-function station:find_tag_meter(name)
-	local tag = self._tag_list[name]
-	if tag then
-		return tag:meter()
+function station:find_poll_meter(name)
+	local poll = self._poll_list[name]
+	if poll then
+		return poll:meter()
 	end
 	return nil, "Not found"
 end
 
-function station:tags()
-	return self._tag_list
+function station:polls()
+	return self._poll_list
 end
 
 function station:calc_mgr()
@@ -97,53 +97,53 @@ end
 function station:init(calc_mgr, err_cb)
 	assert(self._calc_mgr == nil)
 	self._calc_mgr = calc_mgr
-	self._tag_waits = {}
+	self._poll_waits = {}
 
 	for _, v in ipairs(self._meters) do
 		v:init(err_cb)
 	end
 
-	utils_sort.for_each_sorted_key(self._tag_list, function(tag)
-		local r, err = tag:init(self)
+	utils_sort.for_each_sorted_key(self._poll_list, function(poll)
+		local r, err = poll:init(self)
 		if not r then
-			err_cb(tag:tag_name(), err)
+			err_cb(poll:id(), err)
 		end
 	end)
 
-	local waits = self._tag_waits
-	self._tag_waits = nil
+	local waits = self._poll_waits
+	self._poll_waits = nil
 	for _, v in ipairs(waits) do
-		local tag = self:find_tag(v.tag)
-		v.func(tag)
+		local poll = self:find_poll(v.poll)
+		v.func(poll)
 	end
 end
 
 function station:add_meter(meter)
 	assert(meter)
 	table.insert(self._meters, meter)
-	for name, tag in pairs(meter:tag_list()) do
-		assert(self._tag_list[name] == nil)
-		self._tag_list[name] = tag
+	for name, poll in pairs(meter:poll_list()) do
+		assert(self._poll_list[name] == nil)
+		self._poll_list[name] = poll
 	end
 end
 
 --- Tags value
-function station:set_tag_value(name, value, timestamp, value_z, flag, quality)
+function station:set_poll_value(name, value, timestamp, value_z, flag, quality)
 	assert(name ~= nil)
 	assert(value ~= nil)
 	assert(timestamp ~= nil)
-	local tag = self._tag_list[name]
-	if tag then
-		return tag:set_value(value, timestamp, value_z, flag, quality)
+	local poll = self._poll_list[name]
+	if poll then
+		return poll:set_value(value, timestamp, value_z, flag, quality)
 	end
-	return nil, "No such tag:"..name
+	return nil, "No such poll:"..name
 end
 
 function station:rdata(timestamp, readonly)
 	local data = {}
-	for _, tag in pairs(self._tag_list) do
-		if tag:upload() then
-			local d = tag:query_rdata(timestamp, readonly)
+	for _, poll in pairs(self._poll_list) do
+		if poll:upload() then
+			local d = poll:query_rdata(timestamp, readonly)
 			if d then
 				data[#data + 1] = d
 			end
@@ -154,9 +154,9 @@ end
 
 function station:min_data(start_time, end_time)
 	local data = {}
-	for _, tag in pairs(self._tag_list) do
-		if tag:upload() then
-			local vals = tag:query_min_data(start_time, end_time)
+	for _, poll in pairs(self._poll_list) do
+		if poll:upload() then
+			local vals = poll:query_min_data(start_time, end_time)
 			if vals then
 				table.move(vals, 1, #vals, #data + 1, data)
 			end
@@ -167,9 +167,9 @@ end
 
 function station:hour_data(start_time, end_time)
 	local data = {}
-	for _, tag in pairs(self._tag_list) do
-		if tag:upload() then
-			local vals = tag:query_hour_data(start_time, end_time)
+	for _, poll in pairs(self._poll_list) do
+		if poll:upload() then
+			local vals = poll:query_hour_data(start_time, end_time)
 			if vals then
 				table.move(vals, 1, #vals, #data + 1, data)
 			end
@@ -180,9 +180,9 @@ end
 
 function station:day_data(start_time, end_time)
 	local data = {}
-	for _, tag in pairs(self._tag_list) do
-		if tag:upload() then
-			local vals = tag:query_day_data(start_time, end_time)
+	for _, poll in pairs(self._poll_list) do
+		if poll:upload() then
+			local vals = poll:query_day_data(start_time, end_time)
 			if vals then
 				table.move(vals, 1, #vals, #data + 1, data)
 			end

@@ -3,47 +3,48 @@ local param_tag = require 'hj212.params.tag'
 
 local info = class('hj212.client.info')
 
-function info:initialize(tag, name, options)
-	assert(tag)
-	assert(name)
-	assert(options)
+function info:initialize(poll)
+	assert(poll)
 
-	self._tag = tag
-	self._name = name
-	self._fmt = options.fmt
+	self._poll = poll
 
 	self._value = nil
 	self._timestamp = nil
+	self._quality = nil
 end
 
-function info:info_name()
-	return self._name
+function info:poll()
+	return self._poll
 end
 
-function info:tag()
-	return self._tag
-end
-
-function info:set_value(value, timestamp)
+function info:set_value(value, timestamp, quality)
 	self._value = value
 	self._timestamp = timestamp
+	self._quality = quality
 	return true
 end
 
 function info:get_value()
-	return self._value, self._timestamp
+	return self._value, self._timestamp, self._quality
+end
+
+function info:get_format(info_name)
+	return nil
 end
 
 function info:data(timestamp)
 	local timestamp = timestamp or self._timestamp
 
-	if type(self._value) ~= 'table' then
-		return param_tag:new(self._name, {
+	local data = {}
+
+	for k, v in pairs(self._value) do
+		local fmt = self:get_format(k)
+		table.insert(param_tag:new(k, {
 			Info = self._info
-		}, timestamp, self._fmt)
-	else
-		return param_tag:new(self._name, self._value, timestamp, self._fmt)
+		}, timestamp, fmt))
 	end
+
+	return data
 end
 
 return info

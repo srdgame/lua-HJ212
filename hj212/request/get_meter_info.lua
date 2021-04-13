@@ -4,8 +4,11 @@ local base = require 'hj212.request.base'
 
 local req = base:subclass('hj212.request.get_meter_info')
 
-function req:initialize(tags, need_ack)
-	local cmd = command:new()
+function req:initialize(poll_id, tags, need_ack)
+	local data_time = #tags > 0 and tags[1]:data_time() or os.time()
+
+	local cmd = command:new(data_time, poll_id)
+
 	for i, v in ipairs(tags or {}) do
 		cmd:add_tag(v:data_time(), v)
 	end

@@ -31,7 +31,7 @@ function pollut:__call(typ, val, now)
 			val.cou_z = cou_value.cou * val.avg_z * (10 ^ -6)
 		end
 	else
-		self._pollut:log('debug', 'No COU value of flow tag', type_name, val.etime)
+		self._pollut:log('debug', 'No COU value of AIR Flow', type_name, val.etime)
 	end
 
 	return val

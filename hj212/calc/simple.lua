@@ -10,8 +10,8 @@ local simple = base:subclass('hj212.calc.simple')
 -- The AVG is COU / sample count
 --]]
 
-function simple:initialize(station, name, mask, min, max, zs_calc)
-	base.initialize(self, station, name, mask, min, max, zs_calc)
+function simple:initialize(station, id, mask, min, max, zs_calc)
+	base.initialize(self, station, id, mask, min, max, zs_calc)
 end
 
 function simple:push(value, timestamp, value_z)

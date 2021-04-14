@@ -20,6 +20,10 @@ function req:need_ack()
 	return self._need_ack
 end
 
+function req:set_need_ack(need_ack)
+	self._need_ack = need_ack
+end
+
 function req:session()
 	return self._session
 end

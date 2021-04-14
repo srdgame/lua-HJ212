@@ -4,8 +4,8 @@ local base = require 'hj212.request.base'
 
 local req = base:subclass('hj212.request.get_meter_info')
 
-function req:initialize(poll_id, tags, need_ack)
-	local data_time = #tags > 0 and tags[1]:data_time() or os.time()
+function req:initialize(need_ack, poll_id, tags)
+	local data_time = (tags and #tags > 0) and tags[1]:data_time() or os.time()
 
 	local cmd = command:new(data_time, poll_id)
 

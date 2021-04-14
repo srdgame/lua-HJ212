@@ -4,7 +4,7 @@ local base = require 'hj212.request.base'
 
 local req = base:subclass('hj212.request.state_start')
 
-function req:initialize(status, need_ack)
+function req:initialize(need_ack, status)
 	local cmd = command:new()
 	for i, v in ipairs(status or {}) do
 		cmd:add_device(v.data_time or v.stime, v)

@@ -39,9 +39,7 @@ function info:data(timestamp)
 
 	for k, v in pairs(self._value) do
 		local fmt = self:get_format(k)
-		table.insert(param_tag:new(k, {
-			Info = self._info
-		}, timestamp, fmt))
+		table.insert(data, param_tag:new(k, { Info = v }, timestamp, fmt))
 	end
 
 	return data

@@ -25,6 +25,10 @@ function base:params()
 	return self._params
 end
 
+function base:set_params(params)
+	self_params = params
+end
+
 function base:add_tag(...)
 	return self._params:add_tag(...)
 end

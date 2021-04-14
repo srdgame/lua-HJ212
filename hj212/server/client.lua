@@ -105,7 +105,7 @@ function client:on_request(req)
 
 	if not handler then
 		if req:need_ack() then
-			self:send_reply(req:session(), types.REPLY.ERR_REJECT)
+			self:send_reply(req:session(), types.REPLY.REJECT)
 		end
 		return
 	end

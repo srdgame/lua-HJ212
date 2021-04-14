@@ -217,12 +217,12 @@ function poll:set_info_value(value, timestamp, quality)
 	return self._info:set_value(value, timestamp, quality)
 end
 
-function poll:info_data()
+function poll:info_data(...)
 	if not self._info then
 		return nil, "No info found"
 	end
 
-	return self._info:data()
+	return self._info:data(...)
 end
 
 function poll:info()

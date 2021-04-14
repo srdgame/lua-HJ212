@@ -92,7 +92,7 @@ function params:as_num(name)
 	return nil, err
 end
 
-function params:set(name, value)
+function params:set(name, value, fmt)
 	local p = self._params[name]
 	if p then
 		return p:set_value(value)
@@ -101,7 +101,7 @@ function params:set(name, value)
 	if PARAMS[name] then
 		p = PARAMS[name]:new(name, value)
 	else
-		p = simple:new(name, value, 'N32')
+		p = simple:new(name, value, fmt or 'N32')
 	end
 	self._params[name] = p
 end
@@ -174,7 +174,7 @@ function params:encode_tags(base)
 		end)
 		local function create_data_sub()
 			local data_sub = copy.deep(base)
-			table.insert(data_sub, string.format('DataTime=%s', datetime:new('DataTime', data_time):encode()))
+			table.insert(data_sub, 1, string.format('DataTime=%s', datetime:new('DataTime', data_time):encode()))
 			local len = string.len(table.concat(data_sub, ';'))
 			return data_sub, len
 		end

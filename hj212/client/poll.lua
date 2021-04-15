@@ -134,12 +134,12 @@ function poll:set_value(value, timestamp, value_z, flag, quality, ex_vals)
 	self._timestamp = timestamp
 	self._flag = flag
 	self._quality = quality
-	self._ex_vals = ex_vals
-	return self._cou_calc:push(value, timestamp, value_z, flag, quality, ex_vals)
+	self._ex_vals = ex_vals and cjson.encode(ex_vals) or nil
+	return self._cou_calc:push(value, timestamp, value_z, flag, quality, self._ex_vals)
 end
 
 function poll:get_value()
-	return self._value, self._timestamp, self._value_z, self._flag, self._quality, self._ex_vals
+	return self._value, self._timestamp, self._value_z, self._flag, self._quality, self._ex_vals and cjson.decode(self._ex_vals) or nil
 end
 
 function poll:query_rdata(timestamp, readonly)
@@ -158,7 +158,8 @@ function poll:query_rdata(timestamp, readonly)
 	}
 
 	if val.ex_vals then
-		for k, v in pairs(val.ex_vals) do
+		local ex_vals = cjson.decode(val.ex_vals)
+		for k, v in pairs(ex_vals) do
 			rdata[k] = v
 		end
 	end

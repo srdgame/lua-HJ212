@@ -14,11 +14,11 @@ function simple:initialize(station, id, mask, min, max, zs_calc)
 	base.initialize(self, station, id, mask, min, max, zs_calc)
 end
 
-function simple:push(value, timestamp, value_z)
+function simple:push(value, timestamp, value_z, flag, quality, ex_vals)
 	if timestamp < self._last_calc_time then
 		return nil, 'older value skipped ts:'..timestamp..' last:'..self._last_calc_time
 	end
-	return base.push(self, value, timestamp, value_z)
+	return base.push(self, value, timestamp, value_z, flag, quality, ex_vals)
 end
 
 local function flag_can_calc(flag)

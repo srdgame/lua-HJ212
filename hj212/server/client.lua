@@ -205,7 +205,7 @@ function client:process(raw_data)
 end
 
 function client:reply(reply)
-	local r, pack = pcall(reply.encode, reply, function(...)
+	local r, pack = xpcall(reply.encode, debug.traceback, reply, function(...)
 		return self:resp_creator(...)
 	end)
 
@@ -231,7 +231,7 @@ function client:reply(reply)
 end
 
 function client:request(req, response)
-	local r, pack = pcall(req.encode, req, function(...)
+	local r, pack = xpcall(req.encode, debug.traceback, req, function(...)
 		return self:req_creator(...)
 	end)
 

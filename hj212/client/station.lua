@@ -140,13 +140,13 @@ function station:add_meter(meter)
 end
 
 --- Tags value
-function station:set_poll_value(name, value, timestamp, value_z, flag, quality)
+function station:set_poll_value(name, value, timestamp, value_z, flag, quality, ex_vals)
 	assert(name ~= nil)
 	assert(value ~= nil)
 	assert(timestamp ~= nil)
 	local poll = self._poll_list[name]
 	if poll then
-		return poll:set_value(value, timestamp, value_z, flag, quality)
+		return poll:set_value(value, timestamp, value_z, flag, quality, ex_vals)
 	end
 	return nil, "No such poll:"..name
 end
@@ -206,7 +206,7 @@ end
 function station:update_rdata_interval(interval)
 	self._rdata_interval = interval
 	if self._handlers.rdata_interval then
-		local r, rr, err = pcall(self._handlers.rdata_interval, interval)
+		local r, rr, err = xpcall(self._handlers.rdata_interval, debug.traceback, interval)
 		if r then
 			return rr, err
 		end
@@ -217,7 +217,7 @@ end
 function station:update_min_interval(interval)
 	self._min_interval = interval
 	if self._handlers.min_interval then
-		local r, rr, err = pcall(self._handlers.min_interval, interval)
+		local r, rr, err = xpcall(self._handlers.min_interval, debug.traceback, interval)
 		if r then
 			return rr, err
 		end

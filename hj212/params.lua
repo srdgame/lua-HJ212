@@ -101,21 +101,21 @@ function params:set(name, value, fmt)
 	if PARAMS[name] then
 		p = PARAMS[name]:new(name, value)
 	else
-		p = simple:new(name, value, fmt or 'N32')
+		p = simple:new(name, value)
 	end
 	self._params[name] = p
 end
 
-function params:set_from_raw(name, raw_value)
+function params:_set_from_raw(name, raw_value)
 	local p = self._params[name]
 	if p then
 		return p:decode(raw_value)
 	end
 
 	if PARAMS[name] then
-		p = PARAMS[name]:new(name, 0)
+		p = PARAMS[name]:new(name)
 	else
-		p = simple:new(name, 0, 'N32')
+		p = simple:new(name)
 	end
 	self._params[name] = p
 	return p:decode(raw_value)
@@ -199,15 +199,18 @@ function params:encode_tags(base)
 end
 
 function params:encode()
-	-- Remove the DataTime if has states or tags
-	if self._has_tags or self._has_states then
-		self._params['DataTime'] = nil
-	end
-
 	--- Sort the base keys
 	local sort = {}
 	for k, v in pairs(self._params) do
-		sort[#sort + 1] = k
+		-- Remove the DataTime if has states or tags
+		if k == 'DataTime' then
+			if self._has_tags or self._has_states then
+			else
+				sort[#sort + 1] = k
+			end
+		else
+			sort[#sort + 1] = k
+		end
 	end
 	table.sort(sort)
 
@@ -243,7 +246,7 @@ function params:decode(raw, index)
 		assert(key, "Key mising on "..param)
 		assert(val, "Val mising on "..param)
 		if PARAMS[key] then
-			self:set_from_raw(key, val)
+			self:_set_from_raw(key, val)
 		else
 			if string.sub(key, 1, 2) == 'SB' then
 				local m = '^SB([^%-]+)%-(%w+)'
@@ -262,6 +265,9 @@ function params:decode(raw, index)
 					tag = tag_param:new(tag_id)
 					tag:decode(param)
 					table.insert(tags, tag)
+				else
+					-- Just processs it????
+					self:_set_from_raw(key, val)
 				end
 			end
 		end

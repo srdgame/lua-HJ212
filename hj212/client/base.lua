@@ -185,7 +185,7 @@ function client:send(session, raw_data)
 end
 
 function client:reply(reply)
-	local r, pack = pcall(reply.encode, reply, function(...)
+	local r, pack = xpcall(reply.encode, debug.traceback, reply, function(...)
 		return self:resp_creator(...)
 	end)
 
@@ -209,7 +209,7 @@ function client:reply(reply)
 end
 
 function client:request(request, response)
-	local r, pack, err = pcall(request.encode, request, function(...)
+	local r, pack, err = xpcall(request.encode, debug.traceback, request, function(...)
 		return self:req_creator(...)
 	end)
 	if not r then

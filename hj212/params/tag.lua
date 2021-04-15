@@ -118,11 +118,13 @@ function tag:_set_from_raw(key, value)
 	if p then
 		return p:decode(value)
 	end
+
 	if PARAMS[key] then
 		p = PARAMS[key]:new(self._id)
 	else
 		p = simple:new(key)
 	end
+
 	self._items[key] = p
 	return p:decode(value)
 end

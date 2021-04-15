@@ -43,7 +43,12 @@ local CEMS_ITEMS = {
 	-- CEMS 设置速度场系数
 	Kv = {
 		name = 'Kv',
-		default = 1
+		default = 1.414
+	},
+	-- CEMS 皮托管系数
+	Kp = {
+		name = 'Kv',
+		default = 0.639
 	},
 	-- CEMS 排放标准中规定的该行业标准过量空气系数
 	As = {

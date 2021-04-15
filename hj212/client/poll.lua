@@ -135,7 +135,7 @@ function poll:set_value(value, timestamp, value_z, flag, quality, ex_vals)
 	self._flag = flag
 	self._quality = quality
 	self._ex_vals = ex_vals
-	return self._cou_calc:push(value, timestamp, value_z, flag, quality)
+	return self._cou_calc:push(value, timestamp, value_z, flag, quality, ex_vals)
 end
 
 function poll:get_value()
@@ -157,8 +157,8 @@ function poll:query_rdata(timestamp, readonly)
 		SampleTime = val.src_time or val.timestamp,
 	}
 
-	if self._ex_vals and val.timestamp == self._timestamp then
-		for k, v in pairs(self._ex_vals) do
+	if val.ex_vals then
+		for k, v in pairs(val.ex_vals) do
 			rdata[k] = v
 		end
 	end

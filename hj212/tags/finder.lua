@@ -1,9 +1,10 @@
 local TAGS = require 'hj212.tags.info'
+local EX_TAGS = require 'hj212.tags.exinfo'
 
 local TAG_INFO = {}
 
 return function(id)
-	local info = TAG_INFO[id]
+	local info = TAG_INFO[id] or EX_TAGS.find(id)
 	if info then
 		return info
 	end

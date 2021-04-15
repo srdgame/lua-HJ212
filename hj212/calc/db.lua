@@ -18,6 +18,8 @@ function base:sample_meta()
 		--- Zs
 		{ name = 'value_z', type = 'DOUBLE', not_null = false },
 		{ name = 'cou_z', type = 'DOUBLE', not_null = false },
+		--- Extented vals
+		{ name = 'ex_vals', type = 'STRING', not_null = false},
 	}, DB_VER
 end
 

@@ -302,8 +302,8 @@ function base:load_from_db()
 	end
 end
 
-function base:push(value, timestamp, value_z, flag, quality)
-	--self:debug('pushing sample', value, timestamp, value_z, flag, quality)
+function base:push(value, timestamp, value_z, flag, quality, ex_vals)
+	--self:debug('pushing sample', value, timestamp, value_z, flag, quality, ex_vals)
 	local last = self._sample_list:last()
 	if last and last.timestamp == timestamp then
 		assert(last.value == value)
@@ -313,7 +313,7 @@ function base:push(value, timestamp, value_z, flag, quality)
 		return nil, "Already has this data"
 	end
 
-	local val, err = self._sample_list:append({value = value, timestamp = timestamp, value_z = value_z, flag = flag, quality = quality})
+	local val, err = self._sample_list:append({value = value, timestamp = timestamp, value_z = value_z, flag = flag, quality = quality, ex_vals = ex_vals})
 	if val then
 		self._last_sample = val
 		return true

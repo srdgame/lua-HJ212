@@ -36,14 +36,14 @@ function water:initialize(station, id, mask, min, max, zs_calc)
 	end
 end
 
-function water:push(value, timestamp, value_z)
+function water:push(value, timestamp, value_z, flag, quality, ex_vals)
 	assert(timestamp)
 	if timestamp < self._last_calc_time then
 		local err = 'older value skipped ts:'..timestamp..' last:'..self._last_calc_time
 		self:log('error', err)
 		return nil, err
 	end
-	return base.push(self, value, timestamp, value_z)
+	return base.push(self, value, timestamp, value_z, flag, quality, ex_vals)
 end
 
 local function flag_can_calc(flag)

@@ -28,18 +28,13 @@ function info:get_value()
 	return self._value, self._timestamp, self._quality
 end
 
-function info:get_format(info_name)
-	return nil
-end
-
 function info:data(timestamp)
 	local timestamp = timestamp or self._timestamp
 
 	local data = {}
 
 	for k, v in pairs(self._value) do
-		local fmt = self:get_format(k)
-		table.insert(data, param_tag:new(k, { Info = v }, timestamp, fmt))
+		table.insert(data, param_tag:new(k, { Info = v }, timestamp))
 	end
 
 	return data

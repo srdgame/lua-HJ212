@@ -1,5 +1,6 @@
 local class = require 'middleclass'
 local logger = require 'hj212.logger'
+local has_queue, queue = pcall(require, 'skynet.queue')
 
 local mgr = class('hj212.calc.manager')
 
@@ -16,6 +17,9 @@ function mgr:initialize()
 	self._min_list = {}
 	self._hour_list = {}
 	self._day_list = {}
+	self._cs = has_queue and queue() or function(f, ...)
+		return f(...)
+	end
 end
 
 function mgr:reg(calc)
@@ -70,13 +74,13 @@ end
 function mgr:trigger(typ, now, duration)
 	local now = math.floor(now)
 	if typ == mgr.TYPES.MIN then
-		on_trigger_list(self._min_list, mgr.TYPES.MIN, now, duration)
+		self._cs(on_trigger_list, self._min_list, mgr.TYPES.MIN, now, duration)
 	end
 	if typ == mgr.TYPES.HOUR then
-		on_trigger_list(self._hour_list, mgr.TYPES.HOUR, now, duration)
+		self._cs(on_trigger_list, self._hour_list, mgr.TYPES.HOUR, now, duration)
 	end
 	if typ == mgr.TYPES.DAY then
-		on_trigger_list(self._day_list, mgr.TYPES.DAY, now, duration)
+		self._cs(on_trigger_list, self._day_list, mgr.TYPES.DAY, now, duration)
 	end
 end
 

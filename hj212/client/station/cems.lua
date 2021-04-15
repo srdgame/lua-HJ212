@@ -1,9 +1,8 @@
 local class = require 'middleclass'
 local logger = require 'hj212.logger'
-local waitable = require 'hj212.client.station.waitable'
 local cems = class('hj212.client.station.cems')
 
-local CEMS_TM = {
+local CEMS_ITEMS = {
 	-- CEMS 安装地点的环境大气压值，Pa
 	Ba = {
 		name = 'a01006',
@@ -38,7 +37,8 @@ local CEMS_TM = {
 	-- 排放烟气中含氧量干基体积浓度，%
 	Cvo2 = {
 		name = 'a19001',
-		rate = 0.01
+		rate = 0.01,
+		default = 21,
 	},
 	-- CEMS 设置速度场系数
 	Kv = {
@@ -69,60 +69,65 @@ local CEMS_TM = {
 function cems:initialize(station)
 	self._station = station
 
-	self._poll_map = {}
-	for k, v in pairs(CEMS_TM) do
-		local poll_v = {
-			name = v.name,
+	self._items = {}
+	for k, v in pairs(CEMS_ITEMS) do
+		local id = v.name or k
+		local item = {
+			id = id,
+			name = k,
 			rate = v.rate,
 			default = v.default or 0
 		}
-		self._poll_map[k] = poll_v
+		self._items[k] = item
 
-		local wpoll = waitable:new(station, poll_v.name)
-
-		self[k] = function(self, timeout)
-			local value, timestamp = wpoll:value(timeout)
+		self[item.name] = function(self)
+			local value, err = self._station:get_setting(item.name)
 			if not value then
-				local err = string.format("Failed to get %s. error:%s", k, timestamp)
+				local poll = self._station:find_poll(item.id)
+				if poll then
+					value = poll:get_value()
+				end
+			end
+
+			if not value then
+				local default = item.rate and item.default * item.rate or item.default
+				local err = string.format("Failed to get CEMS.%s[%s], using default:%s", item.name, item.id, default)
 				logger.warning(err)
-				return poll_v.default, os.time()
+				return item.default
 			end
-			if poll_v.rate then
-				return value * poll_v.rate, timestamp
-			else
-				return value, timestamp
-			end
+
+			return item.rate and value * item.rate or value
 		end
 	end
 end
 
 function cems:set_default(name, default)
-	local poll_v = assert(self._poll_map[name])
+	local item = assert(self._items[name])
 	if default == nil then
-		poll_v.default = CEMS_TM[name].default or 0
+		item.default = CEMS_TM[name].default or 0
 	else
-		poll_v.default = default
+		item.default = default
 	end
 end
 
 function cems:set_rate(name, rate)
-	local poll_v = assert(self._poll_map[name])
+	local item = assert(self._items[name])
 	if rate == nil then
-		poll_v.rate = CEMS_TM[name].rate or nil
+		item.rate = CEMS_TM[name].rate or nil
 	else
-		poll_v.rate = rate
+		item.rate = rate
 	end
 
 end
 
 function cems:get(name)
-	local poll_v = assert(self._poll_map[name])
-	return self._station:find_poll(poll_v.name)
+	local item = assert(self._items[name])
+	return self[name]()
 end
 
 function cems:rate(name)
-	local poll_v = assert(self._poll_map[name])
-	return poll_v.rate or 1
+	local item = assert(self._items[name])
+	return item.rate or 1
 end
 
 return cems

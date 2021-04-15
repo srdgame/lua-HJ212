@@ -126,6 +126,7 @@ function poll:on_calc_value(type_name, val, timestamp)
 	assert(nil, "Not implemented")
 end
 
+--- Ex vals will not be saved
 function poll:set_value(value, timestamp, value_z, flag, quality, ex_vals)
 	local flag = flag == nil and self._meter:get_flag() or nil
 	self._value = value

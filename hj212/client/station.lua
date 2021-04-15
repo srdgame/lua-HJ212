@@ -12,6 +12,7 @@ function station:initialize(system, id, sleep_func)
 	self._id = id
 	self._sleep_func = sleep_func
 	self._handlers = {}
+	self._settings = {}
 	self._poll_list = {}
 	self._meters = {}
 	self._cems = cems:new(self)
@@ -22,6 +23,17 @@ end
 
 function station:set_handlers(handlers)
 	self._handlers = handlers or {}
+end
+
+function station:set_settings(settings)
+	--- Copy the settings table
+	for k, v in pairs(settings) do
+		self._settings[k] = v
+	end
+end
+
+function station:get_setting(key)
+	return self._settings[key]
 end
 
 function station:system()

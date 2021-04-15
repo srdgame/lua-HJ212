@@ -3,7 +3,7 @@ local logger = require 'hj212.logger'
 
 return {
 	add = function(id, desc, format, org_id, unit, cou_unit)
-		print(id, desc, format, org_id, unit, cou_unit)
+		--print(id, desc, format, org_id, unit, cou_unit)
 		assert(id)
 		assert(desc)
 		if EX_TAGS[id] then

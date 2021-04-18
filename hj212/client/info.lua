@@ -4,7 +4,7 @@ local param_tag = require 'hj212.params.tag'
 local info = class('hj212.client.info')
 
 function info:initialize(poll)
-	assert(poll)
+	assert(poll, "Poll missing")
 
 	self._poll = poll
 
@@ -14,10 +14,12 @@ function info:initialize(poll)
 end
 
 function info:poll()
-	return self._poll
+	return assert(self._poll)
 end
 
 function info:set_value(value, timestamp, quality)
+	assert(value)
+	assert(timestamp and type(timestamp) == 'number')
 	self._value = value
 	self._timestamp = timestamp
 	self._quality = quality
@@ -30,6 +32,7 @@ end
 
 function info:data(timestamp)
 	local timestamp = timestamp or self._timestamp
+	assert(timestamp and type(timestamp) == 'number')
 
 	local data = {}
 

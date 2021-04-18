@@ -308,7 +308,7 @@ function base:push(value, timestamp, value_z, flag, quality, ex_vals)
 	if last and last.timestamp == timestamp then
 		assert(last.value == value)
 		assert(not value_z or value_z == last.value_z)
-		print(last.value_z, value_z)
+		--print(last.value_z, value_z)
 		assert(not last.value_z or last.value_z == value_z)
 		return nil, "Already has this data"
 	end

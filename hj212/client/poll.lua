@@ -111,7 +111,7 @@ function poll:station()
 end
 
 function poll:id()
-	return self._id
+	return assert(self._id)
 end
 
 function poll:cou_calc()

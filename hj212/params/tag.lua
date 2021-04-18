@@ -40,6 +40,8 @@ local PARAMS = {
 tag.static.PARAMS = PARAMS
 
 function tag:initialize(tag_id, obj, data_time, default_fmt)
+	assert(tag_id)
+	assert(not data_time or type(data_time) == 'number')
 	self._id = tag_id
 	self._data_time = data_time
 	self._default_fmt = default_fmt

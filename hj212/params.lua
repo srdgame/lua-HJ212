@@ -140,6 +140,10 @@ end
 function params:encode_states(base)
 	local data = {}
 	for data_time, stss in pairs(self._states) do
+		table.sort(stss, function(a, b)
+			return a:id() < b:id()
+		end)
+
 		local function create_data_sub()
 			local data_sub = copy.deep(base)
 			table.insert(data_sub, string.format('DataTime=%s', datetime:new('DataTime', data_time):encode()))
@@ -172,6 +176,7 @@ function params:encode_tags(base)
 		table.sort(tags, function(a, b)
 			return a:id() < b:id()
 		end)
+
 		local function create_data_sub()
 			local data_sub = copy.deep(base)
 			table.insert(data_sub, 1, string.format('DataTime=%s', datetime:new('DataTime', data_time):encode()))

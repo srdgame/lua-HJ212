@@ -40,7 +40,7 @@ function pack.static.parse(raw, index, on_err, crc_func)
 	if not data_len or data_len < 0 then
 		local err = 'Stream length error, got:'..string.sub(raw, index + 2, index + 5)
 		on_err(err)
-		raw = string.sub(raw, index) -- trim data
+		raw = string.sub(raw, index + 1) -- trim data
 		return pack.static.parse(raw, 1, on_err, crc_func)
 	end
 

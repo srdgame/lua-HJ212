@@ -306,8 +306,10 @@ function base:push(value, timestamp, value_z, flag, quality, ex_vals)
 	--self:debug('pushing sample', value, timestamp, value_z, flag, quality, ex_vals)
 	local last = self._sample_list:last()
 	if last and last.timestamp == timestamp then
+		--[[ not assert just skip
 		assert(last.value == value)
 		assert(not value_z or value_z == last.value_z)
+		]]
 		--print(last.value_z, value_z)
 		return nil, "Already has this data"
 	end

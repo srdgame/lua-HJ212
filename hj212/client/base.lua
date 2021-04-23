@@ -24,7 +24,6 @@ function client:initialize(station, passwd, timeout, retry, pfuncs)
 	self._packet_crc = pfuncs.crc
 	self._packet_ver = assert(protocal_ver or types.PROTOCOL.V2017)
 
-	self._process_buf = nil
 	self._handlers = {}
 	self._finders = {
 		pfinder(types.COMMAND, 'hj212.client.handler')
@@ -152,31 +151,25 @@ function client:on_request(request)
 end
 
 function client:process(raw_data)
-	local buf = self._process_buf and self._process_buf..raw_data or raw_data
+	local buf = raw_data
 
 	local p, buf, err = self._packet_parse(buf, 1, function(err)
 		self:log('error', err)
 	end, self._packet_crc)
 
-	if buf and string.len(buf) > 0 then
-		self._process_buf = buf
-	else
-		self._process_buf = nil
-	end
-
 	if not p then
-		return nil, err or 'Not enough data'
+		return nil, err or 'Not enough data', buf
 	end
 	assert(p:total() == 1, "Packet split not supported!!")
 
 	if p:system() == types.SYSTEM.REPLY then
 		self:log('debug', 'On reply', p:session(), p:command())
-		return p, true
+		return p, true, buf
 	else
 		local ss = p:session()
 		ss = ss // 1000
 		self:log('debug', 'On request', p:session(), p:command())
-		return p, false
+		return p, false, buf
 	end
 end
 

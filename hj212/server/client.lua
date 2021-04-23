@@ -125,20 +125,14 @@ function client:on_request(req)
 end
 
 function client:process(raw_data)
-	local buf = self._process_buf and self._process_buf..raw_data or raw_data
+	local buf = raw_data
 
 	local p, buf, err = self._packet_parse(buf, 1, function(err)
 		self:log('error', err)
 	end, self._packet_crc)
 
-	if buf and string.len(buf) > 0 then
-		self._process_buf = buf
-	else
-		self._process_buf = nil
-	end
-
 	if not p then
-		return nil, err or 'Not enough data'
+		return nil, err or 'Not enough data', buf
 	end
 
 	if not self._station then
@@ -150,7 +144,7 @@ function client:process(raw_data)
 		if not station then
 			self:log('error', 'REPLY_CODE', reply_code)
 			self:send_reply(p:session(), reply_code)
-			return nil, 'Station create failed, code: '..reply_code
+			return nil, 'Station create failed, code: '..reply_code, buf
 		end
 		self._station = station
 	end
@@ -182,7 +176,7 @@ function client:process(raw_data)
 		if #buf < p:total() then
 			self:log('debug', 'Multiple packet found', p._total, cur)
 			--- TODO: self:data_ack(session)
-			return nil, "Mutiple packets found!!"
+			return nil, "Mutiple packets found!!", buf
 		end
 		self:log('debug', 'Multiple packet completed', p._total, cur)
 		p = buf[1]
@@ -195,12 +189,12 @@ function client:process(raw_data)
 
 	if p:system() == types.SYSTEM.REPLY then
 		self:log('debug', 'On reply', p:session(), p:command())
-		return p, true
+		return p, true, buf
 	else
 		local ss = p:session()
 		ss = ss // 1000
 		self:log('debug', 'On request', p:session(), p:command())
-		return p, false
+		return p, false, buf
 	end
 end
 

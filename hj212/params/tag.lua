@@ -99,6 +99,10 @@ function tag:get(key)
 	return nil, "Not exists!"
 end
 
+function tag:remove(key)
+	self._items[key] = nil
+end
+
 function tag:set(key, value, def_fmt)
 	assert(not self._cloned)
 	local def_fmt = def_fmt or self._default_fmt

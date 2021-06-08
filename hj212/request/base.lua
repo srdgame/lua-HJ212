@@ -10,6 +10,7 @@ function req:initialize(command, need_ack)
 	self._session = nil
 	self._command = command
 	self._need_ack = need_ack == nil and true or need_ack -- default is true
+	self._sys = nil -- Optional SYS code (ST=)
 end
 
 function req:command()
@@ -32,6 +33,14 @@ function req:set_session(session)
 	self._session = session
 end
 
+function req:set_sys(sys)
+	self._sys = sys
+end
+
+function req:get_sys()
+	return self._sys
+end
+
 --- Creator: function(command, need_ack, params)
 function req:encode(creator)
 	assert(creator, "Creator missing")
@@ -44,6 +53,9 @@ function req:encode(creator)
 	local p = assert(creator(cmd, self._need_ack, params))
 	if self._session then
 		p:set_session(self._session)
+	end
+	if self._sys then
+		p:set_sys(self._sys)
 	end
 	return p
 end

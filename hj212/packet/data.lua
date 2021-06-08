@@ -18,6 +18,10 @@ function data:initialize(ver, sys, cmd, passwd, devid, need_ack, params)
 	self._params = params
 end
 
+function data:set_sys(sys)
+	self._sys = sys
+end
+
 -- TODO: Packet spilit
 function data:encode()
 	assert(string.len(self._passwd) == 6)

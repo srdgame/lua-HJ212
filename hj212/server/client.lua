@@ -132,6 +132,7 @@ function client:process(raw_data)
 	end, self._packet_crc)
 
 	if not p then
+		--print(buf, err)
 		return nil, err or 'Not enough data', buf
 	end
 

@@ -9,7 +9,7 @@ local settings = require 'hj212.settings'
 
 local params = class('hj212.params')
 
-local max_packet_len = settings.MAX_PACKET_LEN or 4096
+local max_packet_len = settings.MAX_PACKET_LEN or 9800
 
 local fmts = {}
 local function ES(fmt)

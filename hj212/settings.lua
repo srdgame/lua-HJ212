@@ -1,3 +1,3 @@
 return {
-	MAX_PACKET_LEN = 4096
+	MAX_PACKET_LEN = 9800
 }

@@ -56,6 +56,37 @@ function base:cou_meta()
 		{ name = 'avg_z', type = 'DOUBLE', not_null = false },
 		{ name = 'min_z', type = 'DOUBLE', not_null = false },
 		{ name = 'max_z', type = 'DOUBLE', not_null = false },
+
+		--- LA
+		{ name = 'L5', type = 'DOUBLE', not_null = false }
+		{ name = 'L5-Day', type = 'DOUBLE', not_null = false }
+		{ name = 'L5-Night', type = 'DOUBLE', not_null = false }
+		{ name = 'L10', type = 'DOUBLE', not_null = false }
+		{ name = 'L10-Day', type = 'DOUBLE', not_null = false }
+		{ name = 'L10-Night', type = 'DOUBLE', not_null = false }
+		{ name = 'L50', type = 'DOUBLE', not_null = false }
+		{ name = 'L50-Day', type = 'DOUBLE', not_null = false }
+		{ name = 'L50-Night', type = 'DOUBLE', not_null = false }
+		{ name = 'L90', type = 'DOUBLE', not_null = false }
+		{ name = 'L90-Day', type = 'DOUBLE', not_null = false }
+		{ name = 'L90-Night', type = 'DOUBLE', not_null = false }
+		{ name = 'L95', type = 'DOUBLE', not_null = false }
+		{ name = 'L95-Day', type = 'DOUBLE', not_null = false }
+		{ name = 'L95-Night', type = 'DOUBLE', not_null = false }
+
+		--{ name = 'Leq', type = 'DOUBLE', not_null = false } -- use avg
+
+		-- { name = 'Ldn', type = 'DOUBLE', not_null = false } -- use avg
+		-- { name = 'LMx', type = 'DOUBLE', not_null = false } -- max 
+		-- { name = 'LMn', type = 'DOUBLE', not_null = false } -- min
+
+		{ name = 'Ld-Day', type = 'DOUBLE', not_null = false }
+		{ name = 'LMx-Day', type = 'DOUBLE', not_null = false }
+		{ name = 'LMn-Day', type = 'DOUBLE', not_null = false }
+
+		{ name = 'Ln-Night', type = 'DOUBLE', not_null = false }
+		{ name = 'LMx-Night', type = 'DOUBLE', not_null = false }
+		{ name = 'LMn-Night', type = 'DOUBLE', not_null = false }
 	}, DB_VER
 end
 

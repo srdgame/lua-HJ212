@@ -56,6 +56,14 @@ function station:cems()
 	return self._cems
 end
 
+function station:set_la_info(info)
+	self._la_info = info
+end
+
+function station:la_info()
+	return self._la_info
+end
+
 function station:water(func)
 	if self._water then
 		func(self._water)

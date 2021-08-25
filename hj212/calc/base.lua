@@ -103,7 +103,7 @@ function base:initialize(station, id, type_mask, min, max, zs_calc)
 	self._rdata_list = data_list:new('timestamp', create_callback(self, mgr.TYPES.RDATA), 60 * 6)
 	self._min_list = data_list:new('etime', create_callback(self, mgr.TYPES.MIN))
 	self._hour_list = data_list:new('etime', create_callback(self, mgr.TYPES.HOUR))
-	self._day_list = data_list:new('etime', create_callback(self, mgr.TYPES.DAY))
+	self._day_list = data_list:new('etime', create_callback(self, mgr.TYPES.DAY), 31) -- 31 days max
 	self._value_calc = {}
 	self._pre_calc = {}
 	self._zs_calc = nil

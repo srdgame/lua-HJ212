@@ -46,6 +46,8 @@ local function guess_calc_name(poll_id)
 		return 'water'
 	elseif string.sub(poll_id, 1, 1) == 'a' then
 		return 'air'
+	elseif string.sub(poll_id, 1, 2) == 'LA' then
+		return 'LA'
 	else
 		-- Default is simple calculator
 		return 'simple'
@@ -168,6 +170,10 @@ function poll:query_rdata(timestamp, readonly)
 end
 
 function poll:convert_data(data)
+	if self._id == 'LA' then
+		return self:convert_data_la(data)
+	end
+
 	local rdata = {}
 	local has_cou = self._cou.cou
 	for k, v in ipairs(data) do
@@ -193,6 +199,47 @@ function poll:convert_data(data)
 			}, v.stime, self._fmt)
 		end
 	end
+	return rdata
+end
+
+function poll:convert_data_la(data)
+	local rdata = {}
+	for k, v in ipairs(data) do
+		if not val.ex_vals.DAY then
+			rdata[#rdata + 1] = param_tag:new('Leq', { Data = v.avg }, v.stime, self._fmt)
+			rdata[#rdata + 1] = param_tag:new('LMn', { Data = v.min }, v.stime, self._fmt)
+			rdata[#rdata + 1] = param_tag:new('LMx', { Data = v.max }, v.stime, self._fmt)
+		else
+			rdata[#rdata + 1] = param_tag:new('Ldn', { Data = v.avg }, v.stime, self._fmt)
+			rdata[#rdata + 1] = param_tag:new('LMn', { Data = v.min }, v.stime, self._fmt)
+			rdata[#rdata + 1] = param_tag:new('LMx', { Data = v.max }, v.stime, self._fmt)
+		end
+
+		--- Convert ex_vals
+		if val.ex_vals then
+			local ex_vals = cjson.decode(val.ex_vals)
+			rdata[#rdata + 1] = param_tag:new('L5', { Data = ex_vals.L5 }, v.stime, self._fmt)
+			rdata[#rdata + 1] = param_tag:new('L10', { Data = ex_vals.L10 }, v.stime, self._fmt)
+			rdata[#rdata + 1] = param_tag:new('L50', { Data = ex_vals.L50 }, v.stime, self._fmt)
+			rdata[#rdata + 1] = param_tag:new('L90', { Data = ex_vals.L90 }, v.stime, self._fmt)
+			rdata[#rdata + 1] = param_tag:new('L95', { Data = ex_vals.L95 }, v.stime, self._fmt)
+			if ex_vals.DAY then
+				rdata[#rdata + 1] = param_tag:new('L5', { DayData = ex_vals.DAY.L5 }, v.stime, self._fmt)
+				rdata[#rdata + 1] = param_tag:new('L10', { DayData = ex_vals.DAY.L10 }, v.stime, self._fmt)
+				rdata[#rdata + 1] = param_tag:new('L50', { DayData = ex_vals.DAY.L50 }, v.stime, self._fmt)
+				rdata[#rdata + 1] = param_tag:new('L90', { DayData = ex_vals.DAY.L90 }, v.stime, self._fmt)
+				rdata[#rdata + 1] = param_tag:new('L95', { DayData = ex_vals.DAY.L95 }, v.stime, self._fmt)
+			end
+			if ex_vals.NIGHT then
+				rdata[#rdata + 1] = param_tag:new('L5', { NightData = ex_vals.NIGHT.L5 }, v.stime, self._fmt)
+				rdata[#rdata + 1] = param_tag:new('L10', { NightData = ex_vals.NIGHT.L10 }, v.stime, self._fmt)
+				rdata[#rdata + 1] = param_tag:new('L50', { NightData = ex_vals.NIGHT.L50 }, v.stime, self._fmt)
+				rdata[#rdata + 1] = param_tag:new('L90', { NightData = ex_vals.NIGHT.L90 }, v.stime, self._fmt)
+				rdata[#rdata + 1] = param_tag:new('L95', { NightData = ex_vals.NIGHT.L95 }, v.stime, self._fmt)
+			end
+		end
+	end
+
 	return rdata
 end
 

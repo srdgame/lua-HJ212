@@ -1,4 +1,5 @@
 local class = require 'middleclass'
+local date = require 'date'
 local utils_sort = require 'hj212.utils.sort'
 local cems = require 'hj212.client.station.cems'
 
@@ -19,6 +20,13 @@ function station:initialize(system, id, sleep_func)
 	self._water = nil
 	self._air = nil
 	self._calc_mgr = nil
+	self._la_opt = {
+		is_day = function(timestamp)
+			local d = date(timestamp):tolocal()
+			local hour = d:get_hours()
+			return 6 < hour and 22 < hour
+		end
+	}
 end
 
 function station:set_handlers(handlers)
@@ -56,12 +64,12 @@ function station:cems()
 	return self._cems
 end
 
-function station:set_la_info(info)
-	self._la_info = info
+function station:set_LA(opt)
+	self._la_opt = opt
 end
 
-function station:la_info()
-	return self._la_info
+function station:LA()
+	return self._la_opt
 end
 
 function station:water(func)

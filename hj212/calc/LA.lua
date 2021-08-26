@@ -130,7 +130,7 @@ local function calc_la_day(list, is_day)
 	local night_list = {}
 
 	for i, v in ipairs(list) do
-		if is_day(v) then
+		if is_day(v.timestamp) then
 			day_list[#day_list + 1] = v
 		else
 			night_list[#night_list + 1] = v
@@ -218,7 +218,7 @@ function LA:on_min_trigger(now, duration)
 	local val = calc_sample(list, start, now)
 	assert(self._min_list:append(val))
 
-	val.LA = calc_la(list)
+	val.ex_vals = cjson.encode(calc_la(list))
 
 	return val
 end
@@ -255,7 +255,6 @@ local function calc_cou(list, start, etime)
 		stime = start,
 		etime = etime,
 		LC = val_t,
-		LA = LA,
 	}
 end
 
@@ -294,7 +293,7 @@ function LA:on_hour_trigger(now, duration)
 	assert(self._hour_list:append(val))
 
 	local slist = self._hour_sample_list:pop(now)
-	val.LA = calc_la(slist)
+	val.ex_vals = cjson.encode(calc_la(slist))
 
 	return val
 end
@@ -369,7 +368,8 @@ function LA:on_day_trigger(now, duration)
 	assert(self._day_list:append(val))
 
 	local slist = self._day_sample_list:pop(now)
-	val.LA = calc_la_day(slist)
+	local station_la = self._station:LA()
+	val.ex_vals = cjson.encode(calc_la_day(slist, station_la.is_day))
 
 	return val
 end

@@ -11,14 +11,19 @@ local LA = base:subclass('hj212.calc.LA')
 -- The AVG is COU / sample count
 --]]
 
+local max_sample_per_min = 30
+
 function LA:initialize(station, id, mask, min, max, zs_calc)
 	base.initialize(self, station, id, mask, min, max, zs_calc)
-	self._hour_sample_list = data_list:new('timestamp', nil, 30 * 60, function()
-		self:log('error', 'LA data droped')
+
+	--- Current hour samples
+	self._hour_sample_list = data_list:new('timestamp', nil, max_sample_per_min * 60, function()
+		self:log('error', 'LA hour sample data droped')
 	end)
 
-	self._day_sample_list = data_list:new('timestamp', nil, 30 * 60 * 24, function()
-		self:log('error', 'LA data droped')
+	--- Current day samples
+	self._day_sample_list = data_list:new('timestamp', nil, max_sample_per_min * 60 * 24, function()
+		self:log('error', 'LA day sample data droped')
 	end)
 end
 
@@ -74,6 +79,71 @@ local function flag_can_calc(flag)
 	return false
 end
 
+local function get_la_value(list, percent)
+	local count = #list
+	if count == 0 then
+		return 0
+	end
+	local c = math.floor(count * percent / 100)
+	if c == 0 then
+		c = 1
+	end
+	return list[c].value or 0
+end
+
+local function calc_la(list)
+	local calc_list = {}
+
+	for i, v in ipairs(list) do
+		if flag_can_calc(v.flag) then
+			calc_list[#calc_list + 1] = v
+		end
+	end
+	local LA = {
+		avg = 0,
+		min = 0,
+		max = 0,
+		L5 = 0,
+		L10 = 0,
+		L50 = 0,
+		L90 = 0,
+		L95 = 0,
+	}
+	if #calc_list == 0 then
+		return LA
+	end
+
+	table.sort(calc_list, function(a, b)
+		return (a.value or 0) < (b.value or 0)
+	end)
+	LA.L5 = get_la_value(calc_list, 5)
+	LA.L10 = get_la_value(calc_list, 10)
+	LA.L50 = get_la_value(calc_list, 50)
+	LA.L90 = get_la_value(calc_list, 90)
+	LA.L95 = get_la_value(calc_list, 95)
+
+	return LA
+end
+
+local function calc_la_day(list, is_day)
+	local day_list = {}
+	local night_list = {}
+
+	for i, v in ipairs(list) do
+		if is_day(v) then
+			day_list[#day_list + 1] = v
+		else
+			night_list[#night_list + 1] = v
+		end
+	end
+
+	local LA = calc_la(list)
+	LA.DAY = calc_la(day_list)
+	LA.NIGHT = calc_la(night_list)
+
+	return LA
+end
+
 local function calc_sample(list, start, etime)
 	local flag = #list == 0 and types.FLAG.Connection or nil
 	local val_cou = 0
@@ -106,13 +176,11 @@ local function calc_sample(list, start, etime)
 		avg = val_avg,
 		min = val_min,
 		max = val_max,
-		cou_z = 0,
-		avg_z = 0,
-		min_z = 0,
-		max_z = 0,
 		flag = flag,
 		stime = start,  -- Duration start
 		etime = etime,	-- Duration end
+		LC = val_t,
+		LA = LA,
 	}
 end
 
@@ -150,6 +218,8 @@ function LA:on_min_trigger(now, duration)
 	local val = calc_sample(list, start, now)
 	assert(self._min_list:append(val))
 
+	val.LA = calc_la(list)
+
 	return val
 end
 
@@ -157,7 +227,7 @@ local function calc_cou(list, start, etime)
 	local flag = #list == 0 and types.FLAG.Connection or nil
 	local last = start - 0.0001 -- make sure etime assets works properly
 	local val_cou = 0
-	local val_t_avg = 0
+	local val_t = 0
 	local val_min = 0
 	local val_max = 0
 
@@ -169,25 +239,23 @@ local function calc_cou(list, start, etime)
 		val_min = v.min < val_min and v.min or val_min
 		val_max = v.max > val_max and v.max or val_max
 		val_cou = val_cou + v.cou
-		val_t_avg = val_t_avg + v.avg
+		val_t = val_t + v.LC
 	end
 
 	assert(last <= etime, 'last:'..last..'\tetime:'..etime)
 
-	local val_avg = #list > 0 and val_t_avg / #list or 0
+	local val_avg = val_t > 0 and 10 * math.log((val_cou / val_t), 10) or 0
 
 	return {
 		cou = val_cou,
 		avg = val_avg,
 		min = val_min,
 		max = val_max,
-		cou_z = 0,
-		avg_z = 0,
-		min_z = 0,
-		max_z = 0,
 		flag = flag,
 		stime = start,
 		etime = etime,
+		LC = val_t,
+		LA = LA,
 	}
 end
 
@@ -225,7 +293,45 @@ function LA:on_hour_trigger(now, duration)
 	local val = calc_cou(list, start, now)
 	assert(self._hour_list:append(val))
 
+	local slist = self._hour_sample_list:pop(now)
+	val.LA = calc_la(slist)
+
 	return val
+end
+
+local function calc_cou_day(list, start, etime)
+	local flag = #list == 0 and types.FLAG.Connection or nil
+	local last = start - 0.0001 -- make sure etime assets works properly
+	local val_cou = 0
+	local val_t = 0
+	local val_min = 0
+	local val_max = 0
+
+	for i, v in ipairs(list) do
+		assert(v.stime >= start, "Start time issue:"..v.stime..'\t'..start)
+		assert(v.etime >= last, "Last time issue:"..v.etime..'\t'..last)
+		last = v.etime
+
+		val_min = v.min < val_min and v.min or val_min
+		val_max = v.max > val_max and v.max or val_max
+		val_cou = val_cou + v.cou
+		val_t = val_t + v.LC
+	end
+
+	assert(last <= etime, 'last:'..last..'\tetime:'..etime)
+
+	local val_avg = val_t > 0 and 10 * math.log((val_cou / val_t), 10) or 0
+
+	return {
+		cou = val_cou,
+		avg = val_avg,
+		min = val_min,
+		max = val_max,
+		flag = flag,
+		stime = start,
+		etime = etime,
+		LC = val_t,
+	}
 end
 
 function LA:on_day_trigger(now, duration)
@@ -259,8 +365,11 @@ function LA:on_day_trigger(now, duration)
 
 	local list = sample_list:pop(now)
 
-	local val = calc_cou(list, start, now)
+	local val = calc_cou_day(list, start, now)
 	assert(self._day_list:append(val))
+
+	local slist = self._day_sample_list:pop(now)
+	val.LA = calc_la_day(slist)
 
 	return val
 end

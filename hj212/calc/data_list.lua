@@ -19,6 +19,12 @@ function list:init(vals, cb)
 	end
 end
 
+function list:append_list(vals)
+	for _, v in ipairs(vals) do
+		self:_append(v, cb)
+	end
+end
+
 function list:append(data)
 	local cb = self._insert_callback
 	return self:_append(data, cb)

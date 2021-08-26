@@ -2510,4 +2510,11 @@ return {
 		id = "i33400";
 		unit = "%";
 	};
+	{
+		desc = "噪声";
+		format = "N3.1";
+		id = "LA";
+		org_id = "B03";
+		unit = "分贝";
+	};
 }

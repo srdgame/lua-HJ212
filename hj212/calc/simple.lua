@@ -34,12 +34,13 @@ end
 local function calc_sample(list, start, etime, zs)
 	local flag = #list == 0 and types.FLAG.Connection or nil
 	local val_cou = 0
-	local val_min = 0
-	local val_max = 0
+	local val_min = #list > 0 and list[1].value or 0
+	local val_max = val_min
 	local val_t = 0
+	local first_value_z = #list > 0 and list[1].value_z or 0
 	local val_cou_z = zs and 0 or nil
-	local val_min_z = zs and 0 or nil
-	local val_max_z = zs and 0 or nil
+	local val_min_z = zs and first_value_z or nil
+	local val_max_z = zs and first_value_z or nil
 	local val_t_z = zs and 0 or nil
 
 	local last = start - 0.0001 -- make sure the asserts work properly
@@ -134,11 +135,11 @@ local function calc_cou(list, start, etime, zs)
 	local last = start - 0.0001 -- make sure etime assets works properly
 	local val_cou = 0
 	local val_t_avg = 0
-	local val_min = 0
-	local val_max = 0
+	local val_min = #list > 0 and list[1].min
+	local val_max = #list > 0 and list[1].max
 	local val_cou_z = zs and 0 or nil
-	local val_min_z = zs and 0 or nil
-	local val_max_z = zs and 0 or nil
+	local val_min_z = zs and #list > 0 and list[1].min_z or nil
+	local val_max_z = zs and #list > 0 and list[1].max_z or nil
 	local val_t_avg_z = zs and 0 or nil
 
 	for i, v in ipairs(list) do

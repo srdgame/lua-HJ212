@@ -59,11 +59,12 @@ end
 local function calc_sample(list, start, etime, zs)
 	local flag = #list == 0 and types.FLAG.CONNECTION or nil
 	local val_cou = 0
-	local val_min = 0
-	local val_max = 0
+	local val_min = #list > 0 and list[1].value or 0
+	local val_max = val_min
+	local first_value_z = #list > 0 and list[1].value_z or 0
 	local val_cou_z = zs and 0 or nil
-	local val_min_z = zs and 0 or nil
-	local val_max_z = zs and 0 or nil 
+	local val_min_z = zs and first_value_z or nil
+	local val_max_z = zs and first_value_z or nil 
 
 	local last = #list > 0 and (list[1].timestamp - 5) or nil
 	local last_avg = nil
@@ -168,11 +169,11 @@ local function calc_cou(list, start, etime, zs)
 	local last = start
 	local flag = #list == 0 and types.FLAG.CONNECTION or nil
 	local val_cou = 0
-	local val_min = 0
-	local val_max = 0
+	local val_min = #list > 1 and list[1].min or 0
+	local val_max = #list > 1 and list[1].max or 0
 	local val_cou_z = zs and 0 or nil
-	local val_min_z = zs and 0 or nil
-	local val_max_z = zs and 0 or nil
+	local val_min_z = zs and #list > 1 and list[1].min_z or nil
+	local val_max_z = zs and #list > 1 and list[1].max_z or nil
 
 	for _, v in ipairs(list) do
 		assert(v.stime >= start, "Start time issue:"..v.stime..'\t'..start)

@@ -205,7 +205,8 @@ end
 function poll:convert_data_la(data)
 	local rdata = {}
 	for k, v in ipairs(data) do
-		if not val.ex_vals.DAY then
+		-- print('convert_data_la', cjson.encode(data))
+		if not v.ex_vals or not v.ex_vals.DAY then
 			rdata[#rdata + 1] = param_tag:new('Leq', { Data = v.avg }, v.stime, self._fmt)
 			rdata[#rdata + 1] = param_tag:new('LMn', { Data = v.min }, v.stime, self._fmt)
 			rdata[#rdata + 1] = param_tag:new('LMx', { Data = v.max }, v.stime, self._fmt)
@@ -216,8 +217,8 @@ function poll:convert_data_la(data)
 		end
 
 		--- Convert ex_vals
-		if val.ex_vals then
-			local ex_vals = cjson.decode(val.ex_vals)
+		if v.ex_vals then
+			local ex_vals = cjson.decode(v.ex_vals)
 			rdata[#rdata + 1] = param_tag:new('L5', { Data = ex_vals.L5 }, v.stime, self._fmt)
 			rdata[#rdata + 1] = param_tag:new('L10', { Data = ex_vals.L10 }, v.stime, self._fmt)
 			rdata[#rdata + 1] = param_tag:new('L50', { Data = ex_vals.L50 }, v.stime, self._fmt)

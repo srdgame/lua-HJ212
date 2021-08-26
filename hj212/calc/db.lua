@@ -59,6 +59,7 @@ function base:cou_meta()
 		{ name = 'min_z', type = 'DOUBLE', not_null = false },
 		{ name = 'max_z', type = 'DOUBLE', not_null = false },
 		--- Extented vals
+		{ name = 'LC', type = 'INTEGER', not_null = false}, -- LA data point count
 		{ name = 'ex_vals', type = 'STRING', not_null = false},
 	}, DB_VER
 end

@@ -1,3 +1,4 @@
+local cjson = require 'cjson.safe'
 local logger = require 'hj212.logger'
 local base = require 'hj212.calc.base'
 local mgr = require 'hj212.calc.manager'
@@ -84,7 +85,7 @@ local function get_la_value(list, percent)
 	if count == 0 then
 		return 0
 	end
-	local c = math.floor(count * percent / 100)
+	local c = math.floor(count * (100 - percent) / 100)
 	if c == 0 then
 		c = 1
 	end
@@ -99,10 +100,7 @@ local function calc_la(list)
 			calc_list[#calc_list + 1] = v
 		end
 	end
-	local LA = {
-		avg = 0,
-		min = 0,
-		max = 0,
+	local la = {
 		L5 = 0,
 		L10 = 0,
 		L50 = 0,
@@ -110,19 +108,19 @@ local function calc_la(list)
 		L95 = 0,
 	}
 	if #calc_list == 0 then
-		return LA
+		return la
 	end
 
 	table.sort(calc_list, function(a, b)
 		return (a.value or 0) < (b.value or 0)
 	end)
-	LA.L5 = get_la_value(calc_list, 5)
-	LA.L10 = get_la_value(calc_list, 10)
-	LA.L50 = get_la_value(calc_list, 50)
-	LA.L90 = get_la_value(calc_list, 90)
-	LA.L95 = get_la_value(calc_list, 95)
+	la.L5 = get_la_value(calc_list, 5)
+	la.L10 = get_la_value(calc_list, 10)
+	la.L50 = get_la_value(calc_list, 50)
+	la.L90 = get_la_value(calc_list, 90)
+	la.L95 = get_la_value(calc_list, 95)
 
-	return LA
+	return la
 end
 
 local function calc_la_day(list, is_day)
@@ -137,18 +135,18 @@ local function calc_la_day(list, is_day)
 		end
 	end
 
-	local LA = calc_la(list)
-	LA.DAY = calc_la(day_list)
-	LA.NIGHT = calc_la(night_list)
+	local la = calc_la(list)
+	la.DAY = calc_la(day_list)
+	la.NIGHT = calc_la(night_list)
 
-	return LA
+	return la
 end
 
 local function calc_sample(list, start, etime)
 	local flag = #list == 0 and types.FLAG.Connection or nil
 	local val_cou = 0
-	local val_min = 0
-	local val_max = 0
+	local val_min = #list > 0 and list[1].value or 0
+	local val_max = val_min
 	local val_t = 0
 
 	local last = start - 0.0001 -- make sure the asserts work properly
@@ -180,7 +178,6 @@ local function calc_sample(list, start, etime)
 		stime = start,  -- Duration start
 		etime = etime,	-- Duration end
 		LC = val_t,
-		LA = LA,
 	}
 end
 
@@ -216,9 +213,15 @@ function LA:on_min_trigger(now, duration)
 	local list = sample_list:pop(now)
 
 	local val = calc_sample(list, start, now)
-	assert(self._min_list:append(val))
 
-	val.ex_vals = cjson.encode(calc_la(list))
+	local ex_vals, err = cjson.encode(calc_la(list))
+	if not ex_vals then
+		self:log('error', 'Encode ex_vals failed', err)
+	end
+
+	val.ex_vals = ex_vals
+
+	assert(self._min_list:append(val))
 
 	return val
 end
@@ -228,8 +231,8 @@ local function calc_cou(list, start, etime)
 	local last = start - 0.0001 -- make sure etime assets works properly
 	local val_cou = 0
 	local val_t = 0
-	local val_min = 0
-	local val_max = 0
+	local val_min = #list > 0 and list[1].min
+	local val_max = #list > 0 and list[1].max
 
 	for i, v in ipairs(list) do
 		assert(v.stime >= start, "Start time issue:"..v.stime..'\t'..start)
@@ -290,47 +293,17 @@ function LA:on_hour_trigger(now, duration)
 	local list = sample_list:pop(now)
 
 	local val = calc_cou(list, start, now)
-	assert(self._hour_list:append(val))
 
 	local slist = self._hour_sample_list:pop(now)
-	val.ex_vals = cjson.encode(calc_la(slist))
+	local ex_vals, err = cjson.encode(calc_la(slist))
+	if not ex_vals then
+		self:log('error', 'Encode ex_vals failed', err)
+	end
+	val.ex_vals = ex_vals
+
+	assert(self._hour_list:append(val))
 
 	return val
-end
-
-local function calc_cou_day(list, start, etime)
-	local flag = #list == 0 and types.FLAG.Connection or nil
-	local last = start - 0.0001 -- make sure etime assets works properly
-	local val_cou = 0
-	local val_t = 0
-	local val_min = 0
-	local val_max = 0
-
-	for i, v in ipairs(list) do
-		assert(v.stime >= start, "Start time issue:"..v.stime..'\t'..start)
-		assert(v.etime >= last, "Last time issue:"..v.etime..'\t'..last)
-		last = v.etime
-
-		val_min = v.min < val_min and v.min or val_min
-		val_max = v.max > val_max and v.max or val_max
-		val_cou = val_cou + v.cou
-		val_t = val_t + v.LC
-	end
-
-	assert(last <= etime, 'last:'..last..'\tetime:'..etime)
-
-	local val_avg = val_t > 0 and 10 * math.log((val_cou / val_t), 10) or 0
-
-	return {
-		cou = val_cou,
-		avg = val_avg,
-		min = val_min,
-		max = val_max,
-		flag = flag,
-		stime = start,
-		etime = etime,
-		LC = val_t,
-	}
 end
 
 function LA:on_day_trigger(now, duration)
@@ -364,13 +337,18 @@ function LA:on_day_trigger(now, duration)
 
 	local list = sample_list:pop(now)
 
-	local val = calc_cou_day(list, start, now)
-	assert(self._day_list:append(val))
+	local val = calc_cou(list, start, now)
 
 	local slist = self._day_sample_list:pop(now)
 	local station_la = self._station:LA()
-	val.ex_vals = cjson.encode(calc_la_day(slist, station_la.is_day))
+	local ex_vals, err = cjson.encode(calc_la_day(slist, station_la.is_day))
+	if not ex_vals then
+		self:log('error', 'Encode ex_vals failed', err)
+	end
 
+	val.ex_vals = ex_vals
+
+	assert(self._day_list:append(val))
 	return val
 end
 

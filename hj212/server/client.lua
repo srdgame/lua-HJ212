@@ -46,6 +46,10 @@ function client:set_station(station)
 	end
 end
 
+function client:set_packet_crc(crc)
+	self._packet_crc = crc
+end
+
 function client:station()
 	return self._station
 end

@@ -42,9 +42,10 @@ function pollut:__call(typ, val, now)
 				val.avg_z = 0
 			end
 		else
-			val.avg = (val.cou / fval.cou) * (10 ^ -3)
+			val.avg = (val.cou / fval.cou) * (10 ^ 3)
+			-- print(self._pollut._id, val.cou, val.avg, val.min, val.max)
 			if val.cou_z then
-				val.avg_z = (val.cou_z / fval.cou) * (10 ^ -3)
+				val.avg_z = (val.cou_z / fval.cou) * (10 ^ 3)
 			end
 		end
 	end

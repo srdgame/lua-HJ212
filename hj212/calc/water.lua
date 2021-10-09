@@ -56,7 +56,7 @@ local function flag_can_calc(flag)
 	return false
 end
 
-local function calc_sample(list, start, etime, zs)
+local function calc_sample(list, start, etime, zs, id)
 	local flag = #list == 0 and types.FLAG.CONNECTION or nil
 	local val_cou = 0
 	local val_min = #list > 0 and list[1].value or 0
@@ -102,6 +102,8 @@ local function calc_sample(list, start, etime, zs)
 
 	local val_avg = val_cou / (etime - start)
 	local val_avg_z = zs and val_cou_z / (etime - start) or nil
+
+	-- logger.log('debug', 'calc_sample', id, val_cou, val_avg, val_min, val_max)
 	--[[
 	if (list[1].timestamp - start) < 5 then
 		val_avg = val_cou / (etime - start)
@@ -148,7 +150,7 @@ function water:on_min_trigger(now, duration)
 		else
 			self:log('debug', 'WATER: calculate older sample value', start, etime, #list, list[1].timestamp)
 
-			local val = calc_sample(list, start, etime, self:has_zs())
+			local val = calc_sample(list, start, etime, self:has_zs(), self._id)
 			assert(self._min_list:append(val))
 		end
 
@@ -159,7 +161,7 @@ function water:on_min_trigger(now, duration)
 
 	local list = sample_list:pop(now)
 
-	local val = calc_sample(list, start, now, self:has_zs())
+	local val = calc_sample(list, start, now, self:has_zs(), self._id)
 	assert(self._min_list:append(val))
 
 	return val

@@ -46,6 +46,10 @@ function client:device_id()
 	return self._dev_id
 end
 
+function client:set_device_id(id)
+	self._dev_id = id
+end
+
 function client:passwd()
 	return self._passwd
 end

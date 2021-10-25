@@ -50,7 +50,7 @@ function _M._Cz_A(Cvo2_dry)
 end
 
 function _M.Cz(Csn_dry, Cvo2_dry, As)
-	logger.log('trace', 'Cz2:', 'Csn_dry', Csn_dry, 'Cvo2_dry', Cvo2_dry, 'As', As)
+	logger.log('trace', 'Cz:', 'Csn_dry', Csn_dry, 'Cvo2_dry', Cvo2_dry, 'As', As)
 	return _M._Cz(Csn_dry, _M._Cz_A(Cvo2_dry), As)
 end
 

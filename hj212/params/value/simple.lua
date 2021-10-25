@@ -49,7 +49,7 @@ local parsers = {
 			end
 			]]--
 			if f then
-				local raw = tostring(val)
+				local raw = string.format('%f', val) --tostring(val)
 				local raw_len = string.len(raw)
 				local pi = string.find(raw, '.', 1, true)
 				if pi and raw_len > pi + f then

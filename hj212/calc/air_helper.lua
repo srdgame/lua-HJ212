@@ -58,8 +58,8 @@ end
 -- 27
 function _M._Cz_A(Cvo2_dry)
 	--assert(Cvo2_dry ~= 0.21)
-	if math.abs(Cvo2_dry - 0.21) < 0.01 then
-		Cvo2_dry = 0.209
+	if math.abs(Cvo2_dry - 0.21) < 0.0001 then
+		Cvo2_dry = 0.2099
 	end
 	return 0.21 / (0.21 - Cvo2_dry)
 end

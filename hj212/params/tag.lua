@@ -48,7 +48,7 @@ function tag:initialize(tag_id, obj, data_time, default_fmt)
 	self._items = {}
 	self._cloned = nil
 	for k, v in pairs(obj or {}) do
-		self:set(k, v, default_fmt)
+		self:set(k, v)
 	end
 end
 
@@ -56,6 +56,7 @@ function tag:clone(new_tag_id)
 	local new_obj = tag:new(new_tag_id)
 	new_obj._cloned = true
 	new_obj._data_time = self._data_time
+	new_obj._default_fmt = self._default_fmt
 	for k, v in pairs(self._items) do
 		new_obj._items[k] = v
 	end
@@ -70,7 +71,9 @@ function tag:transform(func)
 	new_obj._default_fmt = self._default_fmt
 	for k, v in pairs(self._items) do
 		local key, val = func(k, v:value())
-		new_obj:set(key, val, self._default_fmt)
+		-- logger.debug("transform from", self._id, key, val)
+		new_obj:set(key, val)
+		-- logger.debug("transform result", self._id, key, self._items[key]:value())
 	end
 	return new_obj
 end

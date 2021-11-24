@@ -12,7 +12,7 @@ function data:initialize(ver, sys, cmd, passwd, devid, need_ack, params)
 	self._ver = ver
 	self._sys = sys
 	self._cmd = cmd
-	self._passwd = passwd
+	self._passwd = passwd or '123456'
 	self._devid = devid
 	self._need_ack = need_ack
 	self._params = params
@@ -24,7 +24,7 @@ end
 
 -- TODO: Packet spilit
 function data:encode()
-	assert(string.len(self._passwd) == 6)
+	assert(string.len(self._passwd) <= 6)
 	assert(string.len(self._devid) > 0) -- == 24) -- The standard is 24 char len, but we need to support exceptions :-(
 	assert(self._sys >= 0 and self._sys <= 99)
 

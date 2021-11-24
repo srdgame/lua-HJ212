@@ -151,7 +151,10 @@ function water:on_min_trigger(now, duration)
 			self:log('debug', 'WATER: calculate older sample value', start, etime, #list, list[1].timestamp)
 
 			local val = calc_sample(list, start, etime, self:has_zs(), self._id)
-			assert(self._min_list:append(val))
+			local r, err = self._min_list:append(val)
+			if not r then
+				self:log('error', err)
+			end
 		end
 
 		start = base.calc_list_stime(sample_list, now, duration)

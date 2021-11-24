@@ -103,6 +103,7 @@ function tag:get(key)
 end
 
 function tag:remove(key)
+	-- remove won't need check _cloned flag
 	self._items[key] = nil
 end
 

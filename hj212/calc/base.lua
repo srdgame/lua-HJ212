@@ -323,7 +323,8 @@ function base:push(value, timestamp, value_z, flag, quality, ex_vals)
 end
 
 function base:sample_last()
-	return self._sample_list:last()
+	return self._last_sample
+	-- return self._sample_list:last()
 end
 
 function base:query_rdata(now, readonly)

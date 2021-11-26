@@ -149,7 +149,7 @@ local function calc_cou(list, start, etime, zs)
 
 		val_min = v.min < val_min and v.min or val_min
 		val_max = v.max > val_max and v.max or val_max
-		val_cou = val_cou + v.cou
+		val_cou = val_cou + (v.cou or 0)
 		val_t_avg = val_t_avg + v.avg
 
 		if zs then

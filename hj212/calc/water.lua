@@ -77,7 +77,7 @@ local function calc_sample(list, start, etime, zs, id)
 			val_min = value < val_min and value or val_min
 			val_max = value > val_max and value or val_max
 
-			local cou = v.cou
+			local cou = v.cou or 0
 			last_avg = cou / (v.timestamp - last)
 			val_cou = val_cou + cou
 
@@ -187,7 +187,7 @@ local function calc_cou(list, start, etime, zs)
 
 		val_min = v.min < val_min and v.min or val_min
 		val_max = v.max > val_max and v.max or val_max
-		val_cou = val_cou + v.cou
+		val_cou = val_cou + (v.cou or 0)
 
 		if zs then
 			val_min_z = (v.min_z or 0) < val_min_z and v.min_z or val_min_z

@@ -68,7 +68,7 @@ function poll:init()
 
 	local m = assert(require('hj212.calc.'..calc_name))
 
-	local msg = string.format('TAG [%06s] COU:%s ZS:%d', poll_id, calc_name, self._zs_calc and 1 or 0)
+	local msg = string.format('TAG [%6s] COU:%s ZS:%d', poll_id, calc_name, self._zs_calc and 1 or 0)
 	local params = self._cou.params or {}
 	if #params > 0 then
 		msg = msg .. ' with '..cjson.encode(params)

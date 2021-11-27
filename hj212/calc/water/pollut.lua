@@ -1,6 +1,7 @@
 local class = require 'middleclass'
 local mgr = require 'hj212.calc.manager'
 local base = require 'hj212.calc.base'
+local logger = require 'hj212.logger'
 
 local pollut = class('hj212.calc.helper.pollut')
 
@@ -16,11 +17,13 @@ function pollut:__call(typ, val, now)
 	if typ == mgr.TYPES.SAMPLE then
 		local cou_val = flow:sample_last()
 		if not cou_val then
+			logger.log('warning', 'flow sample is empty', self._pollut._id)
 			val.cou = 0
 		else
-			val.cou = cou_val.cou * val.value * (10 ^ -3)
+			val.cou = cou_val.cou * val.value * 0.001
+			-- logger.log('debug', 'water.'..self._pollut._id, 'cou', val.cou, 'flow_cou', cou_val.cou, 'value', val.value)
 			if val.value_z then
-				val.cou_z = cou_val.cou * val.value_z * (10 ^ -3)
+				val.cou_z = cou_val.cou * val.value_z * 0.001
 			end
 		end
 		return val
@@ -37,15 +40,16 @@ function pollut:__call(typ, val, now)
 	local fval = flow[fn](flow, val.etime)
 	if fval then
 		if fval.cou == 0 then
+			logger.log('warning', 'flow cou is zero', self._pollut._id)
 			val.avg = 0
 			if val.avg_z then
 				val.avg_z = 0
 			end
 		else
-			val.avg = (val.cou / fval.cou) * (10 ^ 3)
-			-- print(self._pollut._id, val.cou, val.avg, val.min, val.max)
+			val.avg = (val.cou / fval.cou) * 1000
+			-- logger.log('debug', 'water.'..self._pollut._id, 'cou', val.cou, 'flow_cou', fval.cou, 'avg', val.avg, 'min', val.min, 'max', val.max)
 			if val.cou_z then
-				val.avg_z = (val.cou_z / fval.cou) * (10 ^ 3)
+				val.avg_z = (val.cou_z / fval.cou) * 1000
 			end
 		end
 	end

@@ -56,7 +56,7 @@ local function flag_can_calc(flag)
 	return false
 end
 
-local function calc_sample(list, start, etime, zs, id)
+function water:_calc_sample(list, start, etime, zs)
 	local flag = #list == 0 and types.FLAG.CONNECTION or nil
 	local val_cou = 0
 	local val_min = #list > 0 and list[1].value or 0
@@ -103,7 +103,7 @@ local function calc_sample(list, start, etime, zs, id)
 	local val_avg = val_cou / (etime - start)
 	local val_avg_z = zs and val_cou_z / (etime - start) or nil
 
-	-- logger.log('debug', 'calc_sample', id, val_cou, val_avg, val_min, val_max)
+	-- self:log('debug', 'calc_sample', self._id, val_cou, val_avg, val_min, val_max)
 	--[[
 	if (list[1].timestamp - start) < 5 then
 		val_avg = val_cou / (etime - start)
@@ -112,7 +112,7 @@ local function calc_sample(list, start, etime, zs, id)
 	end
 	]]--
 
-	--logger.log('debug', 'water.calc_sample', val_cou, etime - start, val_avg, val_min, val_max)
+	-- self:log('debug', 'water.calc_sample', self._id, val_cou, etime - start, val_avg, val_min, val_max)
 
 	return {
 		cou = val_cou,
@@ -150,7 +150,7 @@ function water:on_min_trigger(now, duration)
 		else
 			self:log('debug', 'WATER: calculate older sample value', start, etime, #list, list[1].timestamp)
 
-			local val = calc_sample(list, start, etime, self:has_zs(), self._id)
+			local val = self:_calc_sample(list, start, etime, self:has_zs())
 			local r, err = self._min_list:append(val)
 			if not r then
 				self:log('error', err)
@@ -164,13 +164,13 @@ function water:on_min_trigger(now, duration)
 
 	local list = sample_list:pop(now)
 
-	local val = calc_sample(list, start, now, self:has_zs(), self._id)
+	local val = self:_calc_sample(list, start, now, self:has_zs())
 	assert(self._min_list:append(val))
 
 	return val
 end
 
-local function calc_cou(list, start, etime, zs)
+function water:_calc_cou(list, start, etime, zs)
 	local last = start
 	local flag = #list == 0 and types.FLAG.CONNECTION or nil
 	local val_cou = 0
@@ -236,7 +236,7 @@ function water:on_hour_trigger(now, duration)
 			end
 		else
 			self:log('debug', 'WATER: calculate older min value', start, etime, #list, list[1].stime)
-			local val = calc_cou(list, start, etime, self:has_zs())
+			local val = self:_calc_cou(list, start, etime, self:has_zs())
 			assert(self._hour_list:append(val))
 		end
 
@@ -247,7 +247,7 @@ function water:on_hour_trigger(now, duration)
 
 	local list = sample_list:pop(now)
 
-	local val = calc_cou(list, start, now, self:has_zs())
+	local val = self:_calc_cou(list, start, now, self:has_zs())
 	assert(self._hour_list:append(val))
 
 	return val
@@ -273,7 +273,7 @@ function water:on_day_trigger(now, duration)
 			end
 		else
 			self:log('debug', 'WATER: calculate older hour value', start, etime, #list, list[1].stime)
-			local val = calc_cou(list, start, etime, self:has_zs())
+			local val = self:_calc_cou(list, start, etime, self:has_zs())
 			assert(self._day_list:append(val))
 		end
 
@@ -284,7 +284,7 @@ function water:on_day_trigger(now, duration)
 
 	local list = sample_list:pop(now)
 
-	local val = calc_cou(list, start, now, self:has_zs())
+	local val = self:_calc_cou(list, start, now, self:has_zs())
 	assert(self._day_list:append(val))
 
 	return val

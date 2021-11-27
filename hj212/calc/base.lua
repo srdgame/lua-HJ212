@@ -345,8 +345,8 @@ function base:query_rdata(now, readonly)
 	val.timestamp = now
 	val.etime = now --- For callback usage
 
-	-- Clean the last sample as we expect the new sample arrived before next query_rdata called
-	self._last_sample = nil
+	-- Set the flag to B which is connection issue and will be overwrite by next sample
+	self._last_sample.flag = 'B'
 
 	assert(self._rdata_list:append(val))
 

@@ -207,10 +207,12 @@ function water:_calc_sample(list, start, etime, zs)
 		local t_cou = 0
 		if self._flow_calc then
 			-- pollution
-			last_flow_sample = self._flow_calc:last_valid_sample()
-			t_flow_cou = last_flow_sample.value * (etime - last)
-			if t_flow_cou > 0 then
-				t_cou = t_flow_cou * last_val
+			local last_flow_sample = self._flow_calc:last_valid_sample()
+			if last_flow_sample then
+				local t_flow_cou = last_flow_sample.value * (etime - last)
+				if t_flow_cou > 0 then
+					t_cou = t_flow_cou * last_val
+				end
 			end
 		else
 			-- flow
@@ -295,10 +297,12 @@ function water:on_min_trigger(now, duration)
 
 	assert(start == now - duration)
 
+	--[[
 	local sample_cou = 0
 	if self._id == 'w00000' then
 		sample_cou = self:sample_cou(now - duration, now)
 	end
+	]]--
 
 	local list = sample_list:pop(now)
 

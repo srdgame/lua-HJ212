@@ -6,10 +6,10 @@ local helper = require 'hj212.calc.helper'
 
 local pollut = class('hj212.calc.helper.pollut')
 
-function pollut:initialize(pollut, flow)
+function pollut:initialize(pollut_, flow)
 	assert(pollut)
 	assert(flow)
-	self._pollut = pollut
+	self._pollut = pollut_
 	self._flow = flow
 	self:reset(os.time())
 end

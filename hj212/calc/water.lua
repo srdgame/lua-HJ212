@@ -209,6 +209,11 @@ function water:_calc_sample(list, start, etime, zs)
 			t_cou = (last_val * (etime - last)) / 1000
 		end
 
+		-- in case this is not initialized correctly, so we cannot know this is flow or pollution
+		if not self._cou_calc then
+			t_cou = 0
+		end
+
 		--print('calc_sample tail', t_cou, last_val, last, etime - last)
 		val_cou = val_cou + t_cou
 

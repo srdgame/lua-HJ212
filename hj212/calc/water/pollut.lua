@@ -57,7 +57,7 @@ function pollut:__call(typ, val, now)
 	if fval then
 		local flow_cou = math.floor(fval.cou * 10000) / 10000
 		if flow_cou < 0.001 then
-			logger.log('warning', 'flow cou is zero', self._pollut._id)
+			-- logger.log('warning', 'flow cou is zero', self._pollut._id)
 			val.avg = 0
 			if val.avg_z then
 				val.avg_z = 0

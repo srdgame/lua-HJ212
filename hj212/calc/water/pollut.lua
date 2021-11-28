@@ -39,17 +39,20 @@ function pollut:__call(typ, val, now)
 
 	local fval = flow[fn](flow, val.etime)
 	if fval then
-		if fval.cou == 0 then
+		local flow_cou = math.floor(fval.cou * 10000) / 10000
+		if flow_cou < 0.001 then
 			logger.log('warning', 'flow cou is zero', self._pollut._id)
 			val.avg = 0
 			if val.avg_z then
 				val.avg_z = 0
 			end
 		else
-			val.avg = (val.cou / fval.cou) * 1000
+			local val_cou = math.floor(val.cou * 10000000) / 10000000
+			val.avg = (val_cou / flow_cou) * 1000
 			-- logger.log('debug', 'water.'..self._pollut._id, 'cou', val.cou, 'flow_cou', fval.cou, 'avg', val.avg, 'min', val.min, 'max', val.max)
 			if val.cou_z then
-				val.avg_z = (val.cou_z / fval.cou) * 1000
+				local val_cou_z = math.floor(val.cou_z * 10000000) / 10000000
+				val.avg_z = (val_cou_z / flow_cou) * 1000
 			end
 		end
 	end

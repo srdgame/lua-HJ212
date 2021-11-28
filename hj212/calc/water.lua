@@ -66,9 +66,10 @@ function water:_calc_sample(list, start, etime, zs)
 	local val_min_z = zs and first_value_z or nil
 	local val_max_z = zs and first_value_z or nil 
 
-	local last = #list > 0 and (list[1].timestamp - 5) or nil
+	local last = #list > 0 and (list[1].timestamp - 0.0001) or nil
 	local last_avg = nil
 	local last_avg_z = nil
+	local val_count = 0
 
 	for i, v in ipairs(list) do
 		if flag_can_calc(v.flag) then

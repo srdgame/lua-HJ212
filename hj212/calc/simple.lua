@@ -44,6 +44,7 @@ local function calc_sample(list, start, etime, zs)
 	local val_t_z = zs and 0 or nil
 
 	local last = start - 0.0001 -- make sure the asserts work properly
+	local val_count = 0
 	for i, v in ipairs(list) do
 		if flag_can_calc(v.flag) then
 			assert(v.timestamp > last, string.format('Timestamp issue:%f\t%f', v.timestamp, last))
@@ -53,6 +54,7 @@ local function calc_sample(list, start, etime, zs)
 			val_min = val < val_min and val or val_min
 			val_max = val > val_max and val or val_max
 			val_cou = val_cou + (v.cou or val)
+			val_count = val_count + 1
 			val_t = val_t + val
 
 			--logger.log('debug', 'simple.calc_sample', val_cou, v.cou or val, val_min, val_max)
@@ -68,8 +70,8 @@ local function calc_sample(list, start, etime, zs)
 		end
 	end
 
-	local val_avg = #list > 0 and val_t / #list or 0
-	local val_avg_z = zs and (#list > 0 and val_t_z / #list or 0) or nil
+	local val_avg = val_count > 0 and val_t / val_count or 0
+	local val_avg_z = zs and (val_count > 0 and val_t_z / val_count or 0) or nil
 
 	--logger.log('debug', 'simple.calc_sample', #list, val_cou, val_avg, val_min, val_max)
 	--[[

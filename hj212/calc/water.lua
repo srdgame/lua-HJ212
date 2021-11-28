@@ -166,10 +166,6 @@ function water:_calc_sample(list, start, etime, zs)
 
 	--print('calc_sample #list', #list)
 	local last_vs = self._last_valid_sample
-	local first_stime = self._last_sample_cou_begin
-	if first_stime < start then
-		first_stime = start
-	end
 
 	for i, v in ipairs(list) do
 		if helper.flag_can_calc(v.flag) then
@@ -183,9 +179,6 @@ function water:_calc_sample(list, start, etime, zs)
 			val_cou = val_cou + cou
 			last_val = value
 			--print('calc_sample i' ,i, cou, last_vs and last_vs.value, last_vs and (v.timestamp - last_vs.timestamp) or (v.timestamp - start), v.value)
-			if not last_vs then
-				first_stime = v.timestamp
-			end
 			last_vs = v
 
 			if zs then
@@ -241,6 +234,7 @@ function water:_calc_sample(list, start, etime, zs)
 
 	--print('calc_sample total', val_cou)
 
+	local first_stime = start -- for using start tiem
 	if val_count > 0 and (etime - first_stime) > 0 then
 		val_avg = val_cou / (etime - first_stime)
 		if zs then

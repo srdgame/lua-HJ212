@@ -65,7 +65,7 @@ end
 
 function water:sample_cou(stime, etime)
 	assert(self._id == 'w00000')
-	assert(stime and etime and etime > stime)
+	assert(stime and etime and etime > stime, 'stime:'..stime..' etime:'..etime)
 
 	-- self:log('debug', "WATER.sample_cou start", stime, etime, etime - stime)
 
@@ -102,7 +102,7 @@ function water:sample_cou(stime, etime)
 			end
 
 			if last and (val.timestamp - ll_time) > MIN_TIME_DIFF then
-				local t_cou = (last.value * (val.timestamp - ll_time)) / 1000
+				local t_cou = last.value * (val.timestamp - ll_time)
 				val_cou = val_cou + t_cou
 				--print('sample_cou i', i, t_cou, last.value, val.timestamp - ll_time, val.value)
 			else
@@ -124,7 +124,7 @@ function water:sample_cou(stime, etime)
 
 	-- tail cou
 	if last and (etime - ll_time) > MIN_TIME_DIFF then
-		local t_cou = (last.value * (etime - ll_time)) / 1000
+		local t_cou = last.value * (etime - ll_time)
 		--print('sample_cou tail', t_cou, last.value, etime - ll_time, ll_time)
 		val_cou = val_cou + t_cou
 		-- self:log('debug', "WATER.sample_cou cou 3", cou, t_cou, last.value, etime - ll_time)
@@ -162,7 +162,12 @@ function water:_calc_sample(list, start, etime, zs)
 	local val_count = 0
 
 	--print('calc_sample #list', #list)
-	local llll = self._last_valid_sample
+	local last_vs = self._last_valid_sample
+	local first_stime = self._last_sample_cou_begin
+	if first_stime < start then
+		first_stime = start
+	end
+
 	for i, v in ipairs(list) do
 		if helper.flag_can_calc(v.flag) then
 			val_count = val_count + 1
@@ -174,8 +179,11 @@ function water:_calc_sample(list, start, etime, zs)
 			local cou = v.cou or 0
 			val_cou = val_cou + cou
 			last_val = value
-			--print('calc_sample i' ,i, cou, llll and llll.value, llll and (v.timestamp - llll.timestamp) or (v.timestamp - start), v.value)
-			llll = v
+			--print('calc_sample i' ,i, cou, last_vs and last_vs.value, last_vs and (v.timestamp - last_vs.timestamp) or (v.timestamp - start), v.value)
+			if not last_vs then
+				first_stime = v.timestamp
+			end
+			last_vs = v
 
 			if zs then
 				local value_z = v.value_z or 0
@@ -200,13 +208,13 @@ function water:_calc_sample(list, start, etime, zs)
 		if self._flow_calc then
 			-- pollution
 			last_flow_sample = self._flow_calc:last_valid_sample()
-			t_flow_cou = (last_flow_sample.value * (etime - last)) / 1000
+			t_flow_cou = last_flow_sample.value * (etime - last)
 			if t_flow_cou > 0 then
-				t_cou = t_flow_cou * last_val / 1000
+				t_cou = t_flow_cou * last_val
 			end
 		else
 			-- flow
-			t_cou = (last_val * (etime - last)) / 1000
+			t_cou = last_val * (etime - last)
 		end
 
 		-- in case this is not initialized correctly, so we cannot know this is flow or pollution
@@ -228,10 +236,10 @@ function water:_calc_sample(list, start, etime, zs)
 
 	--print('calc_sample total', val_cou)
 
-	if val_count > 0 and (etime - start) > 0 then
-		val_avg = val_cou / (etime - start)
+	if val_count > 0 and (etime - first_stime) > 0 then
+		val_avg = val_cou / (etime - first_stime)
 		if zs then
-			val_avg_z = val_cou_z / (etime - start)
+			val_avg_z = val_cou_z / (etime - first_stime)
 		end
 	end
 
@@ -334,10 +342,14 @@ function water:_calc_cou(list, start, etime, zs)
 	local val_avg = 0
 	local val_avg_z = zs and 0 or nil
 
+	local first_stime = nil
 	for _, v in ipairs(list) do
 		assert(v.stime >= start, "Start time issue:"..v.stime..'\t'..start)
 		assert(v.etime >= last, "Last time issue:"..v.etime..'\t'..last)
 		last = v.etime
+		if not first_stime then
+			first_stime = v.stime
+		end
 
 		val_min = v.min < val_min and v.min or val_min
 		val_max = v.max > val_max and v.max or val_max
@@ -352,10 +364,14 @@ function water:_calc_cou(list, start, etime, zs)
 
 	assert(last <= etime, 'last:'..last..'\tetime:'..etime)
 
-	if (etime - start) > 0 then
-		val_avg = val_cou / (etime - start)
+	if not first_stime then
+		first_stime = start
+	end
+	if (etime - first_stime) > 0 then
+		--- this only worked for flow, the pollution will be calced in water/pollut.lua
+		val_avg = (1000 * val_cou) / (etime - first_stime)
 		if zs then
-			val_avg_z = val_cou_z / (etime - start)
+			val_avg_z = (1000 * val_cou_z) / (etime - first_stime)
 		end
 	end
 

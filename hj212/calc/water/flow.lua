@@ -33,7 +33,7 @@ function flow:__call(typ, val, now)
 			self._last_sample_value = 0
 		end
 
-		val.cou = (self._last_sample_value * (now - self._last_sample_time)) / 1000
+		val.cou = self._last_sample_value * (now - self._last_sample_time)
 		if helper.flag_can_calc(val.flag) then
 			-- logger.log('debug', 'water.flow', 'cou', val.cou, 'value', val.value, 'time', now - self._last_sample_time)
 			self._last_sample_value = val.value
@@ -44,13 +44,14 @@ function flow:__call(typ, val, now)
 			self._last_rdata_value = 0
 		end
 
-		val.cou = (self._last_rdata_value * (now - self._last_rdata_time)) / 1000
+		val.cou = self._last_rdata_value * (now - self._last_rdata_time)
 		if helper.flag_can_calc(val.flag) then
 			self._last_rdata_value = val.value
 			self._last_rdata_time = now
 		end
+	elseif typ == mgr.TYPES.MIN then
+		val.cou = val.cou / 1000
 	else
-		val.avg = val.avg * 1000
 		-- Nothing to do
 	end
 

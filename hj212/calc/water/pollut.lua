@@ -31,10 +31,10 @@ function pollut:__call(typ, val, now)
 		if cou_val == 0 then
 			val.cou = 0
 		else
-			val.cou = cou_val * val.value / 1000
+			val.cou = cou_val * val.value
 			-- logger.log('debug', 'water.'..self._pollut._id, 'cou', val.cou, 'flow_cou', cou_val, 'value', val.value)
 			if val.value_z then
-				val.cou_z = cou_val * val.value_z / 1000
+				val.cou_z = cou_val * val.value_z
 			end
 		end
 
@@ -64,11 +64,27 @@ function pollut:__call(typ, val, now)
 			end
 		else
 			local val_cou = math.floor(val.cou * 10000000) / 10000000
-			val.avg = (val_cou / flow_cou) * 1000
+			--- convert unit
+			if typ == mgr.TYPES.MIN then
+				val.cou = val.cou / 1000000 -- mg => kg
+			else
+				val_cou = val_cou * 1000000 -- kg => mg
+			end
+
+			val.avg = val_cou / (flow_cou * 1000)
+
 			-- logger.log('debug', 'water.'..self._pollut._id, 'cou', val.cou, 'flow_cou', fval.cou, 'avg', val.avg, 'min', val.min, 'max', val.max)
 			if val.cou_z then
 				local val_cou_z = math.floor(val.cou_z * 10000000) / 10000000
-				val.avg_z = (val_cou_z / flow_cou) * 1000
+
+				--- convert unit
+				if typ == mgr.TYPES.MIN then
+					val.cou = val.cou / 1000000 -- mg => kg
+				else
+					val_cou = val_cou * 1000000 -- kg => mg
+				end
+
+				val.avg_z = val_cou_z / (flow_cou * 1000)
 			end
 		end
 	else

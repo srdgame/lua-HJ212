@@ -2,6 +2,7 @@ local class = require 'middleclass'
 local mgr = require 'hj212.calc.manager'
 local base = require 'hj212.calc.base'
 local logger = require 'hj212.logger'
+local helper = require 'hj212.calc.helper'
 
 local pollut = class('hj212.calc.helper.pollut')
 
@@ -10,26 +11,41 @@ function pollut:initialize(pollut, flow)
 	assert(flow)
 	self._pollut = pollut
 	self._flow = flow
+	self:reset(os.time())
+end
+
+function pollut:reset(now)
+	assert(now)
+	self._last_sample_time = now
+end
+
+function pollut:last_sample_value()
+	assert(false, "should not been called")
 end
 
 function pollut:__call(typ, val, now)
 	local flow = self._flow
+
 	if typ == mgr.TYPES.SAMPLE then
-		local cou_val = flow:sample_last()
-		if not cou_val then
-			logger.log('warning', 'flow sample is empty', self._pollut._id)
+		local cou_val = flow:sample_cou(self._last_sample_time, now)
+		if cou_val == 0 then
 			val.cou = 0
 		else
-			val.cou = cou_val.cou * val.value * 0.001
-			-- logger.log('debug', 'water.'..self._pollut._id, 'cou', val.cou, 'flow_cou', cou_val.cou, 'value', val.value)
+			val.cou = cou_val * val.value / 1000
+			-- logger.log('debug', 'water.'..self._pollut._id, 'cou', val.cou, 'flow_cou', cou_val, 'value', val.value)
 			if val.value_z then
-				val.cou_z = cou_val.cou * val.value_z * 0.001
+				val.cou_z = cou_val * val.value_z / 1000
 			end
 		end
+
+		if helper.flag_can_calc(val.flag) then
+			self._last_sample_time = now
+		end
+
 		return val
 	end
+
 	if typ == mgr.TYPES.RDATA then
-		--- Not calc for cou and cou_z as RDATA is not using for COU calculation
 		return val
 	end
 
@@ -55,6 +71,8 @@ function pollut:__call(typ, val, now)
 				val.avg_z = (val_cou_z / flow_cou) * 1000
 			end
 		end
+	else
+		self._pollut:log('error', 'No COU value of water Flow', type_name, val.etime)
 	end
 
 	return val

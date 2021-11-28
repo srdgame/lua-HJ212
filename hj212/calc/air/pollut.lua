@@ -24,11 +24,11 @@ function pollut:__call(typ, val, now)
 		self._pollut:log('air.pollut etime~=now', type_name, now, val.etime, val.timestamp)
 	end
 
-	local cou_value = flow[fn](flow, val.etime)
-	if cou_value then
-		val.cou = cou_value.cou * val.avg * (10 ^ -6)
+	local fval = flow[fn](flow, val.etime)
+	if fval then
+		val.cou = fval.cou * val.avg * (10 ^ -6)
 		if val.avg_z then
-			val.cou_z = cou_value.cou * val.avg_z * (10 ^ -6)
+			val.cou_z = fval.cou * val.avg_z * (10 ^ -6)
 		end
 	else
 		self._pollut:log('debug', 'No COU value of AIR Flow', type_name, val.etime)

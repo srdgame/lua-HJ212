@@ -316,15 +316,15 @@ function base:push(value, timestamp, value_z, flag, quality, ex_vals)
 
 	local val, err = self._sample_list:append({value = value, timestamp = timestamp, value_z = value_z, flag = flag, quality = quality, ex_vals = ex_vals})
 	if val then
+		self._last_sample_invalid = false
 		self._last_sample = val
 		return true
 	end
 	return nil, err
 end
 
-function base:sample_last()
-	return self._last_sample
-	-- return self._sample_list:last()
+function base:sample_cou(etime)
+	return 0
 end
 
 function base:query_rdata(now, readonly)
@@ -345,8 +345,10 @@ function base:query_rdata(now, readonly)
 	val.timestamp = now
 	val.etime = now --- For callback usage
 
-	-- Set the flag to B which is connection issue and will be overwrite by next sample
-	self._last_sample.flag = 'B'
+	if self._last_sample_invalid then
+		val.flag = types.FLAG.Connection
+	end
+	self._last_sample_invalid = true
 
 	assert(self._rdata_list:append(val))
 
@@ -384,6 +386,11 @@ function base:on_trigger(typ, now, duration)
 	end
 
 	if (self._type_mask & typ) == typ then
+		if typ == mgr.TYPES.SEC then
+			assert(self.on_sec_trigger)
+			assert(duration % 5 == 0)
+			return self:on_sec_trigger(now, duration)
+		end
 		if typ == mgr.TYPES.MIN then
 			assert(self.on_min_trigger)
 			assert(duration % 60 == 0)
@@ -442,6 +449,11 @@ function base:query_day_data(start_time, end_time)
 	else
 		return nil
 	end
+end
+
+function base:on_sec_trigger(now, duration)
+	--- default will skip this trigger
+	return true
 end
 
 return base

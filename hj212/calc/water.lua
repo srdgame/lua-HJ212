@@ -1,4 +1,5 @@
 local logger = require 'hj212.logger'
+local helper = require 'hj212.calc.helper'
 local base = require 'hj212.calc.base'
 local mgr = require 'hj212.calc.manager'
 local types = require 'hj212.types'
@@ -6,6 +7,8 @@ local flow = require 'hj212.calc.water.flow'
 local pollut = require 'hj212.calc.water.pollut'
 
 local water = base:subclass('hj212.calc.water')
+
+local MIN_TIME_DIFF = 0.000001
 
 --[[
 -- COU: cou of sample is V.this * (T.sthis -  T.last)
@@ -19,21 +22,31 @@ local water = base:subclass('hj212.calc.water')
 function water:initialize(station, id, mask, min, max, zs_calc)
 	base.initialize(self, station, id, mask, min, max, zs_calc)
 
-	local upper_calc = nil
+	local min_interval = assert(self._station:min_interval())
+
 	if id ~= 'w00000' then
 		self._station:water(function(water)
 			if water then
-				self._upper = water
-				local water_calc = water:cou_calc()
-				self:push_pre_calc(water_calc)
-				self:push_value_calc(pollut:new(self, water_calc))
+				self._flow_calc = water:cou_calc()
+				self:push_pre_calc(self._flow_calc)
+
+				local calc = pollut:new(self, self._flow_calc, min_interval)
+				self:push_value_calc(calc)
+				self._cou_calc = calc
 			else
-				self:push_value_calc(flow:new(self))
+				local calc = flow:new(self, min_interval)
+				self:push_value_calc(calc)
+				self._cou_calc = calc
 			end
 		end)
 	else
-		self:push_value_calc(flow:new(self))
+		local calc = flow:new(self, min_interval)
+		self:push_value_calc(calc)
+		self._cou_calc = calc
 	end
+
+	self._last_valid_sample = nil
+	self._last_sample_cou_begin = 0
 end
 
 function water:push(value, timestamp, value_z, flag, quality, ex_vals)
@@ -46,15 +59,90 @@ function water:push(value, timestamp, value_z, flag, quality, ex_vals)
 	return base.push(self, value, timestamp, value_z, flag, quality, ex_vals)
 end
 
-local function flag_can_calc(flag)
-	if flag == nil then
-		return true
-	end
-	if flag == types.FLAG.Normal or flag == types.FLAG.Overproof then
-		return true
-	end
-	return false
+function water:last_valid_sample()
+	return self._last_valid_sample
 end
+
+function water:sample_cou(stime, etime)
+	assert(self._id == 'w00000')
+	assert(stime and etime and etime > stime)
+
+	-- self:log('debug', "WATER.sample_cou start", stime, etime, etime - stime)
+
+	local val_cou = 0
+	--- Check sample begine time with etime
+	if self._last_sample_cou_begin >= etime then
+		self:log('error', "WATER.sample_cou: last valid sample value error")
+		return val_cou
+	end
+
+	--- check sample begin time
+	if stime < self._last_sample_cou_begin then
+		self:log('error', "WATER.sample_cou: last valid sample value error stime")
+		stime = self._last_sample_cou_begin
+	end
+ 
+	local last = self._last_valid_sample
+	local first_sample = nil
+	local ll_time = stime
+
+	local i = 1
+	--print('sample_cou #sample', self._sample_list:size())
+	--- start from 0 make sure we process all items
+	self._sample_list:travel(0, etime, function(val)
+		if helper.flag_can_calc(val.flag) then
+			if val.timestamp < stime then
+				last = val -- record last
+				-- print('put last', val.timestamp, stime)
+				return
+			end
+
+			if not first_sample then
+				first_sample = val
+			end
+
+			if last and (val.timestamp - ll_time) > MIN_TIME_DIFF then
+				local t_cou = (last.value * (val.timestamp - ll_time)) / 1000
+				val_cou = val_cou + t_cou
+				--print('sample_cou i', i, t_cou, last.value, val.timestamp - ll_time, val.value)
+			else
+				-- print(last, val.timestamp, ll_time)
+			end
+
+			-- record last
+			last = val
+			ll_time = val.timestamp
+			i = i + 1
+		else
+			if val.timestamp < stime then
+				i = i + 1
+				--print('sample_cou i flag', i, val.flag, val.value, val.timestamp)
+			end
+		end
+	end)
+	-- self:log('debug', "WATER.sample_cou cou 1", val_cou, ll_time)
+
+	-- tail cou
+	if last and (etime - ll_time) > MIN_TIME_DIFF then
+		local t_cou = (last.value * (etime - ll_time)) / 1000
+		--print('sample_cou tail', t_cou, last.value, etime - ll_time, ll_time)
+		val_cou = val_cou + t_cou
+		-- self:log('debug', "WATER.sample_cou cou 3", cou, t_cou, last.value, etime - ll_time)
+		-- print('sample_cou', t_cou, last.value, etime - ll_time)
+	end
+
+	--print('sample_cou total', val_cou)
+
+	--[[
+	self:log('debug', "WATER.sample_cou calc", val_cou, 'time', etime - stime)
+	if last then
+		self:log('debug', "WATER.sample_cou last", last.cou, 'value', last.value, 'timestamp', last.timestamp)
+	end
+	]]--
+
+	return val_cou
+end
+
 
 function water:_calc_sample(list, start, etime, zs)
 	local flag = #list == 0 and types.FLAG.CONNECTION or nil
@@ -65,22 +153,29 @@ function water:_calc_sample(list, start, etime, zs)
 	local val_cou_z = zs and 0 or nil
 	local val_min_z = zs and first_value_z or nil
 	local val_max_z = zs and first_value_z or nil 
+	local val_avg = 0
+	local val_avg_z = zs and 0 or nil
 
 	local last = #list > 0 and (list[1].timestamp - 0.0001) or nil
-	local last_avg = nil
-	local last_avg_z = nil
+	local last_val = 0
+	local last_val_z = zs and 0 or nil
 	local val_count = 0
 
+	--print('calc_sample #list', #list)
+	local llll = self._last_valid_sample
 	for i, v in ipairs(list) do
-		if flag_can_calc(v.flag) then
+		if helper.flag_can_calc(v.flag) then
+			val_count = val_count + 1
 			assert(v.timestamp > last, string.format('Timestamp issue:%f\t%f', v.timestamp, last))
 			local value = v.value
 			val_min = value < val_min and value or val_min
 			val_max = value > val_max and value or val_max
 
 			local cou = v.cou or 0
-			last_avg = cou / (v.timestamp - last)
 			val_cou = val_cou + cou
+			last_val = value
+			--print('calc_sample i' ,i, cou, llll and llll.value, llll and (v.timestamp - llll.timestamp) or (v.timestamp - start), v.value)
+			llll = v
 
 			if zs then
 				local value_z = v.value_z or 0
@@ -88,32 +183,56 @@ function water:_calc_sample(list, start, etime, zs)
 				val_max_z = value_z > val_max_z and value_z or val_max_z
 
 				local cou_z = v.cou_z
-				last_avg_z = cou_z / (v.timestamp - last)
 				val_cou_z = val_cou_z + cou_z
+				last_val_z = value_z
 			end
 
 			last = v.timestamp
+		else
+			--print('calc_sample i flag', i, v.flag, v.value, v.timestamp)
 		end
 	end
 
-	if #list > 0 and last < etime then
-		val_cou = val_cou + last_avg * (etime - last)
-		val_cou_z = zs and (val_cou_z + last_avg_z * (etime - last)) or nil
-	end
 
-	local val_avg = val_cou / (etime - start)
-	local val_avg_z = zs and val_cou_z / (etime - start) or nil
+	--- Calc the value which not reached etime ???
+	if val_count > 0 and (etime - last) > MIN_TIME_DIFF then
+		local t_cou = 0
+		if self._flow_calc then
+			-- pollution
+			last_flow_sample = self._flow_calc:last_valid_sample()
+			t_flow_cou = (last_flow_sample.value * (etime - last)) / 1000
+			if t_flow_cou > 0 then
+				t_cou = t_flow_cou * last_val / 1000
+			end
+		else
+			-- flow
+			t_cou = (last_val * (etime - last)) / 1000
+		end
 
-	-- self:log('debug', 'calc_sample', self._id, val_cou, val_avg, val_min, val_max)
-	--[[
-	if (list[1].timestamp - start) < 5 then
-		val_avg = val_cou / (etime - start)
+		--print('calc_sample tail', t_cou, last_val, last, etime - last)
+		val_cou = val_cou + t_cou
+
+		if zs then
+			assert(false, "zs not supported")
+			--local cou_z = ( last_val_z * (etime - last)) / 1000
+			--val_cou_z = val_cou_z + cou_z
+		end
 	else
-		val_avg = val_cou / (etime - list[1].timestamp)
+		--print(etime, last)
 	end
-	]]--
+
+	--print('calc_sample total', val_cou)
+
+	if val_count > 0 and (etime - start) > 0 then
+		val_avg = val_cou / (etime - start)
+		if zs then
+			val_avg_z = val_cou_z / (etime - start)
+		end
+	end
 
 	-- self:log('debug', 'water.calc_sample', self._id, val_cou, etime - start, val_avg, val_min, val_max)
+
+	--print('calc_sample', val_cou)
 
 	return {
 		cou = val_cou,
@@ -149,7 +268,7 @@ function water:on_min_trigger(now, duration)
 				self:log('error', ' Skip: '..cjson.encode(v))
 			end
 		else
-			self:log('debug', 'WATER: calculate older sample value', start, etime, #list, list[1].timestamp)
+			self:log('error', 'WATER: calculate older sample value', start, etime, #list, list[1].timestamp)
 
 			local val = self:_calc_sample(list, start, etime, self:has_zs())
 			local r, err = self._min_list:append(val)
@@ -163,10 +282,37 @@ function water:on_min_trigger(now, duration)
 
 	assert(start == now - duration)
 
+	local sample_cou = 0
+	if self._id == 'w00000' then
+		sample_cou = self:sample_cou(now - duration, now)
+	end
+
 	local list = sample_list:pop(now)
 
 	local val = self:_calc_sample(list, start, now, self:has_zs())
 	assert(self._min_list:append(val))
+
+	--- Buffer last valid sample value
+	local i = #list
+	while i > 0 do
+		if helper.flag_can_calc(list[i].flag) then
+			self._last_valid_sample = list[i]
+			break
+		end
+		i = i - 1
+	end
+	if i == 0 then
+		self._last_valid_sample = nil
+		self._last_sample_cou_begin = 0
+	else
+		self._last_sample_cou_begin = now
+	end
+
+	if self._cou_calc then
+		self._cou_calc:reset(now)
+	end
+
+	--print('MIN calc', sample_cou, val.cou)
 
 	return val
 end
@@ -180,6 +326,8 @@ function water:_calc_cou(list, start, etime, zs)
 	local val_cou_z = zs and 0 or nil
 	local val_min_z = zs and #list > 1 and list[1].min_z or nil
 	local val_max_z = zs and #list > 1 and list[1].max_z or nil
+	local val_avg = 0
+	local val_avg_z = zs and 0 or nil
 
 	for _, v in ipairs(list) do
 		assert(v.stime >= start, "Start time issue:"..v.stime..'\t'..start)
@@ -199,8 +347,12 @@ function water:_calc_cou(list, start, etime, zs)
 
 	assert(last <= etime, 'last:'..last..'\tetime:'..etime)
 
-	local val_avg = val_cou / (etime - start)
-	local val_avg_z = zs and val_cou_z / (etime - start) or nil
+	if (etime - start) > 0 then
+		val_avg = val_cou / (etime - start)
+		if zs then
+			val_avg_z = val_cou_z / (etime - start)
+		end
+	end
 
 	return {
 		cou = val_cou,
@@ -236,7 +388,7 @@ function water:on_hour_trigger(now, duration)
 				self:log('error', ' Skip: '..cjson.encode(v))
 			end
 		else
-			self:log('debug', 'WATER: calculate older min value', start, etime, #list, list[1].stime)
+			self:log('error', 'WATER: calculate older min value', start, etime, #list, list[1].stime)
 			local val = self:_calc_cou(list, start, etime, self:has_zs())
 			assert(self._hour_list:append(val))
 		end
@@ -273,7 +425,7 @@ function water:on_day_trigger(now, duration)
 				self:log('error', ' Skip: '..cjson.encode(v))
 			end
 		else
-			self:log('debug', 'WATER: calculate older hour value', start, etime, #list, list[1].stime)
+			self:log('error', 'WATER: calculate older hour value', start, etime, #list, list[1].stime)
 			local val = self:_calc_cou(list, start, etime, self:has_zs())
 			assert(self._day_list:append(val))
 		end

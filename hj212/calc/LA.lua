@@ -1,5 +1,6 @@
 local cjson = require 'cjson.safe'
 local logger = require 'hj212.logger'
+local helper = require 'hj212.calc.helper'
 local base = require 'hj212.calc.base'
 local mgr = require 'hj212.calc.manager'
 local types = require 'hj212.types'
@@ -70,16 +71,6 @@ function LA:push(value, timestamp, value_z, flag, quality, ex_vals)
 	return base.push(self, value, timestamp, value_z, flag, quality, ex_vals)
 end
 
-local function flag_can_calc(flag)
-	if flag == nil then
-		return true
-	end
-	if flag == types.FLAG.Normal or flag == types.FLAG.Overproof then
-		return true
-	end
-	return false
-end
-
 local function get_la_value(list, percent)
 	local count = #list
 	if count == 0 then
@@ -96,7 +87,7 @@ local function calc_la(list)
 	local calc_list = {}
 
 	for i, v in ipairs(list) do
-		if flag_can_calc(v.flag) then
+		if helper.flag_can_calc(v.flag) then
 			calc_list[#calc_list + 1] = v
 		end
 	end
@@ -151,7 +142,7 @@ local function calc_sample(list, start, etime)
 
 	local last = start - 0.0001 -- make sure the asserts work properly
 	for i, v in ipairs(list) do
-		if flag_can_calc(v.flag) then
+		if helper.flag_can_calc(v.flag) then
 			assert(v.timestamp > last, string.format('Timestamp issue:%f\t%f', v.timestamp, last))
 			last = v.timestamp
 			local val = v.value or 0

@@ -19,6 +19,10 @@ function list:init(vals, cb)
 	end
 end
 
+function list:size()
+	return #self._vals
+end
+
 function list:append_list(vals)
 	for _, v in ipairs(vals) do
 		self:_append(v, cb)
@@ -141,6 +145,21 @@ function list:pop(etime, time_key)
 	end
 
 	return vals
+end
+
+function list:travel(stime, etime, cb)
+	assert(stime and etime and etime > stime)
+	for i = 1, #self._vals do
+		local v = self._vals[i]
+		local time = v[self._key]
+		assert(time)
+		if time >= stime then
+			cb(v)
+		end
+		if time > etime then
+			return
+		end
+	end
 end
 
 return list

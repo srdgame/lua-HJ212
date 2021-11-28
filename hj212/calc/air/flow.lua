@@ -1,37 +1,48 @@
 local class = require 'middleclass'
 local types = require 'hj212.types'
 local mgr = require 'hj212.calc.manager'
+local helper = require 'hj212.calc.helper'
 
 local flow = class('hj212.calc.helper.flow')
 
-function flow:initialize(calc, sample_t, rdata_t)
-	self._calc = calc
-	self._last_sample_time = os.time() - (sample_t or 5) -- Default 5 seconds
-	self._last_rdata_time = os.time() - (rdata_r or 30) -- Default 30 seconds
-end
+function flow:initialize(flow_calc, min_interval)
+	self._calc = flow_calc
+	self._min_interval = min_interval
 
-local function flag_can_calc(flag)
-	if flag == nil then
-		return true
-	end
-	if flag == types.FLAG.Normal or flag == types.FLAG.Overproof then
-		return true
-	end
-	return false
+	local stime = os.time() -- math.floor(os.time() / (min_interval * 60)) * min_interval * 60
+
+	self._last_sample_value = 0
+	self._last_sample_time = stime
+	self._last_rdata_value = 0
+	self._last_rdata_time = stime
 end
 
 function flow:__call(typ, val, now)
 	if typ == mgr.TYPES.SAMPLE then
-		if flag_can_calc(val.flag) then
+		if (now - self._last_sample_time) > (self._min_interval * 60) then
+			self._last_sample_value = 0
+		end
+
+		val.cou = self._last_sample_value * (now - self._last_sample_time)
+		if helper.flag_can_calc(val.flag) then
 			--assert(now ~= self._last_sample_time)
-			val.cou = val.value * (now - self._last_sample_time)
+			self._last_sample_value = val.value
 			self._last_sample_time = now
+		else
+			-- clear val.cou???
 		end
 	elseif typ == mgr.TYPES.RDATA then
-		if flag_can_calc(val.flag) then
+		if (now - self._last_rdata_time) > (self._min_interval * 60) then
+			self._last_rdata_value = 0
+		end
+
+		val.cou = self._last_rdata_value * (now - self._last_rdata_time)
+		if helper.flag_can_calc(val.flag) then
 			--assert(now ~= self._last_rdata_time)
-			val.cou = val.value * (now - self._last_rdata_time)
+			self._last_rdata_value = val.value
 			self._last_rdata_time = now
+		else
+			-- clear val.cou???
 		end
 	else
 		--val.avg = val.cou / (val.etime - val.stime)

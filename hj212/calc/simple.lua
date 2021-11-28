@@ -21,16 +21,6 @@ function simple:push(value, timestamp, value_z, flag, quality, ex_vals)
 	return base.push(self, value, timestamp, value_z, flag, quality, ex_vals)
 end
 
-local function flag_can_calc(flag)
-	if flag == nil then
-		return true
-	end
-	if flag == types.FLAG.Normal or flag == types.FLAG.Overproof then
-		return true
-	end
-	return false
-end
-
 local function calc_sample(list, start, etime, zs)
 	local flag = #list == 0 and types.FLAG.Connection or nil
 	local val_cou = 0
@@ -42,11 +32,13 @@ local function calc_sample(list, start, etime, zs)
 	local val_min_z = zs and first_value_z or nil
 	local val_max_z = zs and first_value_z or nil
 	local val_t_z = zs and 0 or nil
+	local val_avg = 0
+	local val_avg_z = zs and 0 or nil
 
 	local last = start - 0.0001 -- make sure the asserts work properly
 	local val_count = 0
 	for i, v in ipairs(list) do
-		if flag_can_calc(v.flag) then
+		if helper.flag_can_calc(v.flag) then
 			assert(v.timestamp > last, string.format('Timestamp issue:%f\t%f', v.timestamp, last))
 			last = v.timestamp
 			local val = v.value or 0
@@ -70,8 +62,12 @@ local function calc_sample(list, start, etime, zs)
 		end
 	end
 
-	local val_avg = val_count > 0 and val_t / val_count or 0
-	local val_avg_z = zs and (val_count > 0 and val_t_z / val_count or 0) or nil
+	if val_count > 0 then
+		val_avg = val_t / val_count
+	end
+	if zs and val_count > 0 then
+		val_avg_z = val_t_z / val_count
+	end
 
 	--logger.log('debug', 'simple.calc_sample', #list, val_cou, val_avg, val_min, val_max)
 	--[[
@@ -81,8 +77,8 @@ local function calc_sample(list, start, etime, zs)
 	]]--
 
 	return {
-		cou = val_cou,
-		avg = val_avg,
+		cou = val_cou, -- 排放量累计
+		avg = val_avg, -- 算术平均值
 		min = val_min,
 		max = val_max,
 		cou_z = val_cou_z,
@@ -136,13 +132,15 @@ local function calc_cou(list, start, etime, zs)
 	local flag = #list == 0 and types.FLAG.Connection or nil
 	local last = start - 0.0001 -- make sure etime assets works properly
 	local val_cou = 0
-	local val_t_avg = 0
 	local val_min = #list > 0 and list[1].min
 	local val_max = #list > 0 and list[1].max
 	local val_cou_z = zs and 0 or nil
 	local val_min_z = zs and #list > 0 and list[1].min_z or nil
 	local val_max_z = zs and #list > 0 and list[1].max_z or nil
+	local val_t_avg = 0
 	local val_t_avg_z = zs and 0 or nil
+	local val_avg = 0
+	local val_avg_z = zs and 0 or  nil
 
 	for i, v in ipairs(list) do
 		assert(v.stime >= start, "Start time issue:"..v.stime..'\t'..start)
@@ -164,8 +162,12 @@ local function calc_cou(list, start, etime, zs)
 
 	assert(last <= etime, 'last:'..last..'\tetime:'..etime)
 
-	local val_avg = #list > 0 and val_t_avg / #list or 0
-	local val_avg_z = zs and (#list > 0 and val_t_avg_z / #list or 0) or nil
+	if #list > 0 then
+		val_avg = val_t_avg / #list
+		if zs then
+			val_avg_z = val_t_avg_z / #list
+		end
+	end
 
 	return {
 		cou = val_cou,

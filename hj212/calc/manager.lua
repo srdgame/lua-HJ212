@@ -10,10 +10,12 @@ mgr.static.TYPES = {
 	MIN = 1,
 	HOUR = 2,
 	DAY = 4,
+	SEC = 8,
 	ALL = 0xFF,
 }
 
 function mgr:initialize()
+	self._sec_list = {}
 	self._min_list = {}
 	self._hour_list = {}
 	self._day_list = {}
@@ -24,6 +26,9 @@ end
 
 function mgr:reg(calc)
 	local mask = calc:mask()
+	if (mask & mgr.TYPES.SEC) == mgr.TYPES.SEC then
+		table.insert(self._sec_list, calc)
+	end
 	if (mask & mgr.TYPES.MIN) == mgr.TYPES.MIN then
 		table.insert(self._min_list, calc)
 	end
@@ -45,6 +50,9 @@ end
 
 function mgr:unreg(calc)
 	local mask = calc:mask()
+	if (mask & mgr.TYPES.SEC) == mgr.TYPES.SEC then
+		unreg_list_obj(self._sec_list, now)
+	end
 	if (mask & mgr.TYPES.MIN) == mgr.TYPES.MIN then
 		unreg_list_obj(self._min_list, now)
 	end
@@ -73,6 +81,9 @@ end
 -- now: time in seconds
 function mgr:trigger(typ, now, duration)
 	local now = math.floor(now)
+	if typ == mgr.TYPES.SEC then
+		self._cs(on_trigger_list, self._sec_list, mgr.TYPES.SEC, now, duration)
+	end
 	if typ == mgr.TYPES.MIN then
 		self._cs(on_trigger_list, self._min_list, mgr.TYPES.MIN, now, duration)
 	end

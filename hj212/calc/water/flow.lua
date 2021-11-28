@@ -1,41 +1,51 @@
 local class = require 'middleclass'
 local types = require 'hj212.types'
+local helper = require 'hj212.calc.helper'
 local mgr = require 'hj212.calc.manager'
 local logger = require 'hj212.logger'
 
 local flow = class('hj212.calc.helper.flow')
 
-function flow:initialize(calc, sample_t, rdata_t)
-	self._calc = calc
+function flow:initialize(flow_calc, min_interval)
+	self._calc = flow_calc
+	self._min_interval = min_interval
+
 	self._last_sample_value = 0
-	self._last_sample_time = os.time() - (sample_t or 5) -- Default 5 seconds
 	self._last_rdata_value = 0
-	self._last_rdata_time = os.time() - (rdata_r or 30) -- Default 30 seconds
+
+	local stime = os.time() -- math.floor(os.time() / (min_interval * 60)) * min_interval * 60
+	self:reset(stime)
 end
 
-local function flag_can_calc(flag)
-	if flag == nil then
-		return true
-	end
-	if flag == types.FLAG.Normal or flag == types.FLAG.Overproof then
-		return true
-	end
-	return false
+function flow:reset(now)
+	assert(now)
+	self._last_sample_time = now
+	self._last_rdata_time = now
+end
+
+function flow:last_sample_value()
+	return self._last_sample_value
 end
 
 function flow:__call(typ, val, now)
 	if typ == mgr.TYPES.SAMPLE then
-		if flag_can_calc(val.flag) then
-			assert(now ~= self._last_sample_time)
-			val.cou = self._last_sample_value * (now - self._last_sample_time) * 0.001
+		if (now - self._last_sample_time) > (self._min_interval * 60) then
+			self._last_sample_value = 0
+		end
+
+		val.cou = (self._last_sample_value * (now - self._last_sample_time)) / 1000
+		if helper.flag_can_calc(val.flag) then
 			-- logger.log('debug', 'water.flow', 'cou', val.cou, 'value', val.value, 'time', now - self._last_sample_time)
 			self._last_sample_value = val.value
 			self._last_sample_time = now
 		end
 	elseif typ == mgr.TYPES.RDATA then
-		if flag_can_calc(val.flag) then
-			assert(now ~= self._last_rdata_time)
-			val.cou = self._last_rdata_value * (now - self._last_rdata_time) * 0.001
+		if (now - self._last_rdata_time) > (self._min_interval * 60) then
+			self._last_rdata_value = 0
+		end
+
+		val.cou = (self._last_rdata_value * (now - self._last_rdata_time)) / 1000
+		if helper.flag_can_calc(val.flag) then
 			self._last_rdata_value = val.value
 			self._last_rdata_time = now
 		end

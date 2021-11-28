@@ -1,4 +1,5 @@
 local logger = require 'hj212.logger'
+local helper = require 'hj212.calc.helper'
 local base = require 'hj212.calc.base'
 local mgr = require 'hj212.calc.manager'
 local types = require 'hj212.types'

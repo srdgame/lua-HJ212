@@ -50,6 +50,7 @@ function flow:__call(typ, val, now)
 			self._last_rdata_time = now
 		end
 	else
+		val.avg = val.avg * 1000
 		-- Nothing to do
 	end
 

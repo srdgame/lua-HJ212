@@ -65,7 +65,10 @@ end
 
 function water:sample_cou(stime, etime)
 	assert(self._id == 'w00000')
-	assert(stime and etime and etime > stime, 'stime:'..stime..' etime:'..etime)
+	assert(stime and etime)
+	if stime >= etime then
+		return 0 -- why this happened???
+	end
 
 	-- self:log('debug', "WATER.sample_cou start", stime, etime, etime - stime)
 

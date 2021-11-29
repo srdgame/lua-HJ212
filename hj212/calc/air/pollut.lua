@@ -26,9 +26,24 @@ function pollut:__call(typ, val, now)
 
 	local fval = flow[fn](flow, val.etime)
 	if fval then
-		val.cou = fval.cou * val.avg * (10 ^ -6)
-		if val.avg_z then
-			val.cou_z = fval.cou * val.avg_z * (10 ^ -6)
+		if typ == mgr.TYPES.MIN then
+			val.cou = fval.cou * val.avg * (10 ^ -6)
+			if val.avg_z then
+				val.cou_z = fval.cou * val.avg_z * (10 ^ -6)
+			end
+		else
+			if fval.cou > 0.000001 then
+				-- kg -> mg
+				val.avg = (val.cou * 1000000) / fval.cou  --- calculate avg from cou / flow_cou
+				if val.cou_z then
+					val.avg_z = (val.cou_z * 1000000) / fval.cou
+				end
+			else
+				val.avg = 0
+				if val.cou_z then
+					val.avg_z = 0
+				end
+			end
 		end
 	else
 		self._pollut:log('debug', 'No COU value of AIR Flow', type_name, val.etime)

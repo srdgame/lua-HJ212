@@ -27,63 +27,19 @@ local parsers = {
 	},
 	N = {
 		encode = function(fmt, val)
-			local i, f = string.match(fmt, 'N(%d+).?(%d*)')
+			local i, f = string.match(fmt, 'N(%d*)%.?(%d*)')
 			i = tonumber(i)
 			f = tonumber(f)
 			assert(i)
 			assert(val)
-			--[[
-			i = val < 0 and i + 1 or i
-			local raw = nil
-			raw = tostring(math.floor(val))
-			if string.len(raw) > i then
-				print('length error', raw, i)
-				--raw = string.sub(raw, 0 - i)
-			end
-			if f and string.len(f) > 0 then
-				local fraw = tostring(math.floor((val % 1) * (10 ^ f)))
-				print(val, i, f, fmt, raw, fraw, (val % 1), 10 ^ f)
-				raw = raw..'.'..fraw
-			else
-				print(val, i, f, fmt, raw)
-			end
-			]]--
 			if f then
-				local raw = string.format('%f', val) --tostring(val)
-				local raw_len = string.len(raw)
-				local pi = string.find(raw, '.', 1, true)
-				if pi and raw_len > pi + f then
-					raw = string.sub(raw, 1, pi + f)
-				end
-				return raw
+				local ffmt = '%.'..f..'f'
+				return string.format(ffmt, val)
 			else
-				return tostring(math.floor(val))
+				return string.format('%.0f', val)
 			end
 		end,
 		decode = function(fmt, raw)
-			--[[
-			local i, f = string.match(fmt, 'N(%d+).?(%d*)')
-			i = tonumber(i)
-			f = tonumber(f)
-			assert(i)
-			local raw, index = string.match(raw, '^(%d+)()')
-			assert(string.len(raw) <= i)
-
-			if f and index < string.len(raw) then
-				if string.sub(raw, index) == '.' then
-					sub_raw = string.match(raw, '^(%d+)', index)
-					if string.len(sub_raw) > f then
-						sub_raw = string.sub(sub_raw, 0 - f)
-					end
-					index = index + string.len(sub_raw) + 1
-					raw = raw..'.'..sub_raw
-				else
-					assert(false, "Error string")
-				end
-			end
-
-			return tonumber(raw), index
-			]]
 			return tonumber(raw), string.len(raw)
 		end,
 	},

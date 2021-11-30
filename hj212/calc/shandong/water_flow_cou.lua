@@ -1,7 +1,8 @@
+local types = require 'hj212.types'
 local base = require 'hj212.calc.base'
-local mgr = require 'hj212.calc.manager'
-local flow = require 'hj212.calc.water.flow'
-local pollut = require 'hj212.calc.water.pollut'
+local helper = require 'hj212.calc.helper'
+local flow_cou = require 'hj212.calc.shandong.water.flow_cou'
+local flow = require 'hj212.calc.shandong.water.flow'
 
 local water = base:subclass('hj212.calc.water')
 
@@ -10,23 +11,19 @@ function water:initialize(station, id, type_mask, min, max, zs_calc)
 
 	local min_interval = assert(self._station:min_interval())
 
-	if id ~= 'w00000' then
-		self._station:water(function(water)
-			if water then
-				local water_calc = water:cou_calc()
-				self:push_pre_calc(water_calc)
+	self._station:wait_poll('w00000_cou', function(cou_poll)
+		if cou_poll then
+			local cou_calc = cou_poll:cou_calc()
+			self:push_pre_calc(cou_calc)
 
-				local calc = pollut:new(self, water_calc, min_interval)
-				self:push_value_calc(calc)
-			else
-				local calc = flow:new(self, min_interval)
-				self:push_value_calc(calc)
-			end
-		end)
-	else
-		local calc = flow:new(self, min_interval)
-		self:push_value_calc(calc)
-	end
+			local calc = flow_cou:new(self, cou_calc, min_interval)
+			self:push_value_calc(calc)
+		else
+			--- fallback ????
+			local calc = flow:new(self, min_interval)
+			self:push_value_calc(calc)
+		end
+	end)
 end
 
 function water:push(value, timestamp, value_z, flag, quality, ex_vals)
@@ -37,33 +34,37 @@ function water:push(value, timestamp, value_z, flag, quality, ex_vals)
 end
 
 local function calc_sample(list, start, etime, zs)
-	local flag = #list == 0 and types.FLAG.Connection or nil
+	local flag = nil
 	local val_cou = 0
 	local val_min = nil
 	local val_max = nil
 	local val_avg = 0
+	local val_avg_t = 0
 
 	local last = start - 0.0001 -- make sure the asserts work properly
 	local val_count = 0
-	for i, v in ipairs(list) do
+
+	for _, v in ipairs(list) do
 		if helper.flag_can_calc(v.flag) then
 			assert(v.timestamp > last, string.format('Timestamp issue:%f\t%f', v.timestamp, last))
 			last = v.timestamp
+
 			local val = v.value
 			assert(type(val) == 'number', 'Type is not number but '..type(val))
 
 			val_min = val_min and math.min(val or val_min, val_min) or val
 			val_max = val_max and math.max(val or val_max, val_max) or val
 
-			val_cou = val_cou + (v.cou or (val or 0))
 			val_count = val_count + 1
-			val_avg = val and val or val_avg  -- using last value as avg
-
-			--logger.log('debug', 'water.calc_sample', val_cou, v.cou or val, val_min, val_max)
+			val_avg_t = val_avg_t + (val or 0)
 		end
 	end
+
 	if val_count == 0 then
 		flag = types.FLAG.Connection
+	else
+		val_avg = val_avg_t / val_count
+		val_cou = val_avg * (etime - start) / 1000
 	end
 
 	return {
@@ -115,15 +116,16 @@ function water:on_min_trigger(now, duration)
 end
 
 local function calc_cou_hour(list, start, etime, zs)
-	local flag = #list == 0 and types.FLAG.Connection or nil
+	local flag = nil
 	local last = start - 0.0001 -- make sure etime assets works properly
 	local val_cou = 0
 	local val_min = nil
 	local val_max = nil
 	local val_avg = 0
+	local val_avg_t = 0
 
 	local val_count = 0
-	for i, v in ipairs(list) do
+	for _, v in ipairs(list) do
 		if helper.flag_can_calc(v.flag) then
 			assert(v.stime >= start, "Start time issue:"..v.stime..'\t'..start)
 			assert(v.etime >= last, "Last time issue:"..v.etime..'\t'..last)
@@ -132,14 +134,17 @@ local function calc_cou_hour(list, start, etime, zs)
 			val_min = val_min and math.min(v.min or val_min, val_min) or v.min
 			val_max = val_max and math.max(v.max or val_max, val_max) or v.max
 
-			val_cou = val_cou + (v.cou or 0)
-
-			val_avg = v.avg -- using last avg
+			val_avg_t = val_avg_t + v.avg
+			val_cou = val_cou + v.cou -- for each cou
 		end
 	end
 
 	if val_count <= 0 then
 		flag = types.FLAG.Connection
+	else
+		val_avg = val_avg_t / val_count
+		--- ? for using avg?
+		-- val_cou = val_avg * (val_count * 60) -- val_count is minutes
 	end
 
 	assert(last <= etime, 'last:'..last..'\tetime:'..etime)
@@ -193,37 +198,36 @@ function water:on_hour_trigger(now, duration)
 end
 
 local function calc_cou_day(list, start, etime, zs)
-	local flag = #list == 0 and types.FLAG.Connection or nil
+	local flag = nil
 	local last = start - 0.0001 -- make sure etime assets works properly
 	local val_cou = 0
-	local val_min = #list > 0 and list[1].min
-	local val_max = #list > 0 and list[1].max
-	local val_t_avg = 0
+	local val_min = nil
+	local val_max = nil
 	local val_avg = 0
+	local val_avg_t = 0
 
 	local val_count = 0
-	for i, v in ipairs(list) do
+	for _, v in ipairs(list) do
 		if helper.flag_can_calc(v.flag) then
 			assert(v.stime >= start, "Start time issue:"..v.stime..'\t'..start)
 			assert(v.etime >= last, "Last time issue:"..v.etime..'\t'..last)
 			last = v.etime
 
-			val_min = v.min < val_min and v.min or val_min
-			val_max = v.max > val_max and v.max or val_max
-			val_cou = val_cou + (v.cou or 0)
-			val_t_avg = val_t_avg + (v.avg or 0)
+			val_min = val_min and math.min(v.min or val_min, val_min) or v.min
+			val_max = val_max and math.max(v.max or val_max, val_max) or v.max
 
-			val_count = val_count + 1
+			val_avg_t = val_avg_t + v.avg
+			val_cou = val_cou + v.cou -- for each cou
 		end
 	end
 
-	assert(last <= etime, 'last:'..last..'\tetime:'..etime)
-
-	if val_count > 0 then
-		val_avg = val_t_avg / val_count
-	else
+	if val_count <= 0 then
 		flag = types.FLAG.Connection
+	else
+		val_avg = val_avg_t / val_count
 	end
+
+	assert(last <= etime, 'last:'..last..'\tetime:'..etime)
 
 	return {
 		cou = val_cou,

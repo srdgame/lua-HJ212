@@ -21,14 +21,22 @@ function pollut:__call(typ, val, now)
 	assert(flow[fn], 'Missing function:'..fn)
 
 	if val.etime ~= now then
-		self._pollut:log('air.pollut etime~=now', type_name, now, val.etime, val.timestamp)
+		self._pollut:log('error', 'air.pollut etime~=now', type_name, now, val.etime, val.timestamp)
 	end
 
 	local fval = flow[fn](flow, val.etime)
 	if fval then
-		val.cou = fval.cou * val.avg * (10 ^ -3)  -- calculate cou from avg
-		if val.avg_z then
-			val.cou_z = fval.cou * val.avg_z * (10 ^ -3)
+		if typ == mgr.TYPES.MIN or typ == mgr.TYPES.HOUR then
+			val.cou = fval.cou * val.avg / 1000  -- calculate cou from avg
+			if val.avg_z then
+				val.cou_z = fval.cou * val.avg_z / 1000
+			end
+		elseif typ == mgr.TYPES.DAY then
+			if fval.cou > 0.000001 then
+				val.avg = (val.cou * 1000) / fval.cou
+			else
+				val.avg = 0
+			end
 		end
 	else
 		self._pollut:log('debug', 'No COU value of Water Flow', type_name, val.etime)

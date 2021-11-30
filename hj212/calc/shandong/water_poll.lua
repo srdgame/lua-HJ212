@@ -1,20 +1,32 @@
-local logger = require 'hj212.logger'
-local helper = require 'hj212.calc.helper'
-local base = require 'hj212.calc.base'
 local types = require 'hj212.types'
+local base = require 'hj212.calc.base'
+local helper = require 'hj212.calc.helper'
+local flow = require 'hj212.calc.shandong.water.flow'
+local pollut = require 'hj212.calc.shandong.water.pollut'
 
-local simple = base:subclass('hj212.calc.simple')
+local water = base:subclass('hj212.calc.water')
 
---[[
--- The COU is couting all sample values
--- The AVG is COU / sample count
---]]
+function water:initialize(station, id, type_mask, min, max, zs_calc)
+	base.initialize(self, station, id, type_mask, min, max, zs_calc)
 
-function simple:initialize(station, id, mask, min, max, zs_calc)
-	base.initialize(self, station, id, mask, min, max, zs_calc)
+	local min_interval = assert(self._station:min_interval())
+
+	self._station:water(function(water_poll)
+		if water_poll then
+			local water_calc = water:cou_calc()
+			self:push_pre_calc(water_calc)
+
+			local calc = pollut:new(self, water_calc, min_interval)
+			self:push_value_calc(calc)
+		else
+			-- fail back
+			local calc = flow:new(self, min_interval)
+			self:push_value_calc(calc)
+		end
+	end)
 end
 
-function simple:push(value, timestamp, value_z, flag, quality, ex_vals)
+function water:push(value, timestamp, value_z, flag, quality, ex_vals)
 	if timestamp < self._last_calc_time then
 		return nil, 'older value skipped ts:'..timestamp..' last:'..self._last_calc_time
 	end
@@ -23,23 +35,14 @@ end
 
 local function calc_sample(list, start, etime, zs)
 	local flag = #list == 0 and types.FLAG.Connection or nil
-	-- cou, min, max, total
 	local val_cou = 0
 	local val_min = nil
 	local val_max = nil
-	local val_t = 0
-
-	local val_cou_z = zs and 0 or nil
-	local val_min_z = nil
-	local val_max_z = nil
-	local val_t_z = zs and 0 or nil
-
 	local val_avg = 0
-	local val_avg_z = zs and 0 or nil
 
 	local last = start - 0.0001 -- make sure the asserts work properly
 	local val_count = 0
-	for i, v in ipairs(list) do
+	for _, v in ipairs(list) do
 		if helper.flag_can_calc(v.flag) then
 			assert(v.timestamp > last, string.format('Timestamp issue:%f\t%f', v.timestamp, last))
 			last = v.timestamp
@@ -49,58 +52,29 @@ local function calc_sample(list, start, etime, zs)
 			val_min = val_min and math.min(val or val_min, val_min) or val
 			val_max = val_max and math.max(val or val_max, val_max) or val
 
-			val = val and val or 0
-			val_cou = val_cou + (v.cou or val)
+			val_cou = val_cou + (val or 0)
 			val_count = val_count + 1
-			val_t = val_t + val
+			val_avg = val and val or val_avg  -- using last value as avg
 
-			--logger.log('debug', 'simple.calc_sample', val_cou, v.cou or val, val_min, val_max)
-
-			if zs then
-				local val_z = v.value_z
-				--logger.log('debug', 'simple.calc_sample ZS', val_z, val_cou_z, val_min_z, val_max_z)
-				val_min_z = val_min_z and math.min(val_z or val_min_z, val_min_z) or val_z
-				val_max_z = val_max_z and math.max(val_z or val_max_z, val_max_z) or val_z
-
-				val_z = val_z and val_z or 0
-				val_cou_z = val_cou_z + (v.cou_z or val_z)
-				val_t_z = val_t_z + val_z
-			end
+			--logger.log('debug', 'water.calc_sample', val_cou, v.cou or val, val_min, val_max)
 		end
 	end
-
-	if val_count > 0 then
-		val_avg = val_t / val_count
-		if zs then
-			val_avg_z = val_t_z / val_count
-		end
-	else
+	if val_count == 0 then
 		flag = types.FLAG.Connection
 	end
-
-	--logger.log('debug', 'simple.calc_sample', #list, val_cou, val_avg, val_min, val_max)
-	--[[
-	if zs then
-		logger.log('debug', 'simple.calc_sample ZS', #list, val_cou_z, val_avg_z, val_min_z, val_max_z)
-	end
-	]]--
 
 	return {
 		cou = val_cou, -- 排放量累计
 		avg = val_avg, -- 算术平均值
 		min = val_min,
 		max = val_max,
-		cou_z = val_cou_z,
-		avg_z = val_avg_z,
-		min_z = val_min_z,
-		max_z = val_max_z,
 		flag = flag,
 		stime = start,  -- Duration start
 		etime = etime,	-- Duration end
 	}
 end
 
-function simple:on_min_trigger(now, duration)
+function water:on_min_trigger(now, duration)
 	local sample_list = self._sample_list
 	local last = self._min_list:find(now)
 	if last then
@@ -137,22 +111,16 @@ function simple:on_min_trigger(now, duration)
 	return val
 end
 
-local function calc_cou(list, start, etime, zs)
+local function calc_cou_hour(list, start, etime, zs)
 	local flag = #list == 0 and types.FLAG.Connection or nil
 	local last = start - 0.0001 -- make sure etime assets works properly
 	local val_cou = 0
 	local val_min = nil
 	local val_max = nil
-	local val_cou_z = zs and 0 or nil
-	local val_min_z = nil
-	local val_max_z = nil
-	local val_t_avg = 0
-	local val_t_avg_z = zs and 0 or nil
 	local val_avg = 0
-	local val_avg_z = zs and 0 or  nil
 
 	local val_count = 0
-	for i, v in ipairs(list) do
+	for _, v in ipairs(list) do
 		if helper.flag_can_calc(v.flag) then
 			assert(v.stime >= start, "Start time issue:"..v.stime..'\t'..start)
 			assert(v.etime >= last, "Last time issue:"..v.etime..'\t'..last)
@@ -162,47 +130,29 @@ local function calc_cou(list, start, etime, zs)
 			val_max = val_max and math.max(v.max or val_max, val_max) or v.max
 
 			val_cou = val_cou + (v.cou or 0)
-			val_t_avg = val_t_avg + (v.avg or 0)
 
-			val_count = val_count + 1
-
-			if zs then
-				val_min_z = val_min_z and math.min(v.min_z or val_min_z, val_min_z) or v.min_z
-				val_max_z = val_max_z and math.max(v.max_z or val_max_z, val_max_z) or v.max_z
-
-				val_cou_z = val_cou_z + (v.cou_z or 0)
-				val_t_avg_z = val_t_avg_z + (v.avg_z or 0)
-			end
+			val_avg = v.avg -- using last avg
 		end
+	end
+
+	if val_count <= 0 then
+		flag = types.FLAG.Connection
 	end
 
 	assert(last <= etime, 'last:'..last..'\tetime:'..etime)
-
-	if val_count > 0 then
-		val_avg = val_t_avg / val_count
-		if zs then
-			val_avg_z = val_t_avg_z / val_count
-		end
-	else
-		flag = types.FLAG.Connection
-	end
 
 	return {
 		cou = val_cou,
 		avg = val_avg,
 		min = val_min,
 		max = val_max,
-		cou_z = val_cou_z,
-		avg_z = val_avg_z,
-		min_z = val_min_z,
-		max_z = val_max_z,
 		flag = flag,
 		stime = start,
 		etime = etime,
 	}
 end
 
-function simple:on_hour_trigger(now, duration)
+function water:on_hour_trigger(now, duration)
 	local sample_list = self._min_list
 	local last = self._hour_list:find(now)
 	if last then
@@ -222,7 +172,7 @@ function simple:on_hour_trigger(now, duration)
 			end
 		else
 			self:log('debug', 'SIMPLE: calculate older min value', start, etime, #list, list[1].stime)
-			local val = calc_cou(list, start, etime, self:has_zs())
+			local val = calc_cou_hour(list, start, etime, self:has_zs())
 			assert(self._hour_list:append(val))
 		end
 
@@ -233,13 +183,57 @@ function simple:on_hour_trigger(now, duration)
 
 	local list = sample_list:pop(now)
 
-	local val = calc_cou(list, start, now, self:has_zs())
+	local val = calc_cou_hour(list, start, now, self:has_zs())
 	assert(self._hour_list:append(val))
 
 	return val
 end
 
-function simple:on_day_trigger(now, duration)
+local function calc_cou_day(list, start, etime, zs)
+	local flag = #list == 0 and types.FLAG.Connection or nil
+	local last = start - 0.0001 -- make sure etime assets works properly
+	local val_cou = 0
+	local val_min = #list > 0 and list[1].min
+	local val_max = #list > 0 and list[1].max
+	local val_t_avg = 0
+	local val_avg = 0
+
+	local val_count = 0
+	for _, v in ipairs(list) do
+		if helper.flag_can_calc(v.flag) then
+			assert(v.stime >= start, "Start time issue:"..v.stime..'\t'..start)
+			assert(v.etime >= last, "Last time issue:"..v.etime..'\t'..last)
+			last = v.etime
+
+			val_min = v.min < val_min and v.min or val_min
+			val_max = v.max > val_max and v.max or val_max
+			val_cou = val_cou + (v.cou or 0)
+			val_t_avg = val_t_avg + (v.avg or 0)
+
+			val_count = val_count + 1
+		end
+	end
+
+	assert(last <= etime, 'last:'..last..'\tetime:'..etime)
+
+	if val_count > 0 then
+		val_avg = val_t_avg / val_count
+	else
+		flag = types.FLAG.Connection
+	end
+
+	return {
+		cou = val_cou,
+		avg = val_avg,
+		min = val_min,
+		max = val_max,
+		flag = flag,
+		stime = start,
+		etime = etime,
+	}
+end
+
+function water:on_day_trigger(now, duration)
 	local sample_list = self._hour_list
 	local last = self._day_list:find(now)
 	if last then
@@ -259,7 +253,7 @@ function simple:on_day_trigger(now, duration)
 			end
 		else
 			self:log('debug', 'SIMPLE: calculate older hour value', start, etime, #list, list[1].stime)
-			local val = calc_cou(list, start, etime, self:has_zs())
+			local val = calc_cou_day(list, start, etime, self:has_zs())
 			assert(self._day_list:append(val))
 		end
 
@@ -270,10 +264,10 @@ function simple:on_day_trigger(now, duration)
 
 	local list = sample_list:pop(now)
 
-	local val = calc_cou(list, start, now, self:has_zs())
+	local val = calc_cou_day(list, start, now, self:has_zs())
 	assert(self._day_list:append(val))
 
 	return val
 end
 
-return simple
+return water

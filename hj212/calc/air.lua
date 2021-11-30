@@ -11,9 +11,9 @@ function air:initialize(station, id, type_mask, min, max, zs_calc)
 	local min_interval = assert(self._station:min_interval())
 
 	if id ~= 'a00000' then
-		self._station:air(function(air)
-			if air then
-				local air_calc = air:cou_calc()
+		self._station:air(function(air_poll)
+			if air_poll then
+				local air_calc = air_poll:cou_calc()
 				self:push_pre_calc(air_calc)
 
 				local calc = pollut:new(self, air_calc, min_interval)

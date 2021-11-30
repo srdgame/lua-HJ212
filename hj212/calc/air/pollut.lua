@@ -21,7 +21,7 @@ function pollut:__call(typ, val, now)
 	assert(flow[fn], 'Missing function:'..fn)
 
 	if val.etime ~= now then
-		self._pollut:log('air.pollut etime~=now', type_name, now, val.etime, val.timestamp)
+		self._pollut:log('error', 'air.pollut etime~=now', type_name, now, val.etime, val.timestamp)
 	end
 
 	local fval = flow[fn](flow, val.etime)

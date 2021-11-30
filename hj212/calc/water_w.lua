@@ -150,12 +150,11 @@ end
 function water:_calc_sample(list, start, etime, zs)
 	local flag = #list == 0 and types.FLAG.Connection or nil
 	local val_cou = 0
-	local val_min = #list > 0 and list[1].value or 0
-	local val_max = val_min
-	local first_value_z = #list > 0 and list[1].value_z or 0
+	local val_min = nil
+	local val_max = nil
 	local val_cou_z = zs and 0 or nil
-	local val_min_z = zs and first_value_z or nil
-	local val_max_z = zs and first_value_z or nil 
+	local val_min_z = nil
+	local val_max_z = nil
 	local val_avg = 0
 	local val_avg_z = zs and 0 or nil
 
@@ -171,24 +170,26 @@ function water:_calc_sample(list, start, etime, zs)
 		if helper.flag_can_calc(v.flag) then
 			val_count = val_count + 1
 			assert(v.timestamp > last, string.format('Timestamp issue:%f\t%f', v.timestamp, last))
-			local value = v.value
-			val_min = value < val_min and value or val_min
-			val_max = value > val_max and value or val_max
+			local val = v.value
+
+			val_min = val_min and math.min(val or val_min, val_min) or val
+			val_max = val_max and math.min(val or val_max, val_max) or val
 
 			local cou = v.cou or 0
 			val_cou = val_cou + cou
-			last_val = value
+			last_val = val or 0
 			--print('calc_sample i' ,i, cou, last_vs and last_vs.value, last_vs and (v.timestamp - last_vs.timestamp) or (v.timestamp - start), v.value)
 			last_vs = v
 
 			if zs then
-				local value_z = v.value_z or 0
-				val_min_z = value_z < val_min_z and value_z or val_min_z
-				val_max_z = value_z > val_max_z and value_z or val_max_z
+				local val_z = v.value_z
+
+				val_min_z = val_min_z and math.min(val_z or val_min_z, val_min_z) or val_z
+				val_max_z = val_max_z and math.min(val_z or val_max_z, val_max_z) or val_z
 
 				local cou_z = v.cou_z
 				val_cou_z = val_cou_z + cou_z
-				last_val_z = value_z
+				last_val_z = val_z or 0
 			end
 
 			last = v.timestamp
@@ -338,11 +339,11 @@ function water:_calc_cou(list, start, etime, zs)
 	local last = start
 	local flag = #list == 0 and types.FLAG.Connection or nil
 	local val_cou = 0
-	local val_min = #list > 1 and list[1].min or 0
-	local val_max = #list > 1 and list[1].max or 0
+	local val_min = nil
+	local val_max = nil
 	local val_cou_z = zs and 0 or nil
-	local val_min_z = zs and #list > 1 and list[1].min_z or nil
-	local val_max_z = zs and #list > 1 and list[1].max_z or nil
+	local val_min_z = nil
+	local val_max_z = nil
 	local val_avg = 0
 	local val_avg_z = zs and 0 or nil
 
@@ -356,13 +357,15 @@ function water:_calc_cou(list, start, etime, zs)
 				first_stime = v.stime
 			end
 
-			val_min = v.min < val_min and v.min or val_min
-			val_max = v.max > val_max and v.max or val_max
+			val_min = val_min and math.min(v.min or val_min, val_min) or v.min
+			val_max = val_max and math.max(v.max or val_max, val_max) or v.max
+
 			val_cou = val_cou + (v.cou or 0)
 
 			if zs then
-				val_min_z = (v.min_z or 0) < val_min_z and v.min_z or val_min_z
-				val_max_z = (v.max_z or 0) > val_max_z and v.max_z or val_max_z
+				val_min_z = val_min_z and math.min(v.min_z or val_min_z, val_min_z) or v.min_z
+				val_max_z = val_max_z and math.max(v.max_z or val_max_z, val_max_z) or v.max_z
+
 				val_cou_z = val_cou + (v.cou_z or 0)
 			end
 		end

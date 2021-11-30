@@ -39,8 +39,8 @@ end
 local function calc_sample(list, start, etime, zs)
 	local flag = #list == 0 and types.FLAG.Connection or nil
 	local val_cou = 0
-	local val_min = #list > 0 and list[1].value or 0
-	local val_max = val_min
+	local val_min = nil
+	local val_max = nil
 	local val_avg = 0
 
 	local last = start - 0.0001 -- make sure the asserts work properly
@@ -49,13 +49,15 @@ local function calc_sample(list, start, etime, zs)
 		if helper.flag_can_calc(v.flag) then
 			assert(v.timestamp > last, string.format('Timestamp issue:%f\t%f', v.timestamp, last))
 			last = v.timestamp
-			local val = v.value or 0
+			local val = v.value
 			assert(type(val) == 'number', 'Type is not number but '..type(val))
-			val_min = val < val_min and val or val_min
-			val_max = val > val_max and val or val_max
-			val_cou = val_cou + (v.cou or val)
+
+			val_min = val_min and math.min(val or val_min, val_min) or val
+			val_max = val_max and math.max(val or val_max, val_max) or val
+
+			val_cou = val_cou + (v.cou or (val or 0))
 			val_count = val_count + 1
-			val_avg = val  -- using last value as avg
+			val_avg = val and val or val_avg  -- using last value as avg
 
 			--logger.log('debug', 'water.calc_sample', val_cou, v.cou or val, val_min, val_max)
 		end
@@ -116,8 +118,8 @@ local function calc_cou_hour(list, start, etime, zs)
 	local flag = #list == 0 and types.FLAG.Connection or nil
 	local last = start - 0.0001 -- make sure etime assets works properly
 	local val_cou = 0
-	local val_min = #list > 0 and list[1].min
-	local val_max = #list > 0 and list[1].max
+	local val_min = nil
+	local val_max = nil
 	local val_avg = 0
 
 	local val_count = 0
@@ -127,8 +129,9 @@ local function calc_cou_hour(list, start, etime, zs)
 			assert(v.etime >= last, "Last time issue:"..v.etime..'\t'..last)
 			last = v.etime
 
-			val_min = v.min < val_min and v.min or val_min
-			val_max = v.max > val_max and v.max or val_max
+			val_min = val_min and math.min(v.min or val_min, val_min) or v.min
+			val_max = val_max and math.max(v.max or val_max, val_max) or v.max
+
 			val_cou = val_cou + (v.cou or 0)
 
 			val_avg = v.avg -- using last avg

@@ -24,15 +24,17 @@ end
 
 local function calc_sample(list, start, etime, zs)
 	local flag = #list == 0 and types.FLAG.Connection or nil
+	-- cou, min, max, total
 	local val_cou = 0
-	local val_min = #list > 0 and list[1].value or 0
-	local val_max = val_min
+	local val_min = nil
+	local val_max = nil
 	local val_t = 0
-	local first_value_z = #list > 0 and list[1].value_z or 0
+
 	local val_cou_z = zs and 0 or nil
-	local val_min_z = zs and first_value_z or nil
-	local val_max_z = zs and first_value_z or nil
+	local val_min_z = nil
+	local val_max_z = nil
 	local val_t_z = zs and 0 or nil
+
 	local val_avg = 0
 	local val_avg_z = zs and 0 or nil
 
@@ -42,10 +44,13 @@ local function calc_sample(list, start, etime, zs)
 		if helper.flag_can_calc(v.flag) then
 			assert(v.timestamp > last, string.format('Timestamp issue:%f\t%f', v.timestamp, last))
 			last = v.timestamp
-			local val = v.value or 0
+			local val = v.value
 			assert(type(val) == 'number', 'Type is not number but '..type(val))
-			val_min = val < val_min and val or val_min
-			val_max = val > val_max and val or val_max
+
+			val_min = val_min and math.min(val or val_min, val_min) or val
+			val_max = val_max and math.max(val or val_max, val_max) or val
+
+			val = val and val or 0
 			val_cou = val_cou + (v.cou or val)
 			val_count = val_count + 1
 			val_t = val_t + val
@@ -53,10 +58,12 @@ local function calc_sample(list, start, etime, zs)
 			--logger.log('debug', 'simple.calc_sample', val_cou, v.cou or val, val_min, val_max)
 
 			if zs then
-				local val_z = v.value_z or 0
+				local val_z = v.value_z
 				--logger.log('debug', 'simple.calc_sample ZS', val_z, val_cou_z, val_min_z, val_max_z)
-				val_min_z = val_z < val_min_z and val_z or val_min_z
-				val_max_z = val_z > val_max_z and val_z or val_max_z
+				val_min_z = val_min_z and math.min(val_z or val_min_z, val_min_z) or val_z
+				val_max_z = val_max_z and math.max(val_z or val_max_z, val_max_z) or val_z
+
+				val_z = val_z and val_z or 0
 				val_cou_z = val_cou_z + (v.cou_z or val_z)
 				val_t_z = val_t_z + val_z
 			end
@@ -135,11 +142,11 @@ local function calc_cou(list, start, etime, zs)
 	local flag = #list == 0 and types.FLAG.Connection or nil
 	local last = start - 0.0001 -- make sure etime assets works properly
 	local val_cou = 0
-	local val_min = #list > 0 and list[1].min
-	local val_max = #list > 0 and list[1].max
+	local val_min = nil
+	local val_max = nil
 	local val_cou_z = zs and 0 or nil
-	local val_min_z = zs and #list > 0 and list[1].min_z or nil
-	local val_max_z = zs and #list > 0 and list[1].max_z or nil
+	local val_min_z = nil
+	local val_max_z = nil
 	local val_t_avg = 0
 	local val_t_avg_z = zs and 0 or nil
 	local val_avg = 0
@@ -152,16 +159,18 @@ local function calc_cou(list, start, etime, zs)
 			assert(v.etime >= last, "Last time issue:"..v.etime..'\t'..last)
 			last = v.etime
 
-			val_min = v.min < val_min and v.min or val_min
-			val_max = v.max > val_max and v.max or val_max
+			val_min = val_min and math.min(v.min or val_min, val_min) or v.min
+			val_max = val_max and math.max(v.max or val_max, val_max) or v.max
+
 			val_cou = val_cou + (v.cou or 0)
 			val_t_avg = val_t_avg + (v.avg or 0)
 
 			val_count = val_count + 1
 
 			if zs then
-				val_min_z = (v.min_z or 0) < val_min_z and v.min_z or val_min_z
-				val_max_z = (v.max_z or 0) > val_max_z and v.max_z or val_max_z
+				val_min_z = val_min_z and math.min(v.min_z or val_min_z, val_min_z) or v.min_z
+				val_max_z = val_max_z and math.max(v.max_z or val_max_z, val_max_z) or v.max_z
+
 				val_cou_z = val_cou_z + (v.cou_z or 0)
 				val_t_avg_z = val_t_avg_z + (v.avg_z or 0)
 			end

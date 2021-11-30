@@ -80,7 +80,7 @@ function base:initialize(station, id, type_mask, min, max, zs_calc)
 	assert(id, "Pullut Id missing")
 	self._station = station
 	self._type_mask = type_mask ~= nil and type_mask or mgr.static.TYPES.ALL
-	self._callback = nil 
+	self._callback = nil
 	self._id = id
 	self._min = min
 	self._max = max

@@ -1,7 +1,5 @@
-local logger = require 'hj212.logger'
 local helper = require 'hj212.calc.helper'
 local base = require 'hj212.calc.base'
-local mgr = require 'hj212.calc.manager'
 local types = require 'hj212.types'
 local flow = require 'hj212.calc.water_w.flow'
 local pollut = require 'hj212.calc.water_w.pollut'
@@ -84,7 +82,7 @@ function water:sample_cou(stime, etime)
 		self:log('error', "WATER.sample_cou: last valid sample value error stime")
 		stime = self._last_sample_cou_begin
 	end
- 
+
 	local last = self._last_valid_sample
 	local first_sample = nil
 	local ll_time = stime

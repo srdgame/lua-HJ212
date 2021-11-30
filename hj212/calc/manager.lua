@@ -37,7 +37,7 @@ function mgr:reg(calc)
 	end
 	if (mask & mgr.TYPES.DAY) == mgr.TYPES.DAY then
 		table.insert(self._day_list, calc)
-	end	
+	end
 end
 
 local function unreg_list_obj(list, val)
@@ -76,7 +76,7 @@ local function on_trigger_list(calc_list, typ, now, duration)
 	end
 end
 
--- 
+--
 -- type: TYPES
 -- now: time in seconds
 function mgr:trigger(typ, now, duration)

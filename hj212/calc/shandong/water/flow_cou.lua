@@ -34,4 +34,4 @@ function flow:__call(typ, val, now)
 	return val
 end
 
-return flow 
+return flow

@@ -1,4 +1,3 @@
-local logger = require 'hj212.logger'
 local helper = require 'hj212.calc.helper'
 local base = require 'hj212.calc.base'
 local types = require 'hj212.types'
@@ -21,7 +20,7 @@ function simple:push(value, timestamp, value_z, flag, quality, ex_vals)
 	return base.push(self, value, timestamp, value_z, flag, quality, ex_vals)
 end
 
-local function calc_sample(list, start, etime, zs)
+function simple:_calc_sample(list, start, etime, zs)
 	local flag = #list == 0 and types.FLAG.Connection or nil
 	-- cou, min, max, total
 	local val_cou = 0
@@ -54,11 +53,11 @@ local function calc_sample(list, start, etime, zs)
 			val_count = val_count + 1
 			val_t = val_t + val
 
-			--logger.log('debug', 'simple.calc_sample', val_cou, v.cou or val, val_min, val_max)
+			--self:log('debug', 'simple.calc_sample', val_cou, v.cou or val, val_min, val_max)
 
 			if zs then
 				local val_z = v.value_z
-				--logger.log('debug', 'simple.calc_sample ZS', val_z, val_cou_z, val_min_z, val_max_z)
+				--self:log('debug', 'simple.calc_sample ZS', val_z, val_cou_z, val_min_z, val_max_z)
 				val_min_z = val_min_z and math.min(val_z or val_min_z, val_min_z) or val_z
 				val_max_z = val_max_z and math.max(val_z or val_max_z, val_max_z) or val_z
 
@@ -78,10 +77,10 @@ local function calc_sample(list, start, etime, zs)
 		flag = types.FLAG.Connection
 	end
 
-	--logger.log('debug', 'simple.calc_sample', #list, val_cou, val_avg, val_min, val_max)
+	--self:log('debug', 'simple.calc_sample', #list, val_cou, val_avg, val_min, val_max)
 	--[[
 	if zs then
-		logger.log('debug', 'simple.calc_sample ZS', #list, val_cou_z, val_avg_z, val_min_z, val_max_z)
+		self:log('debug', 'simple.calc_sample ZS', #list, val_cou_z, val_avg_z, val_min_z, val_max_z)
 	end
 	]]--
 
@@ -120,7 +119,7 @@ function simple:on_min_trigger(now, duration)
 			end
 		else
 			self:log('debug', 'SIMPLE: calculate older sample value', start, etime, #list, list[1].timestamp)
-			local val = calc_sample(list, start, etime, self:has_zs())
+			local val = self:_calc_sample(list, start, etime, self:has_zs())
 			self._min_list:append(val)
 		end
 
@@ -131,13 +130,13 @@ function simple:on_min_trigger(now, duration)
 
 	local list = sample_list:pop(now)
 
-	local val = calc_sample(list, start, now, self:has_zs())
+	local val = self:_calc_sample(list, start, now, self:has_zs())
 	assert(self._min_list:append(val))
 
 	return val
 end
 
-local function calc_cou(list, start, etime, zs)
+function simple:_calc_cou(list, start, etime, zs)
 	local flag = #list == 0 and types.FLAG.Connection or nil
 	local last = start - 0.0001 -- make sure etime assets works properly
 	local val_cou = 0
@@ -222,7 +221,7 @@ function simple:on_hour_trigger(now, duration)
 			end
 		else
 			self:log('debug', 'SIMPLE: calculate older min value', start, etime, #list, list[1].stime)
-			local val = calc_cou(list, start, etime, self:has_zs())
+			local val = self:_calc_cou(list, start, etime, self:has_zs())
 			assert(self._hour_list:append(val))
 		end
 
@@ -233,7 +232,7 @@ function simple:on_hour_trigger(now, duration)
 
 	local list = sample_list:pop(now)
 
-	local val = calc_cou(list, start, now, self:has_zs())
+	local val = self:_calc_cou(list, start, now, self:has_zs())
 	assert(self._hour_list:append(val))
 
 	return val
@@ -259,7 +258,7 @@ function simple:on_day_trigger(now, duration)
 			end
 		else
 			self:log('debug', 'SIMPLE: calculate older hour value', start, etime, #list, list[1].stime)
-			local val = calc_cou(list, start, etime, self:has_zs())
+			local val = self:_calc_cou(list, start, etime, self:has_zs())
 			assert(self._day_list:append(val))
 		end
 
@@ -270,7 +269,7 @@ function simple:on_day_trigger(now, duration)
 
 	local list = sample_list:pop(now)
 
-	local val = calc_cou(list, start, now, self:has_zs())
+	local val = self:_calc_cou(list, start, now, self:has_zs())
 	assert(self._day_list:append(val))
 
 	return val

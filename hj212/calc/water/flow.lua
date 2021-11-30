@@ -1,10 +1,8 @@
 local class = require 'middleclass'
-local types = require 'hj212.types'
 local mgr = require 'hj212.calc.manager'
 local helper = require 'hj212.calc.helper'
-local settings = require 'hj212.settings'
 
-local flow = class('hj212.calc.helper.flow')
+local flow = class('hj212.calc.water.flow')
 
 function flow:initialize(flow_calc, min_interval)
 	self._calc = flow_calc

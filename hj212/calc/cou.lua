@@ -52,7 +52,7 @@ local function calc_sample_min_max()
 	end
 end
 
-local function calc_sample(list, start, etime, zs)
+function cou:_calc_sample(list, start, etime, zs)
 	local flag = nil -- set the nil
 	local val_cou = 0
 	local val_min = nil
@@ -135,7 +135,7 @@ function cou:on_min_trigger(now, duration)
 			end
 		else
 			self:log('debug', 'SIMPLE: calculate older sample value', start, etime, #list, list[1].timestamp)
-			local val = calc_sample(list, start, etime, self:has_zs())
+			local val = self:_calc_sample(list, start, etime, self:has_zs())
 			self._min_list:append(val)
 		end
 
@@ -146,7 +146,7 @@ function cou:on_min_trigger(now, duration)
 
 	local list = sample_list:pop(now)
 
-	local val = calc_sample(list, start, now, self:has_zs())
+	local val = self:_calc_sample(list, start, now, self:has_zs())
 	assert(self._min_list:append(val))
 
 	return val
@@ -173,7 +173,7 @@ local function calc_cou_min_max()
 	end
 end
 
-local function calc_cou(list, start, etime, zs)
+function cou:_calc_cou(list, start, etime, zs)
 	local flag = nil
 	local val_cou = 0
 	local val_min = nil
@@ -258,7 +258,7 @@ function cou:on_hour_trigger(now, duration)
 			end
 		else
 			self:log('debug', 'SIMPLE: calculate older min value', start, etime, #list, list[1].stime)
-			local val = calc_cou(list, start, etime, self:has_zs())
+			local val = self:_calc_cou(list, start, etime, self:has_zs())
 			assert(self._hour_list:append(val))
 		end
 
@@ -269,7 +269,7 @@ function cou:on_hour_trigger(now, duration)
 
 	local list = sample_list:pop(now)
 
-	local val = calc_cou(list, start, now, self:has_zs())
+	local val = self:_calc_cou(list, start, now, self:has_zs())
 	assert(self._hour_list:append(val))
 
 	return val
@@ -295,7 +295,7 @@ function cou:on_day_trigger(now, duration)
 			end
 		else
 			self:log('debug', 'SIMPLE: calculate older hour value', start, etime, #list, list[1].stime)
-			local val = calc_cou(list, start, etime, self:has_zs())
+			local val = self:_calc_cou(list, start, etime, self:has_zs())
 			assert(self._day_list:append(val))
 		end
 
@@ -306,7 +306,7 @@ function cou:on_day_trigger(now, duration)
 
 	local list = sample_list:pop(now)
 
-	local val = calc_cou(list, start, now, self:has_zs())
+	local val = self:_calc_cou(list, start, now, self:has_zs())
 	assert(self._day_list:append(val))
 
 	return val

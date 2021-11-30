@@ -1,5 +1,4 @@
 local base = require 'hj212.calc.simple'
-local mgr = require 'hj212.calc.manager'
 local flow = require 'hj212.calc.air.flow'
 local pollut = require 'hj212.calc.air.pollut'
 

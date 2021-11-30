@@ -1,10 +1,8 @@
 local class = require 'middleclass'
-local types = require 'hj212.types'
 local helper = require 'hj212.calc.helper'
 local mgr = require 'hj212.calc.manager'
-local logger = require 'hj212.logger'
 
-local flow = class('hj212.calc.helper.flow')
+local flow = class('hj212.calc.water_w.flow')
 
 function flow:initialize(flow_calc, min_interval)
 	self._calc = flow_calc
@@ -35,7 +33,6 @@ function flow:__call(typ, val, now)
 
 		val.cou = self._last_sample_value * (now - self._last_sample_time)
 		if helper.flag_can_calc(val.flag) then
-			-- logger.log('debug', 'water.flow', 'cou', val.cou, 'value', val.value, 'time', now - self._last_sample_time)
 			self._last_sample_value = val.value
 			self._last_sample_time = now
 		end

@@ -13,7 +13,7 @@ function water:initialize(station, id, type_mask, min, max, zs_calc)
 
 	self._station:water(function(water_poll)
 		if water_poll then
-			local water_calc = water:cou_calc()
+			local water_calc = water_poll:cou_calc()
 			self:push_pre_calc(water_calc)
 
 			local calc = pollut:new(self, water_calc, min_interval)

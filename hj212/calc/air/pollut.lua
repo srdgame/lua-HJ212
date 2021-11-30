@@ -2,10 +2,10 @@ local class = require 'middleclass'
 local mgr = require 'hj212.calc.manager'
 local base = require 'hj212.calc.base'
 
-local pollut = class('hj212.calc.helper.pollut')
+local pollut = class('hj212.calc.air.pollut')
 
-function pollut:initialize(pollut, pollut_flow)
-	self._pollut = pollut
+function pollut:initialize(pollut_calc, pollut_flow)
+	self._pollut = pollut_calc
 	self._flow = pollut_flow
 end
 

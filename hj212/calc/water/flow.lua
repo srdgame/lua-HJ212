@@ -2,6 +2,7 @@ local class = require 'middleclass'
 local types = require 'hj212.types'
 local mgr = require 'hj212.calc.manager'
 local helper = require 'hj212.calc.helper'
+local settings = require 'hj212.settings'
 
 local flow = class('hj212.calc.helper.flow')
 
@@ -47,6 +48,15 @@ function flow:__call(typ, val, now)
 	else
 		--val.avg = val.cou / (val.etime - val.stime)
 		--val.cou = val.avg * (val.etime - val.stime)
+	end
+
+	--- Flow nagtive value process by settings
+	if val.cou < 0 then
+		local station = self._calc:station()
+		local fnc = station:get_settings('Flow_Negative_Calc')
+		if fnc == 0 then
+			val.cou = 0
+		end
 	end
 
 	return val

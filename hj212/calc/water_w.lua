@@ -148,7 +148,7 @@ end
 
 
 function water:_calc_sample(list, start, etime, zs)
-	local flag = #list == 0 and types.FLAG.CONNECTION or nil
+	local flag = #list == 0 and types.FLAG.Connection or nil
 	local val_cou = 0
 	local val_min = #list > 0 and list[1].value or 0
 	local val_max = val_min
@@ -197,6 +197,9 @@ function water:_calc_sample(list, start, etime, zs)
 		end
 	end
 
+	if val_count <= 0 then
+		flag = types.FLAG.CONNECTION
+	end
 
 	--- Calc the value which not reached etime ???
 	if val_count > 0 and (etime - last) > MIN_TIME_DIFF then
@@ -333,7 +336,7 @@ end
 
 function water:_calc_cou(list, start, etime, zs)
 	local last = start
-	local flag = #list == 0 and types.FLAG.CONNECTION or nil
+	local flag = #list == 0 and types.FLAG.Connection or nil
 	local val_cou = 0
 	local val_min = #list > 1 and list[1].min or 0
 	local val_max = #list > 1 and list[1].max or 0
@@ -345,21 +348,23 @@ function water:_calc_cou(list, start, etime, zs)
 
 	local first_stime = nil
 	for _, v in ipairs(list) do
-		assert(v.stime >= start, "Start time issue:"..v.stime..'\t'..start)
-		assert(v.etime >= last, "Last time issue:"..v.etime..'\t'..last)
-		last = v.etime
-		if not first_stime then
-			first_stime = v.stime
-		end
+		if helper.flag_can_calc(v.flag) then
+			assert(v.stime >= start, "Start time issue:"..v.stime..'\t'..start)
+			assert(v.etime >= last, "Last time issue:"..v.etime..'\t'..last)
+			last = v.etime
+			if not first_stime then
+				first_stime = v.stime
+			end
 
-		val_min = v.min < val_min and v.min or val_min
-		val_max = v.max > val_max and v.max or val_max
-		val_cou = val_cou + (v.cou or 0)
+			val_min = v.min < val_min and v.min or val_min
+			val_max = v.max > val_max and v.max or val_max
+			val_cou = val_cou + (v.cou or 0)
 
-		if zs then
-			val_min_z = (v.min_z or 0) < val_min_z and v.min_z or val_min_z
-			val_max_z = (v.max_z or 0) > val_max_z and v.max_z or val_max_z
-			val_cou_z = val_cou + (v.cou_z or 0)
+			if zs then
+				val_min_z = (v.min_z or 0) < val_min_z and v.min_z or val_min_z
+				val_max_z = (v.max_z or 0) > val_max_z and v.max_z or val_max_z
+				val_cou_z = val_cou + (v.cou_z or 0)
+			end
 		end
 	end
 
@@ -367,6 +372,7 @@ function water:_calc_cou(list, start, etime, zs)
 
 	if not first_stime then
 		first_stime = start
+		flag = types.FLAG.Connection
 	end
 	if (etime - first_stime) > 0 then
 		--- this only worked for flow, the pollution will be calced in water/pollut.lua

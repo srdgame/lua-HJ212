@@ -23,7 +23,7 @@ function flow:__call(typ, val, now)
 			self._last_sample_value = 0
 		end
 
-		val.cou = self._last_sample_value * (now - self._last_sample_time)
+		val.cou = self._last_sample_value * (now - self._last_sample_time) / 1000 -- L to m^3
 		if helper.flag_can_calc(val.flag) then
 			--assert(now ~= self._last_sample_time)
 			self._last_sample_value = val.value
@@ -36,7 +36,7 @@ function flow:__call(typ, val, now)
 			self._last_rdata_value = 0
 		end
 
-		val.cou = self._last_rdata_value * (now - self._last_rdata_time)
+		val.cou = self._last_rdata_value * (now - self._last_rdata_time) / 1000 -- L to m^3
 		if helper.flag_can_calc(val.flag) then
 			--assert(now ~= self._last_rdata_time)
 			self._last_rdata_value = val.value

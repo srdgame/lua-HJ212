@@ -118,6 +118,10 @@ function base:set_callback(callback)
 	self._callback = callback
 end
 
+function base:station()
+	return self._station
+end
+
 function base:_db_write(type_name, val)
 	if self._db then
 		local r, err = self._db:write(type_name, val)

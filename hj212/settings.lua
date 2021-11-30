@@ -2,7 +2,6 @@ return {
 	MAX_PACKET_LEN = 9800,
 	ITEMS = {
 		-- All settings
-		Flow_Negative_Calc = { desc = "是否计算负数流量", default = 1 },
 
 		-- CEMS items
 		F =		{ desc = "烟道截面积",		default = 1,		unit = "平方米" },

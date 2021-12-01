@@ -9,11 +9,15 @@ local cou = base:subclass('hj212.calc.cou')
 -- The AVG is COU / sample count
 --]]
 
-local COU_DIFF_MIN = 100
+local COU_DIFF_MIN = 1
 local COU_TIME_MIN = 0.0001
 
 function cou:initialize(station, id, mask, min, max, zs_calc)
 	base.initialize(self, station, id, mask, min, max, zs_calc)
+	self._last_sample_max = nil
+	if string.sub(id, 1, 1) == 'w' then
+		self._is_water = true
+	end
 end
 
 function cou:push(value, timestamp, value_z, flag, quality, ex_vals)
@@ -34,10 +38,11 @@ end
 local function calc_sample_min_max()
 	local val_base = 0
 	return function(val, val_min, val_max)
+		--print(val, val_min, val_max, val_base)
 		if not val_min then
 			val_min = val
 		else
-			if val - val_min < COU_DIFF_MIN then
+			if val_max - val > COU_DIFF_MIN then
 				--- cou has been reset
 				val_base = val_base + val_max -- the max pre
 				val_base = val_base - val
@@ -55,8 +60,8 @@ end
 function cou:_calc_sample(list, start, etime, zs)
 	local flag = nil -- set the nil
 	local val_cou = 0
-	local val_min = nil
-	local val_max = nil
+	local val_min = self._last_sample_max
+	local val_max = val_min
 	local val_avg = 0
 
 	local val_cou_z = zs and 0 or nil
@@ -65,17 +70,21 @@ function cou:_calc_sample(list, start, etime, zs)
 	local val_avg_z = zs and 0 or nil
 
 	local last = start - COU_TIME_MIN -- make sure the asserts work properly
-	local first_stime = nil
+	local first_stime = self._last_sample_max and start or nil
 
 	local calc_min_max = calc_sample_min_max()
 	local calc_min_max_z = zs and calc_sample_min_max() or nil
 
+	local val_count = 0
 	for _, v in ipairs(list) do
 		if helper.flag_can_calc(v.flag) then
 			assert(v.timestamp > last, string.format('Timestamp issue:%f\t%f', v.timestamp, last))
 			last = v.timestamp
 			if v.value then
-				first_stime = last
+				val_count = val_count + 1
+				if not first_stime then
+					first_stime = last
+				end
 				val_min, val_max = calc_min_max(v.value, val_min, val_max)
 			end
 
@@ -85,19 +94,29 @@ function cou:_calc_sample(list, start, etime, zs)
 		end
 	end
 
-	if not first_stime then
+	if not first_stime or val_count < 0 then
 		flag = types.FLAG.Connection
+		self._last_sample_max = nil
 	else
 		val_cou = val_max - val_min
 		if val_cou > 0 and (etime - first_stime) > COU_TIME_MIN then
-			val_avg = val_cou / (etime - first_stime)
+			if self._is_water then
+				val_avg = (1000 * val_cou) / (etime - first_stime)
+			else
+				val_avg = val_cou / (etime - first_stime)
+			end
 		end
 		if zs and val_min_z then
 			val_cou_z = val_max_z - val_min_z
 			if val_cou_z > 0 and (etime - first_stime) > COU_TIME_MIN then
-				val_avg_z = val_cou_z / (etime - first_stime) -- assume same start time
+				if self._is_water then
+					val_avg_z = (1000 * val_cou_z) / (etime - first_stime) -- assume same start time
+				else
+					val_avg_z = val_cou_z / (etime - first_stime) -- assume same start time
+				end
 			end
 		end
+		self._last_sample_max = val_max
 	end
 
 	return {
@@ -161,7 +180,7 @@ local function calc_cou_min_max()
 		if not val_max then
 			val_max = v_max + val_base
 		else
-			if v_min - val_max < COU_DIFF_MIN then
+			if val_max - v_min > COU_DIFF_MIN then
 				--- cou has been reset
 				val_base = val_base + val_max -- the max pre
 				val_base = val_base - v_min

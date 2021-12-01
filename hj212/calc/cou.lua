@@ -15,6 +15,7 @@ local COU_TIME_MIN = 0.0001
 function cou:initialize(station, id, mask, min, max, zs_calc)
 	base.initialize(self, station, id, mask, min, max, zs_calc)
 	self._last_sample_max = nil
+	self._last_sample_max_z = nil
 	if string.sub(id, 1, 1) == 'w' then
 		self._is_water = true
 	end
@@ -65,8 +66,8 @@ function cou:_calc_sample(list, start, etime, zs)
 	local val_avg = 0
 
 	local val_cou_z = zs and 0 or nil
-	local val_min_z = nil
-	local val_max_z = nil
+	local val_min_z = self._last_sample_max_z
+	local val_max_z = val_min_z
 	local val_avg_z = zs and 0 or nil
 
 	local last = start - COU_TIME_MIN -- make sure the asserts work properly
@@ -97,6 +98,7 @@ function cou:_calc_sample(list, start, etime, zs)
 	if not first_stime or val_count < 0 then
 		flag = types.FLAG.Connection
 		self._last_sample_max = nil
+		self._last_sample_max_z = nil
 	else
 		val_cou = val_max - val_min
 		if val_cou > 0 and (etime - first_stime) > COU_TIME_MIN then
@@ -117,20 +119,21 @@ function cou:_calc_sample(list, start, etime, zs)
 			end
 		end
 		self._last_sample_max = val_max
+		self._last_sample_max_z = zs and val_max or nil
 	end
 
 	return {
-		cou = val_cou, -- 排放量累计
-		avg = val_avg, -- 平均值
-		min = val_min,
-		max = val_max,
+		cou = assert(val_cou), -- 排放量累计
+		avg = assert(val_avg), -- 平均值
+		min = assert(val_min),
+		max = assert(val_max),
 		cou_z = val_cou_z,
 		avg_z = val_avg_z,
 		min_z = val_min_z,
 		max_z = val_max_z,
 		flag = flag,
-		stime = start,  -- Duration start
-		etime = etime,	-- Duration end
+		stime = assert(start),  -- Duration start
+		etime = assert(etime),	-- Duration end
 	}
 end
 
@@ -221,7 +224,7 @@ function cou:_calc_cou(list, start, etime, zs)
 			val_count = val_count + 1
 
 			val_min, val_max = cou_min_max(v.min, v.max, val_min, val_max)
-			val_t_avg = val_t_avg + v.avg
+			val_t_avg = val_t_avg + (v.avg or 0)
 			if zs then
 				val_min_z, val_max_z = cou_min_max_z(v.min_z, v.max_z, val_min, val_max)
 				val_t_avg_z = val_t_avg_z + v.avg_z
@@ -243,10 +246,10 @@ function cou:_calc_cou(list, start, etime, zs)
 	end
 
 	return {
-		cou = val_cou,
-		avg = val_avg,
-		min = val_min,
-		max = val_max,
+		cou = assert(val_cou),
+		avg = assert(val_avg),
+		min = assert(val_min),
+		max = assert(val_max),
 		cou_z = val_cou_z,
 		avg_z = val_avg_z,
 		min_z = val_min_z,

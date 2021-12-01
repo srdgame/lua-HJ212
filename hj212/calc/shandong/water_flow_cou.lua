@@ -136,6 +136,7 @@ local function calc_cou_hour(list, start, etime, zs)
 
 			val_avg_t = val_avg_t + v.avg
 			val_cou = val_cou + v.cou -- for each cou
+			val_count = val_count + 1
 		end
 	end
 
@@ -218,6 +219,7 @@ local function calc_cou_day(list, start, etime, zs)
 
 			val_avg_t = val_avg_t + v.avg
 			val_cou = val_cou + v.cou -- for each cou
+			val_count = val_count + 1
 		end
 	end
 

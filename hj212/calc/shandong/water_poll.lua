@@ -34,7 +34,7 @@ function water:push(value, timestamp, value_z, flag, quality, ex_vals)
 end
 
 local function calc_sample(list, start, etime, zs)
-	local flag = #list == 0 and types.FLAG.Connection or nil
+	local flag = nil
 	local val_cou = 0
 	local val_min = nil
 	local val_max = nil
@@ -59,7 +59,7 @@ local function calc_sample(list, start, etime, zs)
 			--logger.log('debug', 'water.calc_sample', val_cou, v.cou or val, val_min, val_max)
 		end
 	end
-	if val_count == 0 then
+	if val_count <= 0 then
 		flag = types.FLAG.Connection
 	end
 
@@ -112,7 +112,7 @@ function water:on_min_trigger(now, duration)
 end
 
 local function calc_cou_hour(list, start, etime, zs)
-	local flag = #list == 0 and types.FLAG.Connection or nil
+	local flag = nil
 	local last = start - 0.0001 -- make sure etime assets works properly
 	local val_cou = 0
 	local val_min = nil
@@ -132,6 +132,7 @@ local function calc_cou_hour(list, start, etime, zs)
 			val_cou = val_cou + (v.cou or 0)
 
 			val_avg = v.avg -- using last avg
+			val_count = val_count + 1
 		end
 	end
 
@@ -190,7 +191,7 @@ function water:on_hour_trigger(now, duration)
 end
 
 local function calc_cou_day(list, start, etime, zs)
-	local flag = #list == 0 and types.FLAG.Connection or nil
+	local flag = nil
 	local last = start - 0.0001 -- make sure etime assets works properly
 	local val_cou = 0
 	local val_min = #list > 0 and list[1].min

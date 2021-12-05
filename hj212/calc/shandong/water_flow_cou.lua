@@ -60,7 +60,7 @@ local function calc_sample(list, start, etime, zs)
 		end
 	end
 
-	if val_count == 0 then
+	if val_count <= 0 then
 		flag = types.FLAG.Connection
 	else
 		val_avg = val_avg_t / val_count

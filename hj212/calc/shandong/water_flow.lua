@@ -48,11 +48,11 @@ local function calc_sample(list, start, etime, zs)
 		end
 	end
 
-	if val_count == 0 then
-		flag = types.FLAG.Connection
-	else
+	if val_count > 0 then
 		val_avg = val_avg_t / val_count
 		val_cou = val_avg * (etime - start) / 1000
+	else
+		flag = types.FLAG.Connection
 	end
 
 	return {
@@ -128,12 +128,12 @@ local function calc_cou_hour(list, start, etime, zs)
 		end
 	end
 
-	if val_count <= 0 then
-		flag = types.FLAG.Connection
-	else
+	if val_count > 0 then
 		val_avg = val_avg_t / val_count
 		--- ? for using avg?
 		-- val_cou = val_avg * (val_count * 60) -- val_count is minutes
+	else
+		flag = types.FLAG.Connection
 	end
 
 	assert(last <= etime, 'last:'..last..'\tetime:'..etime)
@@ -211,10 +211,10 @@ local function calc_cou_day(list, start, etime, zs)
 		end
 	end
 
-	if val_count <= 0 then
-		flag = types.FLAG.Connection
-	else
+	if val_count > 0 then
 		val_avg = val_avg_t / val_count
+	else
+		flag = types.FLAG.Connection
 	end
 
 	assert(last <= etime, 'last:'..last..'\tetime:'..etime)

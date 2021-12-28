@@ -125,8 +125,8 @@ function cou:_calc_sample(list, start, etime, zs)
 	return {
 		cou = assert(val_cou), -- 排放量累计
 		avg = assert(val_avg), -- 平均值
-		min = assert(val_min),
-		max = assert(val_max),
+		min = val_min, -- min max may not there
+		max = val_max,
 		cou_z = val_cou_z,
 		avg_z = val_avg_z,
 		min_z = val_min_z,
@@ -177,6 +177,9 @@ end
 local function calc_cou_min_max()
 	local val_base = 0
 	return function(v_min, v_max, val_min, val_max)
+		if not v_min or not v_max then
+			return val_min, val_max
+		end
 		if not val_min then
 			val_min = v_min
 		end
@@ -248,8 +251,8 @@ function cou:_calc_cou(list, start, etime, zs)
 	return {
 		cou = assert(val_cou),
 		avg = assert(val_avg),
-		min = assert(val_min),
-		max = assert(val_max),
+		min = val_min,
+		max = val_max,
 		cou_z = val_cou_z,
 		avg_z = val_avg_z,
 		min_z = val_min_z,

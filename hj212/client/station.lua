@@ -44,10 +44,12 @@ function station:get_setting(key)
 	return self._settings[key]
 end
 
+-- Default System Code (ST)
 function station:system()
 	return self._system
 end
 
+-- System ID (MN)
 function station:id()
 	return self._id
 end

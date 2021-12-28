@@ -112,6 +112,12 @@ function poll:station()
 	return self._station
 end
 
+--- System Code (ST)
+function poll:system()
+	-- Return default system code
+	return self._station:system()
+end
+
 function poll:id()
 	return assert(self._id)
 end
@@ -130,7 +136,7 @@ end
 
 --- Ex vals will not be saved
 function poll:set_value(value, timestamp, value_z, flag, quality, ex_vals)
-	local flag = flag == nil and self._meter:get_flag() or nil
+	local flag = flag ~= nil and flag or self._meter:get_flag()
 	self._value = value
 	self._value_z = value_z
 	self._timestamp = timestamp

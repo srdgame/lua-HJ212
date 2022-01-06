@@ -32,3 +32,4 @@ _M.find = function(id)
 	return EX_TAGS[id]
 end
 
+return _M

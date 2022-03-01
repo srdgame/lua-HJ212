@@ -29,6 +29,7 @@ function flow:__call(typ, val, now)
 		val.cou = fval.cou
 	else
 		self._calc:log('debug', 'No COU value of Water Cou', type_name, val.etime)
+		val.cou = 0
 	end
 
 	return val

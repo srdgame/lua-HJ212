@@ -47,6 +47,12 @@ function pollut:__call(typ, val, now)
 		end
 	else
 		self._pollut:log('debug', 'No COU value of AIR Flow', type_name, val.etime)
+		val.cou = 0
+		val.avg = 0
+		if val.cou_z or val.avg_z then
+			val.cou_z = 0
+			val.avg_z = 0
+		end
 	end
 
 	return val

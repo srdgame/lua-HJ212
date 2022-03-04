@@ -292,6 +292,7 @@ function client:handle(cmd, ...)
 			end
 		end
 	end
+	self:log('error', "Command not implemented:"..cmd)
 	return false, 'Not implemented'
 end
 

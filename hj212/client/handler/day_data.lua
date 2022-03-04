@@ -16,10 +16,7 @@ function handler:process(request)
 
 	self:log('info', "Get HOUR data from: "..stime.." to "..etime)
 
-	stime = stime + 3600 * 24 -- for ending time not start
-	etime = etime + 3600 * 24
-
-	return self:client:handle(types.COMMAND.DAY_DATA, stime, etime)
+	return self._client:handle(types.COMMAND.DAY_DATA, stime, etime)
 end
 
 return handler

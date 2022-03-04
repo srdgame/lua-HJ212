@@ -16,7 +16,7 @@ function handler:process(request)
 
 	self:log('info', "Get HOUR data from: "..stime.." to "..etime)
 
-	return self._client:handle(types.COMMAND.DAY_DATA, stime, etime)
+	return self._client:handle(types.COMMAND.DAY_DATA, stime, etime, true)
 end
 
 return handler

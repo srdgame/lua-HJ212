@@ -217,7 +217,6 @@ function client:request(request, response)
 	assert(pack:system() ~= types.SYSTEM.REPLY)
 	local raw = pack:encode()
 	if not pack:need_ack() then
-		assert(not response)
 		if type(raw) == 'table' then
 			raw = table.concat(raw)
 		end

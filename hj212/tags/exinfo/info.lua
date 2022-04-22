@@ -1,0 +1,133 @@
+local TYPES = {
+	-- 工作参数
+	F				= { desc = '烟道截面积',		hebei = 'a01016',	shandong = '218',	unit = '平方米' },
+	Kv				= { desc = '速度场系数',		hebei = 'i23003',	shandong = '246',	unit = 'N/A' },
+	Ba				= { desc = '本地大气压',		hebei = 'i23001',	shandong = '238',	unit = '千帕' },
+	Co2s			= { desc = '基准氧含量',		hebei = 'i23002',	shandong = 'N/A',	unit = '%' },
+	Kp				= { desc = '皮托管系数',		hebei = 'i23004',	shandong = '216',	unit = 'N/A' },
+	As				= { desc = '标准过量空气系数',	hebei = 'N/A',		shandong = '247',	unit = 'N/A' },
+	Humidity_Max	= { desc = '烟气湿度量程上限',	hebei = '23005',	shandong = '241',	unit = '%' },
+	Humidity_Min	= { desc = '烟气湿度量程下限',	hebei = 'N/A',		shandong = '242',	unit = '%' },
+	Temp_Max		= { desc = '烟气温度量程上限',	hebei = 'i23006',	shandong = '212',	unit = '摄氏度' },
+	Temp_Min		= { desc = '烟气温度量程下限',	hebei = 'i23007',	shandong = '213',	unit = '摄氏度' },
+	Pressure_Max	= { desc = '烟气压力量程上限',	hebei = 'i23008',	shandong = '214',	unit = '帕' },
+	Pressure_Min	= { desc = '烟气压力量程下限',	hebei = 'i23009',	shandong = '215',	unit = '帕' },
+	Flow_Max		= { desc = '烟气流速量程',		hebei = 'i23010',	shandong = '244',	unit = 'm/s' },
+	Flow_Min		= { desc = '烟气流速量程',		hebei = 'N/A',		shandong = '245',	unit = 'm/s' },
+	Dust_Max		= { desc = '烟尘量程上限',		hebei = 'i23012',	shandong = '208',	unit = '毫克/立方米' },
+	Dust_Min		= { desc = '烟尘量程下限',		hebei = 'i23013',	shandong = '209',	unit = '毫克/立方米' },
+	Dust_Kk			= { desc = '烟尘斜率',			hebei = 'N/A',		shandong = '248',	unit = 'N/A' },
+	Dust_Ki			= { desc = '烟尘截距',			hebei = 'N/A',		shandong = '249',	unit = 'N/A' },
+
+	-- 数采仪工作状态
+	TStatus			= { desc = '数采仪工作状态',		hebei = 'i22001',	shandong = 'N/A',	unit = 'N/A' },
+	TConnection		= { desc = '数采仪通讯状态',		hebei = 'FUNC(i22004)',	shandong = 'FUNC',	unit = 'N/A' },
+	TAlarm			= { desc = '数采仪报警详情',		hebei = 'i22005',	shandong = 'N/A',	unit = 'N/A' },
+	TVideoAlarm		= { desc = '视频报警',				hebei = 'i52001',	shandong = 'N/A',	unit = 'N/A' },
+
+	-- 气态分析仪工作状态
+	AStatus			= { desc = '气态分析仪工作状态',	hebei = 'i12007',	shandong = 'FUNC',	unit = 'N/A' },
+	AAlarm			= { desc = '气态分析仪报警状态',	hebei = 'i12008',	shandong = 'FUNC',	unit = 'N/A' },
+	AAlarmState		= { desc = '气态分析仪报警详情',	hebei = 'i12009',	shandong = 'FUNC',	unit = 'N/A' },
+	ACtrlStatus		= { desc = '管控状态',				hebei = 'N/A',		shandong = 'FUNC',	unit = 'N/A' }, -- 山东
+
+	-- 污水分析仪工作状态
+	AStatus			= { desc = '污水分析仪工作状态',	hebei = 'i12101',	shandong = 'FUNC',	unit = 'N/A' },
+	AAlarm			= { desc = '污水分析仪报警状态',	hebei = 'i12102',	shandong = 'FUNC',	unit = 'N/A' },
+	AAlarmState		= { desc = '污水分析仪报警详情',	hebei = 'i12103',	shandong = 'FUNC',	unit = 'N/A' },
+
+	-- 水质采样器状态
+	WSampleStatus	= { desc = '设备状态',				hebei = 'i42001',	shandong = 'N/A',	unit = 'N/A' },
+	WSampleTime		= { desc = '系统时间',				hebei = 'i42002',	shandong = 'N/A',	unit = 'N/A' },
+	WSampleDoor		= { desc = '门禁状态',				hebei = 'i42003',	shandong = 'N/A',	unit = 'N/A' },
+	WSamplePailA	= { desc = '混匀桶A工作状态',		hebei = 'i42004',	shandong = 'N/A',	unit = 'N/A' },
+	WSamplePailB	= { desc = '混匀桶B工作状态',		hebei = 'i42005',	shandong = 'N/A',	unit = 'N/A' },
+	WSampleAlarm	= { desc = '异常状态',				hebei = 'i42006',	shandong = 'N/A',	unit = 'N/A' },
+
+	-- 烟气
+	ACalibZeroTM	= { desc = '零点校准时间',				hebei = 'i13021',	shandong = 'FUNC',	unit = 'N/A' },
+	ACalibZeroK		= { desc = '零点校准系数',				hebei = 'i13022',	shandong = 'N/A',	unit = 'N/A' },
+	ACalibZeroV		= { desc = '零点校准浓度',				hebei = 'i13023',	shandong = 'FUNC',	unit = 'mg/m3' },
+	ACalibZeroRaw	= { desc = '零点校准原始值',			hebei = 'i13024',	shandong = 'N/A',	unit = 'N/A' },
+	ACalibZeroB		= { desc = '零点校准漂移',				hebei = 'i13025',	shandong = 'FUNC',	unit = '%' },
+	ACalibRangeK	= { desc = '量程校准系数',				hebei = 'i13026',	shandong = 'N/A',	unit = 'N/A' },
+	ACalibRangeTM	= { desc = '量程校准时间',				hebei = 'i13027',	shandong = 'FUNC',	unit = 'N/A' },
+	ACalibRangeV	= { desc = '量程校准浓度',				hebei = 'i13023',	shandong = 'FUNC',	unit = 'mg/m3' },
+	ACalibRangeRaw	= { desc = '量程校准原始值',			hebei = 'i13024',	shandong = 'N/A',	unit = 'N/A' },
+	ACalibRangeB	= { desc = '量程校准漂移',				hebei = 'i13010',	shandong = 'FUNC',	unit = '%' },
+	AValueRaw		= { desc = '测量原始值',				hebei = 'FUNC(i13011)',	shandong = 'N/A' },
+	ADilutionRatio	= { desc = '稀释比',					hebei = 'i13012',	shandong = 'N/A',	unit = 'N/A' },
+	ARange			= { desc = '量程',						hebei = 'i13013',	shandong = 'N/A',	unit = 'mg/m3' },
+	ADustiness		= { desc = '污染度（浊度法）',			hebei = 'i13014',	shandong = 'N/A',	unit = 'N/A' },
+	ASmoothTime		= { desc = '平滑时间',					hebei = 'i13015',	shandong = 'N/A',	unit = 'Min' },
+	ABlankParticle	= { desc = '空白粒子数（β射线法）',		hebei = 'i13016',	shandong = 'N/A',	unit = 'N/A' },
+	ASampleParticle	= { desc = '采样后粒子数（β射线法）',	hebei = 'i13017',	shandong = 'N/A',	unit = 'N/A' },
+	ASampleFlowT	= { desc = '采样后总流量（β射线法）',	hebei = 'i13018',	shandong = 'N/A',	unit = 'N/A' },
+	AMassRatio		= { desc = '质量比（β射线法）',			hebei = 'i13019',	shandong = 'N/A',	unit = 'N/A' },
+	ASampleFlow		= { desc = '采样流量（β射线法）',		hebei = 'i13020',	shandong = 'N/A',	unit = 'N/A' },
+
+	-- 污水
+	WCalibZeroTM	= { desc = '零点校准时间',				hebei = 'i13101',	shandong = 'FUNC',	unit = 'N/A' },
+	WB				= { desc = '截距',						hebei = 'i13007',	shandong = 'N/A',	unit = 'mg/L' },
+	WB1				= { desc = '截距1',						hebei = 'i13103',	shandong = 'N/A',	unit = 'mg/L' },
+	WCalibZeroV		= { desc = '零点校准浓度',				hebei = 'i13104',	shandong = 'FUNC',	unit = 'mg/L' },
+	WCalibZeroRaw	= { desc = '零点校准原始值',			hebei = 'i13105',	shandong = 'N/A',	unit = 'N/A' },
+	WCalibZeroB		= { desc = '零点校准漂移',				hebei = 'i13106',	shandong = 'FUNC',	unit = '%' },
+	WCalibRangeTM	= { desc = '量程校准时间',				hebei = 'i13107',	shandong = 'FUNC',	unit = 'N/A' },
+	WCalibRangeV	= { desc = '量程校准浓度',				hebei = 'i13108',	shandong = 'FUNC',	unit = 'mg/L' },
+	WCalibRangeV1	= { desc = '量程校准浓度1',				hebei = 'i13109',	shandong = 'N/A',	unit = 'mg/L' },
+	WCalibRangeRaw	= { desc = '量程校准原始值',			hebei = 'i13110',	shandong = 'FUNC',	unit = 'N/A' },
+	WCalibRangeRaw1	= { desc = '量程校准原始值1',			hebei = 'i13111',	shandong = 'N/A',	unit = 'N/A' },
+	WCalibRangeB	= { desc = '量程校准漂移',				hebei = 'i13112',	shandong = 'FUNC',	unit = '%' },
+	WCalibRangeB1	= { desc = '量程校准漂移1',				hebei = 'i13113',	shandong = 'N/A',	unit = '%' },
+	WMeasureSpan	= { desc = '测量间隔',					hebei = 'i13003',	shandong = 'FUNC',	unit = 'Min' },
+	WValueRaw		= { desc = '测量原始值',				hebei = 'FUNC(i13115)',	shandong = 'N/A' },
+	WRange			= { desc = '量程',						hebei = 'i13116',	shandong = 'FUNC',	unit = 'mg/L' },
+	WK				= { desc = '斜率',						hebei = 'i13008',	shandong = 'N/A',	unit = 'N/A' },
+	WK1				= { desc = '斜率1',						hebei = 'i13118',	shandong = 'N/A',	unit = 'N/A' },
+	WCalibK			= { desc = '修正斜率',					hebei = 'i13119',	shandong = 'FUNC',	unit = 'N/A' },
+	WCalibB			= { desc = '修正截距',					hebei = 'i13120',	shandong = 'FUNC',	unit = 'mg/L' },
+	WClearUpTime	= { desc = '消解时长',					hebei = 'i13005',	shandong = 'FUNC',	unit = 'Min' },
+	WClearUpTemo	= { desc = '消解温度',					hebei = 'i13004',	shandong = 'FUNC',	unit = '.C' },
+	WCoolTime		= { desc = '冷却时长',					hebei = 'i13123',	shandong = 'N/A',	unit = 'Min' },
+	WMohrSSaltTime	= { desc = '硫酸亚铁铵标定时长',		hebei = 'i13124',	shandong = 'N/A',	unit = 'Min' },
+	WMohrSSaltVal	= { desc = '硫酸亚铁铵浓度',			hebei = 'i13125',	shandong = 'N/A',	unit = 'g/L' },
+	WMohrSSaltVol	= { desc = '硫酸亚铁铵浓标准溶液体积',	hebei = 'i13126',	shandong = 'N/A',	unit = 'L' },
+	WPotaDischVal	= { desc = '重铬酸钾浓度',				hebei = 'i13127',	shandong = 'N/A',	unit = 'g/L' },
+	WStdCheckTM		= { desc = '标样核查时间',				hebei = 'i13128',	shandong = 'N/A',	unit = 'N/A' },
+	WStdCheckOffset	= { desc = '标样核查偏差百分比',		hebei = 'i13129',	shandong = 'N/A',	unit = '%' },
+	WStdCheckVal	= { desc = '标样核查标夜浓度',			hebei = 'i13130',	shandong = 'N/A',	unit = 'mg/L' },
+	-- 山东
+	WStd1Val		= { desc = '标夜1浓度',			hebei = 'N/A',	shandong = 'FUNC',	unit = 'mg/L' },
+	WStd1B			= { desc = '标夜1漂移',			hebei = 'N/A',	shandong = 'FUNC',	unit = '%' },
+	WStd2Val		= { desc = '标夜2浓度',			hebei = 'N/A',	shandong = 'FUNC',	unit = 'mg/L' },
+	WStd2B			= { desc = '标夜3漂移',			hebei = 'N/A',	shandong = 'FUNC',	unit = '%' },
+	WStd3Val		= { desc = '标夜3浓度',			hebei = 'N/A',	shandong = 'FUNC',	unit = 'mg/L' },
+	WStd3B			= { desc = '标夜3漂移',			hebei = 'N/A',	shandong = 'FUNC',	unit = '%' },
+	WStd4Val		= { desc = '标夜4浓度',			hebei = 'N/A',	shandong = 'FUNC',	unit = 'mg/L' },
+	WStd4B			= { desc = '标夜4漂移',			hebei = 'N/A',	shandong = 'FUNC',	unit = '%' },
+
+	-- 水质采样器
+	WSampleMode		= { desc = '采样模式',			hebei = 'i43001',	shandong = 'N/A',	unit = 'N/A' },
+	WKeepMode		= { desc = '留样模式',			hebei = 'i43002',	shandong = 'N/A',	unit = 'N/A' },
+	WSampleVol		= { desc = '采样量',			hebei = 'i43003',	shandong = 'N/A',	unit = 'ml' },
+	WSampleSpan		= { desc = '采样间隔',			hebei = 'i43004',	shandong = 'N/A',	unit = 'Min' },
+	WKeepVol		= { desc = '留样量',			hebei = 'i43005',	shandong = 'N/A',	unit = 'ml' },
+	WKeepNo			= { desc = '留样瓶编号',		hebei = 'i43006',	shandong = 'N/A',	unit = 'N/A' },
+
+	-- 门禁
+	DoorMN			= { desc = '门禁编号',			hebei = 'i3310A',	shandong = 'N/A',	unit = 'N/A' },
+	DoorMode		= { desc = '开门方式',			hebei = 'i3310B',	shandong = 'N/A',	unit = 'N/A' },
+	DoorUserID		= { desc = '系统中用户唯一ID',	hebei = 'i3310D',	shandong = 'N/A',	unit = 'N/A' },
+	DoorOpenTime	= { desc = '开门时间',			hebei = 'i3310E',	shandong = 'N/A',	unit = 'N/A' },
+	DoorStatus		= { desc = '门状态',			hebei = 'i3310F',	shandong = 'N/A',	unit = 'N/A' },
+	DoorUserName	= { desc = '系统中用户姓名',	hebei = 'i3310J',	shandong = 'N/A',	unit = 'N/A' },
+	DoorUserImgUrl	= { desc = '系统中用户图像地址',hebei = 'i3310I',	shandong = 'N/A',	unit = 'N/A' },
+	DoorUserEn		= { desc = '人连识别是否启用',	hebei = 'SFP',		shandong = 'N/A',	unit = 'N/A' },
+	DoorRecord		= { desc = '开关门记录', 		hebei = 'i41001',	shandong = 'N/A',	unit = 'N/A' },
+	DoorPowerOff	= { desc = '断电记录',			hebei = 'i41002',	shandong = 'N/A',	unit = 'N/A' },
+}
+
+return {
+	TYPES = TYPES
+}

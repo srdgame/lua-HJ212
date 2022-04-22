@@ -1,0 +1,11 @@
+类型,名称,描述,2017协议名,2005协议名,计算公式,计算公式（2015）
+AIR_INFO,calib_k,标定系数,,,,
+AIR_INFO,range,气体浓度量程,,,,
+AIR_INFO,std,量程标气浓度,,,,
+AIR_INFO,zero,零点标气弄度,,,,
+AIR_INFO,calib,量程校准时间,,,,
+AIR_INFO,zero_calib,零点校准时间,,,,
+AIR_INFO,zero_off,零点校准偏差,,,,
+AIR_INFO,range_off,量程校准偏差,,,,
+AIR_INFO,k,斜率,,,,
+AIR_INFO,b,截矩,,,,

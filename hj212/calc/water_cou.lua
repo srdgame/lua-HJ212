@@ -9,7 +9,7 @@ function water:initialize(station, id, type_mask, min, max, zs_calc)
 
 	local min_interval = assert(self._station:min_interval())
 
-	self._station:water(function(cou_poll)
+	self._station:wait_poll('w00000_cou', function(cou_poll)
 		if cou_poll then
 			local cou_calc = cou_poll:cou_calc()
 			self:push_pre_calc(cou_calc)

@@ -131,7 +131,7 @@ local function calc_cou_hour(list, start, etime, zs)
 
 			val_cou = val_cou + (v.cou or 0)
 
-			val_avg = v.avg -- using last avg
+			val_avg = v.avg and v.avg or val_avg -- using last avg
 			val_count = val_count + 1
 		end
 	end

@@ -10,7 +10,11 @@ function req:initialize(need_ack, poll_id, tags)
 	local cmd = command:new(data_time, poll_id)
 
 	for i, v in ipairs(tags or {}) do
-		cmd:add_tag(v:data_time(), v)
+		if v:data_time() then
+			cmd:add_tag(v:data_time(), v)
+		else
+			-- TODO: alert this
+		end
 	end
 	base.initialize(self, cmd, need_ack)
 end

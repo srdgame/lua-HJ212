@@ -182,7 +182,7 @@ function poll:convert_data(data)
 
 	local rdata = {}
 	local has_cou = self._cou.cou
-	for k, v in ipairs(data) do
+	for k, v in ipairs(data or {}) do
 		if has_cou ~= false then
 			rdata[#rdata + 1] = param_tag:new(self._id, {
 				Cou = v.cou,

@@ -1,6 +1,7 @@
 local class = require 'middleclass'
 local mgr = require 'hj212.calc.manager'
 local base = require 'hj212.calc.base'
+local helper = require 'hj212.calc.helper'
 
 local pollut = class('hj212.calc.air.pollut')
 
@@ -25,7 +26,7 @@ function pollut:__call(typ, val, now)
 	end
 
 	local fval = flow[fn](flow, val.etime)
-	if fval then
+	if fval and helper.flag_can_calc(fval.flag) then
 		if typ == mgr.TYPES.MIN then
 			val.cou = fval.cou * val.avg * (10 ^ -6)
 			if val.avg_z then

@@ -53,7 +53,7 @@ function pollut:__call(typ, val, now)
 	assert(flow[fn], 'Missing function:'..fn)
 
 	local fval = flow[fn](flow, val.etime)
-	if fval then
+	if fval and helper.flag_can_calc(fval.flag) then
 		local flow_cou = math.floor(fval.cou * 10000) / 10000
 		if flow_cou < 0.001 then
 			self._pollut:log('warning', 'flow cou is zero', self._pollut._id)

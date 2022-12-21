@@ -1,6 +1,7 @@
 local class = require 'middleclass'
 local mgr = require 'hj212.calc.manager'
 local base = require 'hj212.calc.base'
+local helper = require 'hj212.calc.helper'
 
 local pollut = class('hj212.calc.water.pollut')
 
@@ -25,19 +26,19 @@ function pollut:__call(typ, val, now)
 	end
 
 	local fval = flow[fn](flow, val.etime)
-	if fval then
+	if fval and helper.flag_can_calc(fval.flag) then
 		if typ == mgr.TYPES.MIN then
-			val.cou = fval.cou * val.avg * (10 ^ -3)  -- calculate cou from avg
+			val.cou = (fval.cou or 0) * val.avg * (10 ^ -3)  -- calculate cou from avg
 			if val.avg_z then
-				val.cou_z = fval.cou * val.avg_z * (10 ^ -3)
+				val.cou_z = (fval.cou or 0) * val.avg_z * (10 ^ -3)
 			end
 		else
 			if fval.cou > 0.000001 then
 				-- kg -> mg : 1000 * 1000
 				-- m^3 -> L : 1000
-				val.avg = (val.cou * 1000) / fval.cou  --- calculate avg from cou / flow_cou
+				val.avg = ((val.cou or 0) * 1000) / fval.cou  --- calculate avg from cou / flow_cou
 				if val.cou_z then
-					val.avg_z = (val.cou_z * 1000) / fval.cou
+					val.avg_z = ((val.cou_z or 0) * 1000) / fval.cou
 				end
 			else
 				val.avg = 0
